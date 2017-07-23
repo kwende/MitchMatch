@@ -4,14 +4,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>18701daf-2b05-480b-bafa-6cb3a6224977</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>ClusterSocialSecurityNumbers.py</StartupFile>
+    <StartupFile>SocialsByEditDistance.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>MitchMatch</Name>
     <RootNamespace>MitchMatch</RootNamespace>
-    <InterpreterId>Global|PythonCore|3.5</InterpreterId>
+    <InterpreterId>Global|ContinuumAnalytics|Anaconda36-64</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,9 +32,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MitchMatch.py" />
+    <Compile Include="SocialsByEditDistance.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.5" />
+    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="helpers\" />
