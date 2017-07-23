@@ -23,6 +23,10 @@ namespace challenge
             AddMatches(data, r => r.PHONE, 5, ref matches);
             AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, ref matches);
 
+            var remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            var typicalNumber = remainingRows.GroupBy(r => r.ADDRESS1).Average(g => g.Count());
+            Console.WriteLine(typicalNumber);
+
             Console.WriteLine(matches.Count() + " matched entries");
 
             for(int i = 0; i < 10; i++)
