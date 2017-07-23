@@ -9,8 +9,21 @@ namespace challenge
 {
     class Program
     {
+        static bool M(row r, row s, Func<row,string> f)
+        {
+            string rs = f(r);
+            string ss = f(s);
+
+            if (rs != "" && ss != "" && rs == ss)
+                return true;
+
+            return false;
+        }
+
         static void Main(string[] args)
         {
+            Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
+
             Random random = new Random();
 
             var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
@@ -18,15 +31,76 @@ namespace challenge
             var data = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
             Console.WriteLine(lines.Count() + " total rows" ); // >= 15374761
 
-            Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
-            AddMatches(data, r => r.SSN, 4, ref matches);
-            AddMatches(data, r => r.PHONE, 5, ref matches);
-            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, ref matches);
+            var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
+            //Pair off and make a soft check on field to verify sameness
+            Console.WriteLine(fourMillion.Count());
 
-            var remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            var typicalNumber = remainingRows.GroupBy(r => r.ADDRESS1).Average(g => g.Count());
-            Console.WriteLine(typicalNumber);
+            for(int i = 0; i < fourMillion.Count(); i+=2)
+            {
+                var r = fourMillion[i];
+                var s = fourMillion[i + 1];
+                Add(r, s, ref matches);
+                //if(M(r,s,t=>t.ADDRESS1) || M(r,s,t => t.ALIAS) || M(r,s,t => t.DOB.ToString("d")) || M(r,s,t=>t.EMAIL) || M(r,s,t => t.FIRST) || M(r,s,t=>t.LAST) || M(r,s,t=>t.MOTHERS_MAIDEN_NAME) || M(r,s,t=>t.PHONE.ToString()) || M(r,s,t=>t.SSN.ToString()))
+                //{
 
+                //}
+                //else
+                //{
+                //    Console.WriteLine(s.EnterpriseID);
+                //}
+            }
+
+            data = UnMatched(data, matches);
+
+            var badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
+
+            AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
+            AddMatches(data, r => r.PHONE, 5, (r1, r2) => true, ref matches);
+            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1,r2) => true, ref matches);
+
+            AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
+
+            AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
+
+            var remainingRows = UnMatched(data, matches);
+
+            //For what's left, brute force soft match on at least 2 of name, DOB, address
+            for (int i = 0; i < remainingRows.Count(); i++)
+            {
+                Console.Write("\r" + i + "/" + remainingRows.Count());
+                for(int j = 0; j < remainingRows.Count(); j++)
+                {
+                    if (i == j)
+                        continue;
+
+                    int fieldAgreement = 0;
+
+                    var ri = remainingRows[i];
+                    var rj = remainingRows[j];
+
+                    if (!badSSNs.Contains(ri.SSN) && !badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
+                        fieldAgreement++;
+
+                    if (KDifferences(ri.LAST, rj.LAST,2))
+                        fieldAgreement++;
+
+                    if (FuzzyAddressMatch(ri, rj))
+                        fieldAgreement++;
+
+                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                        fieldAgreement++;
+
+                    if (fieldAgreement >= 2)
+                    {
+                        if (!matches.ContainsKey(ri.EnterpriseID))
+                        {
+                            Add(ri, rj, ref matches);
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
 
             for(int i = 0; i < 10; i++)
@@ -86,7 +160,79 @@ namespace challenge
             Console.ReadLine();
         }
 
-        static void AddMatches<T>(IEnumerable<row> data, Func<row,T> groupingValue, int sizeToThrowAway, ref Dictionary<int, List<int>> matches)
+        static bool FuzzyAddressMatch(row a, row b)
+        {
+            if (a.ADDRESS1 == "" || b.ADDRESS1 == "")
+                return false;
+            if (a.ADDRESS1 == b.ADDRESS1)
+                return true;
+
+            var anums = NumericParts(a.ADDRESS1);
+            var bnums = NumericParts(b.ADDRESS1);
+
+            if (anums.Count != bnums.Count)
+                return false;
+
+            if (anums.Count == 0)
+                return false;
+
+            for(int i = 0; i < anums.Count; i++)
+            {
+                if (anums[i] != bnums[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        static List<string> NumericParts(string s)
+        {
+            List<string> toReturn = new List<string>();
+            string current = "";
+            for(int i = 0; i < s.Length; i++)
+            {
+                if (char.IsDigit(s[i]))
+                {
+                    current += s[i];
+                }
+                else if(current != "")
+                {
+                    toReturn.Add(current);
+                    current = "";
+                }
+            }
+
+            if (current != "")
+            {
+                toReturn.Add(current);
+            }
+
+            return toReturn;
+        }
+
+
+        static void Add(row a, row b, ref Dictionary<int, List<int>> matches)
+        {
+            AddOrdered(a, b, ref matches);
+            AddOrdered(b, a, ref matches);
+        }
+
+        static void AddOrdered(row a, row b,ref Dictionary<int, List<int>> matches)
+        {
+            if (!matches.ContainsKey(a.EnterpriseID))
+                matches[a.EnterpriseID] = new List<int>();
+
+            matches[a.EnterpriseID].Add(b.EnterpriseID);
+
+            matches[a.EnterpriseID] = matches[a.EnterpriseID].Distinct().ToList();
+        }
+
+        static row[] UnMatched(IEnumerable<row> data, Dictionary<int,List<int>> matches)
+        {
+            return data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+        }
+
+        static void AddMatches<T>(IEnumerable<row> data, Func<row,T> groupingValue, int sizeToThrowAway, Func<row,row,bool> softEquals, ref Dictionary<int, List<int>> matches)
         {
             var grouped = data.GroupBy(groupingValue);
             Console.WriteLine(grouped.Where(g => g.Count() >= sizeToThrowAway).Count());
@@ -104,9 +250,9 @@ namespace challenge
                 }
 
                 var representative = group.First();
-                if (group.Any(r => !PartialMatch(r, representative)))
+                if (group.Any(r => !softEquals(r, representative)))
                 {
-                    Console.WriteLine(group.Key);
+                    //Console.WriteLine(group.Key);
                     counter++;
                 }
                 else
@@ -139,19 +285,46 @@ namespace challenge
             
         }
 
+        static bool FuzzyDateEquals(DateTime a, DateTime b)
+        {
+            if (OneOrOneDigit(a.Month, b.Month) && a.Day == b.Day && a.Year == b.Year)
+                return true;
+
+            if (a.Month == b.Month && OneOrOneDigit(a.Day,b.Day) && a.Year == b.Year)
+                return true;
+
+            if (a.Month == b.Month && a.Day == b.Day && OneOrOneDigit(a.Year,b.Year))
+                return true;
+
+            return false;
+        }
+
+        static bool OneOrOneDigit(int a, int b)
+        {
+            if (System.Math.Abs(a - b) < 2)
+                return true;
+
+            return OneDifference(a.ToString(), b.ToString());
+        }
+
         static bool OneDifference(string sm, string sn)
+        {
+            return KDifferences(sm, sn, 1);
+        }
+
+        static bool KDifferences(string sm, string sn, int k)
         {
             if (sm.Length != sn.Length)
                 return false;
 
             int nd = 0;
-            for(int i = 0; i < sn.Length; i++)
+            for (int i = 0; i < sn.Length; i++)
             {
                 if (sm[i] != sn[i])
                     nd++;
             }
 
-            return nd <= 1;
+            return nd <= k;
         }
 
         static int MatchExtent(row a, row b)
