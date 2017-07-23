@@ -9,7 +9,7 @@ namespace challenge
 {
     public class Program
     {
-        static bool M(row r, row s, Func<row,string> f)
+        static bool M(row r, row s, Func<row, string> f)
         {
             string rs = f(r);
             string ss = f(s);
@@ -27,7 +27,7 @@ namespace challenge
             Random random = new Random();
 
             var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
-            var allData = lines.Select(l => RowLibrary.ParseRow(l)).ToArray();
+            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
 
@@ -35,7 +35,7 @@ namespace challenge
             //Pair off and make a soft check on field to verify sameness
             Console.WriteLine(fourMillion.Count());
 
-            for(int i = 0; i < fourMillion.Count(); i+=2)
+            for (int i = 0; i < fourMillion.Count(); i += 2)
             {
                 var r = fourMillion[i];
                 var s = fourMillion[i + 1];
@@ -54,7 +54,7 @@ namespace challenge
 
             AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
             AddMatches(data, r => r.PHONE, 5, (r1, r2) => true, ref matches);
-            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1,r2) => true, ref matches);
+            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1, r2) => true, ref matches);
 
             AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => true, ref matches);
 
@@ -66,7 +66,7 @@ namespace challenge
             for (int i = 0; i < remainingRows.Count(); i++)
             {
                 Console.Write("\r" + i + "/" + remainingRows.Count());
-                for(int j = 0; j < remainingRows.Count(); j++)
+                for (int j = 0; j < remainingRows.Count(); j++)
                 {
                     if (i == j)
                         continue;
@@ -161,7 +161,7 @@ namespace challenge
             AddOrdered(b, a, ref matches);
         }
 
-        static void AddOrdered(row a, row b,ref Dictionary<int, List<int>> matches)
+        static void AddOrdered(row a, row b, ref Dictionary<int, List<int>> matches)
         {
             if (!matches.ContainsKey(a.EnterpriseID))
                 matches[a.EnterpriseID] = new List<int>();
@@ -171,12 +171,12 @@ namespace challenge
             matches[a.EnterpriseID] = matches[a.EnterpriseID].Distinct().ToList();
         }
 
-        static row[] UnMatched(IEnumerable<row> data, Dictionary<int,List<int>> matches)
+        static row[] UnMatched(IEnumerable<row> data, Dictionary<int, List<int>> matches)
         {
             return data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
         }
 
-        static void AddMatches<T>(IEnumerable<row> data, Func<row,T> groupingValue, int sizeToThrowAway, Func<row,row,bool> softEquals, ref Dictionary<int, List<int>> matches)
+        static void AddMatches<T>(IEnumerable<row> data, Func<row, T> groupingValue, int sizeToThrowAway, Func<row, row, bool> softEquals, ref Dictionary<int, List<int>> matches)
 
         {
             var grouped = data.GroupBy(groupingValue);
