@@ -1,16 +1,10 @@
 import csv
 from math import *
+from helpers.FileReader import LoadAndTrimToLastTenPercent
 
 LastNameIndex = 1
 FirstNameIndex = 2
 SSNIndex = 7
-
-def LoadAndTrimToLastTenPercent(filePath):
-    trimmedRows = []
-    with open(filePath, 'r') as csvfile:
-        rows = csv.reader(csvfile)
-        trimmedRows = [row for row in rows if row[6].lower() == 'm' or row[6].lower() == 'f']
-    return trimmedRows
 
 def StupidVerbatimMatchSocialSecurityNumber(results):
     exactMatches = []
@@ -81,7 +75,7 @@ def StupidVerbatimMatchFirstNameLastName(results):
 def main():
     results = LoadAndTrimToLastTenPercent("C:/Users/Ben/Desktop/FInalDataset.csv")
 
-    exactMatches = StupidVerbatimMatchFirstNameLastName(results)
+    #exactMatches = StupidVerbatimMatchFirstNameLastName(results)
     #exactMatches = StupidVerbatimMatchSocialSecurityNumber(results)
 
     with open('c:/users/ben/desktop/output.txt', "w") as fout:
