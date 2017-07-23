@@ -18,14 +18,44 @@ namespace LucasPlayground
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
+            Console.WriteLine("Remaining: " + data.Length);
 
             Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
 
-            var addedSSN = AddMatches(data, r => r.SSN, 4, ref matches, false, true, false);
-            var addedPhone = AddMatches(data, r => r.PHONE, 5, ref matches, true, true, false);
-            var addedNameDate = AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, ref matches, true, true, false);
-            var addedNamePhone = AddMatches(data, r => (r.PHONE <= 0 ? "" : r.LAST + r.FIRST + r.PHONE), 4, ref matches, false, false, true);
 
+            Console.WriteLine();
+            Console.WriteLine("SSN");
+            var addedSSN = AddMatches(data, r => r.SSN, 4, ref matches, false, false, false);
+            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+
+            Console.WriteLine();
+            Console.WriteLine("PHONE");
+            var addedPhone = AddMatches(data, r => r.PHONE, 5, ref matches, true, false, false);
+            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+
+            Console.WriteLine();
+            Console.WriteLine("NAME + DOB");
+            var addedNameDOB = AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, ref matches, true, true, false);
+            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+
+            Console.WriteLine();
+            Console.WriteLine("NAME + PHONE");
+            var addedNamePhone = AddMatches(data, r => (r.PHONE <= 0 ? "" : r.LAST + r.FIRST + r.PHONE), 4, ref matches, false, false, false);
+            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+
+            Console.WriteLine();
+            Console.WriteLine("NAME + ADDRESS");
+            var addedNameAddress = AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, ref matches, true, true, false);
+            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+
+            Console.WriteLine();
+            Console.WriteLine("ADDRESS + DOB");
+            var addedAddressDOB = AddMatches(data, r => r.ADDRESS1 + r.DOB.ToString("d"), 4, ref matches, true, true, false);
+            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+
+            //AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => true, ref matches);
+
+            //AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => true, ref matches);
 
             var remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine(remainingRows.Count());
@@ -51,7 +81,7 @@ namespace LucasPlayground
             List<IGrouping<T, row>> addedThisTime = new List<IGrouping<T, row>>();
 
             var grouped = data.GroupBy(groupingValue);
-            Console.WriteLine(grouped.Where(g => g.Count() >= sizeToThrowAway).Count());
+            Console.WriteLine("Too large: " + grouped.Where(g => g.Count() >= sizeToThrowAway).Count());
             int counter = 0;
             foreach (var group in grouped)
             {
@@ -106,7 +136,7 @@ namespace LucasPlayground
                 }
             }
 
-            Console.WriteLine(counter);
+            Console.WriteLine("Not partially matched: " + counter);
             return addedThisTime;
         }
     }
