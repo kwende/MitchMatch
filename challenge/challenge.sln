@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.13
+VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "challenge", "challenge\challenge.csproj", "{28561ECC-5344-480E-BAF0-F9F99A51802D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LucasPlayground", "LucasPlayground\LucasPlayground.csproj", "{61508B0E-0A89-4C12-893E-A342A9FD1FE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{28561ECC-5344-480E-BAF0-F9F99A51802D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28561ECC-5344-480E-BAF0-F9F99A51802D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28561ECC-5344-480E-BAF0-F9F99A51802D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

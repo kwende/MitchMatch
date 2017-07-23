@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace challenge
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
             Random random = new Random();
 
             var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
-            var allData = lines.Select(l => ParseRow(l)).ToArray();
+            var allData = lines.Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
-            Console.WriteLine(lines.Count() + " total rows" ); // >= 15374761
+            Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
 
             Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
             AddMatches(data, r => r.SSN, 4, ref matches);
@@ -29,10 +29,10 @@ namespace challenge
 
             Console.WriteLine(matches.Count() + " matched entries");
 
-            for(int i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
                 int nextTry = random.Next(data.Count());
-                while(matches.ContainsKey(data[nextTry].EnterpriseID))
+                while (matches.ContainsKey(data[nextTry].EnterpriseID))
                 {
                     nextTry = random.Next(data.Count());
                 }
@@ -86,7 +86,7 @@ namespace challenge
             Console.ReadLine();
         }
 
-        static void AddMatches<T>(IEnumerable<row> data, Func<row,T> groupingValue, int sizeToThrowAway, ref Dictionary<int, List<int>> matches)
+        public static void AddMatches<T>(IEnumerable<row> data, Func<row, T> groupingValue, int sizeToThrowAway, ref Dictionary<int, List<int>> matches)
         {
             var grouped = data.GroupBy(groupingValue);
             Console.WriteLine(grouped.Where(g => g.Count() >= sizeToThrowAway).Count());
@@ -125,9 +125,9 @@ namespace challenge
             Console.WriteLine(counter);
         }
 
-        static bool PartialMatch(row a, row b)
+        public static bool PartialMatch(row a, row b)
         {
-            return (a.FIRST != "" && a.FIRST == b.FIRST) || (a.LAST != "" && a.LAST == b.LAST) || DateSoftMatch(a.DOB,b.DOB);
+            return (a.FIRST != "" && a.FIRST == b.FIRST) || (a.LAST != "" && a.LAST == b.LAST) || DateSoftMatch(a.DOB, b.DOB);
         }
 
         static bool DateSoftMatch(DateTime a, DateTime b)
@@ -136,7 +136,7 @@ namespace challenge
                 return false;
 
             return OneDifference(a.ToString("d"), b.ToString("d"));
-            
+
         }
 
         static bool OneDifference(string sm, string sn)
@@ -145,7 +145,7 @@ namespace challenge
                 return false;
 
             int nd = 0;
-            for(int i = 0; i < sn.Length; i++)
+            for (int i = 0; i < sn.Length; i++)
             {
                 if (sm[i] != sn[i])
                     nd++;
@@ -158,18 +158,18 @@ namespace challenge
         {
             int toReturn = 0;
             if (PositiveMatch(a.SSN, b.SSN))
-                toReturn+=16;
+                toReturn += 16;
             if (PositiveMatch(a.PHONE, b.PHONE))
-                toReturn+=8;
+                toReturn += 8;
             if (Name(a) == Name(b))
-                toReturn+=4;
+                toReturn += 4;
 
             return toReturn;
 
             if (a.ADDRESS1 == b.ADDRESS1)
-                toReturn+=2;
+                toReturn += 2;
             if (a.DOB == b.DOB)
-                toReturn+=1;
+                toReturn += 1;
 
             return toReturn;
         }
@@ -183,11 +183,15 @@ namespace challenge
         {
             return a > 0 && b > 0 && a == b;
         }
+    }
 
+
+    public static class RowLibrary
+    {
         static int ParseInt(string s)
         {
             string digits = "";
-            for(int i = 0; i < s.Length; i++)
+            for (int i = 0; i < s.Length; i++)
             {
                 if (char.IsDigit(s[i]))
                     digits += s[i];
@@ -219,7 +223,7 @@ namespace challenge
             long toReturn;
             if (long.TryParse(digits, out toReturn))
             {
-                return toReturn; 
+                return toReturn;
             }
             else
             {
@@ -250,7 +254,7 @@ namespace challenge
             return line.Split(',');
         }
 
-        static row ParseRow(string line)
+        public static row ParseRow(string line)
         {
             var tokens = Tokens(line);
             row toReturn = new row
@@ -278,9 +282,33 @@ namespace challenge
 
             return toReturn;
         }
+
+        public static void Print(this row row)
+        {
+            string ssn = row.SSN <= 0 ? "   -  -    " : string.Format("{0:000-00-0000}", row.SSN);
+            string phone = row.PHONE <= 0 ? "   -   -    " : string.Format("{0:000-000-0000}", row.PHONE);
+            Console.WriteLine("{0,-15} {1, -15} {2,-20} {3, -3} AKA {14, -25} ({4,-1}): S:{5}  {6}  P:{7}. {9,25}, {10,5}, {11,10}, {12,2}, {13,5}. {17, -10}, {18}",
+                row.FIRST,
+                row.MIDDLE,
+                row.LAST,
+                row.SUFFIX,
+                row.GENDER,
+                ssn,
+                row.DOB.ToString("dd/MM/yyyy"),
+                phone,
+                row.PHONE2,//
+                row.ADDRESS1,
+                row.ADDRESS2,
+                row.CITY,
+                row.STATE,
+                row.ZIP,
+                row.ALIAS,
+                row.MOTHERS_MAIDEN_NAME,//
+                row.EMAIL,//
+                row.MRN,
+                row.EnterpriseID);
+        }
     }
-
-
 
     public class row
     {
