@@ -9,8 +9,21 @@ namespace challenge
 {
     public class Program
     {
+        static bool M(row r, row s, Func<row,string> f)
+        {
+            string rs = f(r);
+            string ss = f(s);
+
+            if (rs != "" && ss != "" && rs == ss)
+                return true;
+
+            return false;
+        }
+
         static void Main(string[] args)
         {
+            Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
+
             Random random = new Random();
 
             var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
@@ -18,15 +31,71 @@ namespace challenge
             var data = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
 
-            Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
-            AddMatches(data, r => r.SSN, 4, ref matches);
-            AddMatches(data, r => r.PHONE, 5, ref matches);
-            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, ref matches);
+            var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
+            //Pair off and make a soft check on field to verify sameness
+            Console.WriteLine(fourMillion.Count());
 
-            var remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            var typicalNumber = remainingRows.GroupBy(r => r.ADDRESS1).Average(g => g.Count());
-            Console.WriteLine(typicalNumber);
+            for(int i = 0; i < fourMillion.Count(); i+=2)
+            {
+                var r = fourMillion[i];
+                var s = fourMillion[i + 1];
+                Add(r, s, ref matches);
+                //if(M(r,s,t=>t.ADDRESS1) || M(r,s,t => t.ALIAS) || M(r,s,t => t.DOB.ToString("d")) || M(r,s,t=>t.EMAIL) || M(r,s,t => t.FIRST) || M(r,s,t=>t.LAST) || M(r,s,t=>t.MOTHERS_MAIDEN_NAME) || M(r,s,t=>t.PHONE.ToString()) || M(r,s,t=>t.SSN.ToString()))
+                //{
 
+                //}
+                //else
+                //{
+                //    Console.WriteLine(s.EnterpriseID);
+                //}
+            }
+
+            data = UnMatched(data, matches);
+
+            AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
+            AddMatches(data, r => r.PHONE, 5, (r1, r2) => true, ref matches);
+            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1,r2) => true, ref matches);
+
+            AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => true, ref matches);
+
+            AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => true, ref matches);
+
+            var remainingRows = UnMatched(data, matches);
+
+            //For what's left, brute force soft match on at least 2 of name, DOB, address
+            for (int i = 0; i < remainingRows.Count(); i++)
+            {
+                Console.Write("\r" + i + "/" + remainingRows.Count());
+                for(int j = 0; j < remainingRows.Count(); j++)
+                {
+                    if (i == j)
+                        continue;
+
+                    int fieldAgreement = 0;
+
+                    var ri = remainingRows[i];
+                    var rj = remainingRows[j];
+
+                    if (OneDifference(ri.LAST, rj.LAST))
+                        fieldAgreement++;
+
+                    if (OneDifference(ri.ADDRESS1, rj.ADDRESS1))
+                        fieldAgreement++;
+
+                    if (OneDifference(ri.DOB.ToString("d"), rj.DOB.ToString("d")))
+                        fieldAgreement++;
+
+                    if (fieldAgreement >= 2)
+                    {
+                        if (!matches.ContainsKey(ri.EnterpriseID))
+                        {
+                            Add(ri, rj, ref matches);
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
 
             for (int i = 0; i < 10; i++)
@@ -86,7 +155,29 @@ namespace challenge
             Console.ReadLine();
         }
 
-        public static void AddMatches<T>(IEnumerable<row> data, Func<row, T> groupingValue, int sizeToThrowAway, ref Dictionary<int, List<int>> matches)
+        static void Add(row a, row b, ref Dictionary<int, List<int>> matches)
+        {
+            AddOrdered(a, b, ref matches);
+            AddOrdered(b, a, ref matches);
+        }
+
+        static void AddOrdered(row a, row b,ref Dictionary<int, List<int>> matches)
+        {
+            if (!matches.ContainsKey(a.EnterpriseID))
+                matches[a.EnterpriseID] = new List<int>();
+
+            matches[a.EnterpriseID].Add(b.EnterpriseID);
+
+            matches[a.EnterpriseID] = matches[a.EnterpriseID].Distinct().ToList();
+        }
+
+        static row[] UnMatched(IEnumerable<row> data, Dictionary<int,List<int>> matches)
+        {
+            return data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+        }
+
+        static void AddMatches<T>(IEnumerable<row> data, Func<row,T> groupingValue, int sizeToThrowAway, Func<row,row,bool> softEquals, ref Dictionary<int, List<int>> matches)
+
         {
             var grouped = data.GroupBy(groupingValue);
             Console.WriteLine(grouped.Where(g => g.Count() >= sizeToThrowAway).Count());
@@ -104,7 +195,7 @@ namespace challenge
                 }
 
                 var representative = group.First();
-                if (group.Any(r => !PartialMatch(r, representative)))
+                if (group.Any(r => !softEquals(r, representative)))
                 {
                     Console.WriteLine(group.Key);
                     counter++;
