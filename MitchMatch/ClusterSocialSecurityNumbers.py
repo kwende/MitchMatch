@@ -1,4 +1,4 @@
-from helpers.FileReader import LoadAndTrimToLastTenPercent
+from helpers.FileReader import LoadAndTrimToLastTenPercent, LoadNonZeroSocialSecurityNumbers
 import numpy as np
 from sklearn.cluster import MeanShift, estimate_bandwidth, DBSCAN
 import pickle
@@ -8,11 +8,6 @@ from math import *
 
 SSNIndex = 7
 
-def LoadSocialSecurityNumbers(results):
-    nonZero = [r for r in results if r[7] != '']
-    asStrings = [n[SSNIndex].replace('-','') for n in nonZero]
-    asArrays = [[int(i) for i in s] for s in asStrings]
-    return asArrays, asStrings
 
 def MeanShiftClustering(social):
     bandwidth = estimate_bandwidth(social, quantile=0.3, n_samples=5000)
@@ -64,7 +59,7 @@ def DbScanClustering(rawSocialSecurityNumbers, social):
 def main():
     results = LoadAndTrimToLastTenPercent("C:/Users/Ben/Desktop/FInalDataset.csv")
 
-    asArrays, asStrings = LoadSocialSecurityNumbers(results)
+    asArrays, asStrings = LoadNonZeroSocialSecurityNumbers(results)
 
     social = np.array(asArrays)
     DbScanClustering(asStrings, social)
