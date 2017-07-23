@@ -24,13 +24,18 @@ namespace LucasPlayground
 
 
             Console.WriteLine();
+            Console.WriteLine("MRN");
+            AddMRNMatches(data, ref matches);
+            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+
+            Console.WriteLine();
             Console.WriteLine("SSN");
             var addedSSN = AddMatches(data, r => r.SSN, 4, ref matches, false, false, false);
             Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
 
             Console.WriteLine();
             Console.WriteLine("PHONE");
-            var addedPhone = AddMatches(data, r => r.PHONE, 5, ref matches, true, false, false);
+            var addedPhone = AddMatches(data, r => r.PHONE, 5, ref matches, true, true, false);
             Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
 
             Console.WriteLine();
@@ -60,6 +65,28 @@ namespace LucasPlayground
             var remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine(remainingRows.Count());
             Console.ReadLine();
+        }
+
+        public static row[] AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
+        {
+            var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
+            //Pair off and make a soft check on field to verify sameness
+            for (int i = 0; i < fourMillion.Count(); i += 2)
+            {
+                var r = fourMillion[i];
+                var s = fourMillion[i + 1];
+                challenge.Program.Add(r, s, ref matches);
+
+                //if(M(r,s,t=>t.ADDRESS1) || M(r,s,t => t.ALIAS) || M(r,s,t => t.DOB.ToString("d")) || M(r,s,t=>t.EMAIL) || M(r,s,t => t.FIRST) || M(r,s,t=>t.LAST) || M(r,s,t=>t.MOTHERS_MAIDEN_NAME) || M(r,s,t=>t.PHONE.ToString()) || M(r,s,t=>t.SSN.ToString()))
+                //{
+
+                //}
+                //else
+                //{
+                //    Console.WriteLine(s.EnterpriseID);
+                //}
+            }
+            return null;
         }
 
         public static row[] FilterToRows<T>(IEnumerable<row> data, Func<row, T> selector, T desiredValue) where T : IComparable
