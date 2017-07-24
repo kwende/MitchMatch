@@ -52,6 +52,8 @@ namespace challenge
 
             data = UnMatched(data, matches);
 
+            var badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
+
             AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
             var remainingRows0 = UnMatched(data, matches);
             AddMatches(data, r => r.PHONE, 5, (r1, r2) => true, ref matches);
@@ -59,10 +61,9 @@ namespace challenge
             AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1, r2) => true, ref matches);
             var remainingRows2 = UnMatched(data, matches);
 
-            AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => true, ref matches);
-            var remainingRows3 = UnMatched(data, matches);
+            AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
 
-            AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => true, ref matches);
+            AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
 
             var remainingRows = UnMatched(data, matches);
 
@@ -80,13 +81,16 @@ namespace challenge
                     var ri = remainingRows[i];
                     var rj = remainingRows[j];
 
-                    if (OneDifference(ri.LAST, rj.LAST))
+                    if (!badSSNs.Contains(ri.SSN) && !badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
                         fieldAgreement++;
 
-                    if (OneDifference(ri.ADDRESS1, rj.ADDRESS1))
+                    if (KDifferences(ri.LAST, rj.LAST,2))
                         fieldAgreement++;
 
-                    if (OneDifference(ri.DOB.ToString("d"), rj.DOB.ToString("d")))
+                    if (FuzzyAddressMatch(ri, rj))
+                        fieldAgreement++;
+
+                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
                         fieldAgreement++;
 
                     if (fieldAgreement >= 2)
@@ -159,6 +163,57 @@ namespace challenge
             Console.ReadLine();
         }
 
+        static bool FuzzyAddressMatch(row a, row b)
+        {
+            if (a.ADDRESS1 == "" || b.ADDRESS1 == "")
+                return false;
+            if (a.ADDRESS1 == b.ADDRESS1)
+                return true;
+
+            var anums = NumericParts(a.ADDRESS1);
+            var bnums = NumericParts(b.ADDRESS1);
+
+            if (anums.Count != bnums.Count)
+                return false;
+
+            if (anums.Count == 0)
+                return false;
+
+            for(int i = 0; i < anums.Count; i++)
+            {
+                if (anums[i] != bnums[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        static List<string> NumericParts(string s)
+        {
+            List<string> toReturn = new List<string>();
+            string current = "";
+            for(int i = 0; i < s.Length; i++)
+            {
+                if (char.IsDigit(s[i]))
+                {
+                    current += s[i];
+                }
+                else if(current != "")
+                {
+                    toReturn.Add(current);
+                    current = "";
+                }
+            }
+
+            if (current != "")
+            {
+                toReturn.Add(current);
+            }
+
+            return toReturn;
+        }
+
+
         static void Add(row a, row b, ref Dictionary<int, List<int>> matches)
         {
             AddOrdered(a, b, ref matches);
@@ -201,7 +256,7 @@ namespace challenge
                 var representative = group.First();
                 if (group.Any(r => !softEquals(r, representative)))
                 {
-                    Console.WriteLine(group.Key);
+                    //Console.WriteLine(group.Key);
                     counter++;
                 }
                 else
@@ -234,7 +289,34 @@ namespace challenge
 
         }
 
+        static bool FuzzyDateEquals(DateTime a, DateTime b)
+        {
+            if (OneOrOneDigit(a.Month, b.Month) && a.Day == b.Day && a.Year == b.Year)
+                return true;
+
+            if (a.Month == b.Month && OneOrOneDigit(a.Day,b.Day) && a.Year == b.Year)
+                return true;
+
+            if (a.Month == b.Month && a.Day == b.Day && OneOrOneDigit(a.Year,b.Year))
+                return true;
+
+            return false;
+        }
+
+        static bool OneOrOneDigit(int a, int b)
+        {
+            if (System.Math.Abs(a - b) < 2)
+                return true;
+
+            return OneDifference(a.ToString(), b.ToString());
+        }
+
         static bool OneDifference(string sm, string sn)
+        {
+            return KDifferences(sm, sn, 1);
+        }
+
+        static bool KDifferences(string sm, string sn, int k)
         {
             if (sm.Length != sn.Length)
                 return false;
@@ -246,7 +328,7 @@ namespace challenge
                     nd++;
             }
 
-            return nd <= 1;
+            return nd <= k;
         }
 
         static int MatchExtent(row a, row b)
