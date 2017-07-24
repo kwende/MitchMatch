@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "challenge", "challenge\chal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LucasPlayground", "LucasPlayground\LucasPlayground.csproj", "{61508B0E-0A89-4C12-893E-A342A9FD1FE2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenLayground", "BenLayground\BenLayground.csproj", "{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{28561ECC-5344-480E-BAF0-F9F99A51802D}</ProjectGuid>
+    <ProjectGuid>{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>challenge</RootNamespace>
-    <AssemblyName>challenge</AssemblyName>
+    <RootNamespace>BenLayground</RootNamespace>
+    <AssemblyName>BenLayground</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -42,12 +42,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Ben\TransitiveClosure.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\challenge\challenge.csproj">
+      <Project>{28561ecc-5344-480e-baf0-f9f99a51802d}</Project>
+      <Name>challenge</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

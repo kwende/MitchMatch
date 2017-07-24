@@ -1,4 +1,5 @@
-﻿using System;
+﻿using challenge.Ben;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -122,7 +123,7 @@ namespace challenge
                     if (KDifferences(ri.LAST, rj.LAST, 2))
                         fieldAgreement++;
 
-                    if (M(ri,rj,r => r.FIRST))
+                    if (M(ri, rj, r => r.FIRST))
                         fieldAgreement++;
 
                     if (FuzzyAddressMatch(ri, rj))
@@ -142,7 +143,7 @@ namespace challenge
             }
 
             var toHandVerify = UnMatched(data, matches);
-            foreach(var row in toHandVerify)
+            foreach (var row in toHandVerify)
             {
                 RowLibrary.Print(row);
             }
