@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace challenge
 {
-    class Program
+    public class Program
     {
-        static bool M(row r, row s, Func<row,string> f)
+        static bool M(row r, row s, Func<row, string> f)
         {
             string rs = f(r);
             string ss = f(s);
@@ -27,15 +27,16 @@ namespace challenge
             Random random = new Random();
 
             var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
-            var allData = lines.Select(l => ParseRow(l)).ToArray();
+            //var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
+            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
-            Console.WriteLine(lines.Count() + " total rows" ); // >= 15374761
+            Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
 
             var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
             //Pair off and make a soft check on field to verify sameness
             Console.WriteLine(fourMillion.Count());
 
-            for(int i = 0; i < fourMillion.Count(); i+=2)
+            for (int i = 0; i < fourMillion.Count(); i += 2)
             {
                 var r = fourMillion[i];
                 var s = fourMillion[i + 1];
@@ -56,7 +57,7 @@ namespace challenge
 
             AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
             AddMatches(data, r => r.PHONE, 5, (r1, r2) => true, ref matches);
-            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1,r2) => true, ref matches);
+            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1, r2) => true, ref matches);
 
             AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
 
@@ -68,7 +69,7 @@ namespace challenge
             for (int i = 0; i < remainingRows.Count(); i++)
             {
                 Console.Write("\r" + i + "/" + remainingRows.Count());
-                for(int j = 0; j < remainingRows.Count(); j++)
+                for (int j = 0; j < remainingRows.Count(); j++)
                 {
                     if (i == j)
                         continue;
@@ -81,7 +82,7 @@ namespace challenge
                     if (!badSSNs.Contains(ri.SSN) && !badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
                         fieldAgreement++;
 
-                    if (KDifferences(ri.LAST, rj.LAST,2))
+                    if (KDifferences(ri.LAST, rj.LAST, 2))
                         fieldAgreement++;
 
                     if (FuzzyAddressMatch(ri, rj))
@@ -143,10 +144,10 @@ namespace challenge
             Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
 
-            for(int i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
                 int nextTry = random.Next(data.Count());
-                while(matches.ContainsKey(data[nextTry].EnterpriseID))
+                while (matches.ContainsKey(data[nextTry].EnterpriseID))
                 {
                     nextTry = random.Next(data.Count());
                 }
@@ -200,7 +201,7 @@ namespace challenge
             Console.ReadLine();
         }
 
-        static bool FuzzyAddressMatch(row a, row b)
+        public static bool FuzzyAddressMatch(row a, row b)
         {
             if (a.ADDRESS1 == "" || b.ADDRESS1 == "")
                 return false;
@@ -216,7 +217,7 @@ namespace challenge
             if (anums.Count == 0)
                 return false;
 
-            for(int i = 0; i < anums.Count; i++)
+            for (int i = 0; i < anums.Count; i++)
             {
                 if (anums[i] != bnums[i])
                     return false;
@@ -229,13 +230,13 @@ namespace challenge
         {
             List<string> toReturn = new List<string>();
             string current = "";
-            for(int i = 0; i < s.Length; i++)
+            for (int i = 0; i < s.Length; i++)
             {
                 if (char.IsDigit(s[i]))
                 {
                     current += s[i];
                 }
-                else if(current != "")
+                else if (current != "")
                 {
                     toReturn.Add(current);
                     current = "";
@@ -251,13 +252,13 @@ namespace challenge
         }
 
 
-        static void Add(row a, row b, ref Dictionary<int, List<int>> matches)
+        public static void Add(row a, row b, ref Dictionary<int, List<int>> matches)
         {
             AddOrdered(a, b, ref matches);
             AddOrdered(b, a, ref matches);
         }
 
-        static void AddOrdered(row a, row b,ref Dictionary<int, List<int>> matches)
+        static void AddOrdered(row a, row b, ref Dictionary<int, List<int>> matches)
         {
             if (!matches.ContainsKey(a.EnterpriseID))
                 matches[a.EnterpriseID] = new List<int>();
@@ -267,12 +268,13 @@ namespace challenge
             matches[a.EnterpriseID] = matches[a.EnterpriseID].Distinct().ToList();
         }
 
-        static row[] UnMatched(IEnumerable<row> data, Dictionary<int,List<int>> matches)
+        static row[] UnMatched(IEnumerable<row> data, Dictionary<int, List<int>> matches)
         {
             return data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
         }
 
-        static void AddMatches<T>(IEnumerable<row> data, Func<row,T> groupingValue, int sizeToThrowAway, Func<row,row,bool> softEquals, ref Dictionary<int, List<int>> matches)
+        static void AddMatches<T>(IEnumerable<row> data, Func<row, T> groupingValue, int sizeToThrowAway, Func<row, row, bool> softEquals, ref Dictionary<int, List<int>> matches)
+
         {
             var grouped = data.GroupBy(groupingValue);
             Console.WriteLine(grouped.Where(g => g.Count() >= sizeToThrowAway).Count());
@@ -311,29 +313,29 @@ namespace challenge
             Console.WriteLine(counter);
         }
 
-        static bool PartialMatch(row a, row b)
+        public static bool PartialMatch(row a, row b)
         {
-            return (a.FIRST != "" && a.FIRST == b.FIRST) || (a.LAST != "" && a.LAST == b.LAST) || DateSoftMatch(a.DOB,b.DOB);
+            return (a.FIRST != "" && a.FIRST == b.FIRST) || (a.LAST != "" && a.LAST == b.LAST) || DateSoftMatch(a.DOB, b.DOB);
         }
 
-        static bool DateSoftMatch(DateTime a, DateTime b)
+        public static bool DateSoftMatch(DateTime a, DateTime b)
         {
             if (a == default(DateTime) || b == default(DateTime))
                 return false;
 
             return OneDifference(a.ToString("d"), b.ToString("d"));
-            
+
         }
 
-        static bool FuzzyDateEquals(DateTime a, DateTime b)
+        public static bool FuzzyDateEquals(DateTime a, DateTime b)
         {
             if (OneOrOneDigit(a.Month, b.Month) && a.Day == b.Day && a.Year == b.Year)
                 return true;
 
-            if (a.Month == b.Month && OneOrOneDigit(a.Day,b.Day) && a.Year == b.Year)
+            if (a.Month == b.Month && OneOrOneDigit(a.Day, b.Day) && a.Year == b.Year)
                 return true;
 
-            if (a.Month == b.Month && a.Day == b.Day && OneOrOneDigit(a.Year,b.Year))
+            if (a.Month == b.Month && a.Day == b.Day && OneOrOneDigit(a.Year, b.Year))
                 return true;
 
             return false;
@@ -347,12 +349,12 @@ namespace challenge
             return OneDifference(a.ToString(), b.ToString());
         }
 
-        static bool OneDifference(string sm, string sn)
+        public static bool OneDifference(string sm, string sn)
         {
             return KDifferences(sm, sn, 1);
         }
 
-        static bool KDifferences(string sm, string sn, int k)
+        public static bool KDifferences(string sm, string sn, int k)
         {
             if (sm.Length != sn.Length)
                 return false;
@@ -371,18 +373,18 @@ namespace challenge
         {
             int toReturn = 0;
             if (PositiveMatch(a.SSN, b.SSN))
-                toReturn+=16;
+                toReturn += 16;
             if (PositiveMatch(a.PHONE, b.PHONE))
-                toReturn+=8;
+                toReturn += 8;
             if (Name(a) == Name(b))
-                toReturn+=4;
+                toReturn += 4;
 
             return toReturn;
 
             if (a.ADDRESS1 == b.ADDRESS1)
-                toReturn+=2;
+                toReturn += 2;
             if (a.DOB == b.DOB)
-                toReturn+=1;
+                toReturn += 1;
 
             return toReturn;
         }
@@ -396,11 +398,15 @@ namespace challenge
         {
             return a > 0 && b > 0 && a == b;
         }
+    }
 
+
+    public static class RowLibrary
+    {
         static int ParseInt(string s)
         {
             string digits = "";
-            for(int i = 0; i < s.Length; i++)
+            for (int i = 0; i < s.Length; i++)
             {
                 if (char.IsDigit(s[i]))
                     digits += s[i];
@@ -432,7 +438,7 @@ namespace challenge
             long toReturn;
             if (long.TryParse(digits, out toReturn))
             {
-                return toReturn; 
+                return toReturn;
             }
             else
             {
@@ -463,7 +469,7 @@ namespace challenge
             return line.Split(',');
         }
 
-        static row ParseRow(string line)
+        public static row ParseRow(string line)
         {
             var tokens = Tokens(line);
             row toReturn = new row
@@ -491,9 +497,33 @@ namespace challenge
 
             return toReturn;
         }
+
+        public static void Print(this row row)
+        {
+            string ssn = row.SSN <= 0 ? "   -  -    " : string.Format("{0:000-00-0000}", row.SSN);
+            string phone = row.PHONE <= 0 ? "   -   -    " : string.Format("{0:000-000-0000}", row.PHONE);
+            Console.WriteLine("{0,-15} {1, -15} {2,-20} {3, -3} AKA {14, -25} ({4,-1}): S:{5}  {6}  P:{7}. {9,25}, {10,5}, {11,10}, {12,2}, {13,5}. {17, -10}, {18}",
+                row.FIRST,
+                row.MIDDLE,
+                row.LAST,
+                row.SUFFIX,
+                row.GENDER,
+                ssn,
+                row.DOB.ToString("dd/MM/yyyy"),
+                phone,
+                row.PHONE2,//
+                row.ADDRESS1,
+                row.ADDRESS2,
+                row.CITY,
+                row.STATE,
+                row.ZIP,
+                row.ALIAS,
+                row.MOTHERS_MAIDEN_NAME,//
+                row.EMAIL,//
+                row.MRN,
+                row.EnterpriseID);
+        }
     }
-
-
 
     public class row
     {
