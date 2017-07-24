@@ -32,46 +32,67 @@ namespace LucasPlayground
 
             Console.WriteLine();
             Console.WriteLine("SSN");
-            var addedSSN = AddMatches(data, r => r.SSN, 4, ref matches, false, false, false);
+            var addedSSN = AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("PHONE");
-            var addedPhone = AddMatches(data, r => r.PHONE, 5, ref matches, true, true, false);
+            var addedPhone = AddMatches(data, r => r.PHONE, 5, (r1, r2) => (r1.FIRST != "" && r1.FIRST == r2.FIRST) || (r1.LAST != "" && r1.LAST == r2.LAST) || challenge.Program.DateSoftMatch(r1.DOB, r2.DOB), ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("NAME + DOB");
-            var addedNameDOB = AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, ref matches, true, true, false);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-            Console.WriteLine();
-            Console.WriteLine("NAME + PHONE");
-            var addedNamePhone = AddMatches(data, r => (r.PHONE <= 0 ? "" : r.LAST + r.FIRST + r.PHONE), 4, ref matches, false, false, false);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-            Console.WriteLine();
-            Console.WriteLine("NAME + ADDRESS");
-            var addedNameAddress = AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, ref matches, true, true, false);
+            var addedNameDOB = AddMatches(data, r =>
+            {
+                return (r.LAST != "" ? (r.DOB != default(DateTime) ? r.LAST + r.FIRST + r.DOB.ToString("d") : "NODOB") : "NONAME");
+            }, 4, (r1, r2) =>
+                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString()),
+            ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("ADDRESS + DOB");
-            var addedAddressDOB = AddMatches(data, r => r.ADDRESS1 + r.DOB.ToString("d"), 4, ref matches, true, true, false);
+            var addedAddressDOB = AddMatches(data, r =>
+            {
+                return (r.ADDRESS1 != "" ? (r.DOB != default(DateTime) ? r.DOB.ToString("d") + r.ADDRESS1 : "NODOB") : "NOADDRESS");
+            }, 4, (r1, r2) =>
+                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString()),
+            ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+            Console.WriteLine();
+            Console.WriteLine("NAME + ADDRESS");
+            var addedNameAddress = AddMatches(data, r =>
+            {
+                return (r.LAST != "" ? (r.ADDRESS1 != "" ? r.LAST + r.FIRST + r.ADDRESS1 : "NOADDRESS") : "NONAME");
+            }, 4, (r1, r2) =>
+                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString())
+            , ref matches);
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
+
+            Console.WriteLine();
+            Console.WriteLine("NAME + PHONE");
+            var addedNamePhone = AddMatches(data, r => {
+                return (r.LAST != "" ? (r.PHONE > 0 ? r.LAST + r.FIRST + r.PHONE : "NOPHONE") : "NONAME");
+            }, 4, (r1, r2) => true, ref matches);
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("SOFT MATCH");
-            var addedSoftMatches = AddSoftMatches(remainingRows, ref matches, true);
+            int[] badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
+            var addedSoftMatches = AddSoftMatches(remainingRows, ref matches, badSSNs);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
+
+
+
+
 
 
 
@@ -88,15 +109,6 @@ namespace LucasPlayground
                 var r = fourMillion[i];
                 var s = fourMillion[i + 1];
                 challenge.Program.Add(r, s, ref matches);
-
-                //if(M(r,s,t=>t.ADDRESS1) || M(r,s,t => t.ALIAS) || M(r,s,t => t.DOB.ToString("d")) || M(r,s,t=>t.EMAIL) || M(r,s,t => t.FIRST) || M(r,s,t=>t.LAST) || M(r,s,t=>t.MOTHERS_MAIDEN_NAME) || M(r,s,t=>t.PHONE.ToString()) || M(r,s,t=>t.SSN.ToString()))
-                //{
-
-                //}
-                //else
-                //{
-                //    Console.WriteLine(s.EnterpriseID);
-                //}
             }
         }
 
@@ -114,7 +126,10 @@ namespace LucasPlayground
             return toReturn.ToArray();
         }
 
-        public static List<IGrouping<T, row>> AddMatches<T>(IEnumerable<row> data, Func<row, T> groupingValue, int sizeToThrowAway, ref Dictionary<int, List<int>> matches, bool requirePartialMatch = true, bool printErrors = false, bool printActuals = false)
+        private static bool _printErrors = false;
+        private static bool _printActuals = false;
+
+        static List<IGrouping<T, row>> AddMatches<T>(IEnumerable<row> data, Func<row, T> groupingValue, int sizeToThrowAway, Func<row, row, bool> softEquals, ref Dictionary<int, List<int>> matches)
         {
             List<IGrouping<T, row>> addedThisTime = new List<IGrouping<T, row>>();
 
@@ -134,9 +149,9 @@ namespace LucasPlayground
                 }
 
                 var representative = group.First();
-                if (requirePartialMatch && group.Any(r => !challenge.Program.PartialMatch(r, representative)))
+                if (group.Any(r => !softEquals(r, representative)))
                 {
-                    if (printErrors)
+                    if (_printErrors)
                     {
                         foreach (row row in group)
                         {
@@ -154,7 +169,6 @@ namespace LucasPlayground
                         if (!matches.ContainsKey(r.EnterpriseID))
                         {
                             matches[r.EnterpriseID] = new List<int>();
-                            addGroup = true;
 
                         }
                         matches[r.EnterpriseID] = matches[r.EnterpriseID].Union(group.Select(r2 => r2.EnterpriseID)).ToList();
@@ -162,7 +176,7 @@ namespace LucasPlayground
                     if (addGroup)
                     {
                         addedThisTime.Add(group);
-                        if (printActuals)
+                        if (_printActuals)
                         {
                             foreach (row row in group)
                             {
@@ -174,14 +188,15 @@ namespace LucasPlayground
                 }
             }
 
-            Console.WriteLine("Not partially matched: " + counter);
+            Console.WriteLine(counter);
             return addedThisTime;
         }
 
-        public static List<List<row>> AddSoftMatches(row[] remainingRows, ref Dictionary<int, List<int>> matches, bool printMatches = false)
+        public static List<List<row>> AddSoftMatches(row[] remainingRows, ref Dictionary<int, List<int>> matches, int[] badSSNs)
         {
             List<List<row>> addedThisTime = new List<List<row>>();
             //For what's left, brute force soft match on at least 2 of name, DOB, address
+
             for (int i = 0; i < remainingRows.Count(); i++)
             {
                 for (int j = 0; j < remainingRows.Count(); j++)
@@ -194,13 +209,16 @@ namespace LucasPlayground
                     var ri = remainingRows[i];
                     var rj = remainingRows[j];
 
-                    if (challenge.Program.OneDifference(ri.LAST, rj.LAST))
+                    if (!badSSNs.Contains(ri.SSN) && !badSSNs.Contains(rj.SSN) && challenge.Program.OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
                         fieldAgreement++;
 
-                    if (challenge.Program.OneDifference(ri.ADDRESS1, rj.ADDRESS1))
+                    if (challenge.Program.KDifferences(ri.LAST, rj.LAST, 2))
                         fieldAgreement++;
 
-                    if (challenge.Program.OneDifference(ri.DOB.ToString("d"), rj.DOB.ToString("d")))
+                    if (challenge.Program.FuzzyAddressMatch(ri, rj))
+                        fieldAgreement++;
+
+                    if (challenge.Program.FuzzyDateEquals(ri.DOB, rj.DOB))
                         fieldAgreement++;
 
                     if (fieldAgreement >= 2)
@@ -209,7 +227,7 @@ namespace LucasPlayground
                         {
                             challenge.Program.Add(ri, rj, ref matches);
                             addedThisTime.Add(new List<row> { ri, rj });
-                            if (printMatches)
+                            if (_printActuals)
                             {
                                 ri.Print();
                                 rj.Print();

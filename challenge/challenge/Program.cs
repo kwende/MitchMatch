@@ -161,7 +161,7 @@ namespace challenge
             Console.ReadLine();
         }
 
-        static bool FuzzyAddressMatch(row a, row b)
+        public static bool FuzzyAddressMatch(row a, row b)
         {
             if (a.ADDRESS1 == "" || b.ADDRESS1 == "")
                 return false;
@@ -278,7 +278,7 @@ namespace challenge
             return (a.FIRST != "" && a.FIRST == b.FIRST) || (a.LAST != "" && a.LAST == b.LAST) || DateSoftMatch(a.DOB, b.DOB);
         }
 
-        static bool DateSoftMatch(DateTime a, DateTime b)
+        public static bool DateSoftMatch(DateTime a, DateTime b)
         {
             if (a == default(DateTime) || b == default(DateTime))
                 return false;
@@ -287,7 +287,7 @@ namespace challenge
 
         }
 
-        static bool FuzzyDateEquals(DateTime a, DateTime b)
+        public static bool FuzzyDateEquals(DateTime a, DateTime b)
         {
             if (OneOrOneDigit(a.Month, b.Month) && a.Day == b.Day && a.Year == b.Year)
                 return true;
@@ -314,7 +314,7 @@ namespace challenge
             return KDifferences(sm, sn, 1);
         }
 
-        static bool KDifferences(string sm, string sn, int k)
+        public static bool KDifferences(string sm, string sn, int k)
         {
             if (sm.Length != sn.Length)
                 return false;
