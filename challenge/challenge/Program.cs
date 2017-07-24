@@ -100,6 +100,46 @@ namespace challenge
                 }
             }
 
+            var remainingRows2 = UnMatched(data, matches);
+
+            for (int i = 0; i < remainingRows2.Count(); i++)
+            {
+                Console.Write("\r" + i + "/" + remainingRows.Count());
+                for (int j = 0; j < remainingRows2.Count(); j++)
+                {
+                    if (i == j)
+                        continue;
+
+                    int fieldAgreement = 0;
+
+                    var ri = remainingRows2[i];
+                    var rj = remainingRows2[j];
+
+                    if (!badSSNs.Contains(ri.SSN) && !badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
+                        fieldAgreement++;
+
+                    if (KDifferences(ri.LAST, rj.LAST, 2))
+                        fieldAgreement++;
+
+                    if (M(ri,rj,r => r.FIRST))
+                        fieldAgreement++;
+
+                    if (FuzzyAddressMatch(ri, rj))
+                        fieldAgreement++;
+
+                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                        fieldAgreement++;
+
+                    if (fieldAgreement >= 2)
+                    {
+                        if (!matches.ContainsKey(ri.EnterpriseID))
+                        {
+                            Add(ri, rj, ref matches);
+                        }
+                    }
+                }
+            }
+
             Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
 
