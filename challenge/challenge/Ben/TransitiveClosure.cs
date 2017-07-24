@@ -10,7 +10,15 @@ namespace challenge.Ben
     {
         private Dictionary<int, List<int>> _matches;
         private row[] _allRows;
-        private List<List<row>> _closedRowSets;
+        private List<List<int>> _closedRowSets;
+
+        public List<List<int>> ClosedRowSets
+        {
+            get
+            {
+                return _closedRowSets;
+            }
+        }
 
         private TransitiveClosure(Dictionary<int, List<int>> matches, row[] allRows)
         {
@@ -18,7 +26,7 @@ namespace challenge.Ben
             _matches = matches;
             _allRows = allRows;
 
-            _closedRowSets = new List<List<row>>();
+            _closedRowSets = new List<List<int>>();
         }
 
         private void RecursiveFindClosure(int key, List<int> closedSet, Dictionary<int, List<int>> matches)
@@ -42,7 +50,7 @@ namespace challenge.Ben
             while (keysToMatch.Count > 0)
             {
                 // will hold the actual row instances. 
-                List<row> rowsInClosedSet = new List<row>();
+                List<int> rowsInClosedSet = new List<int>();
 
                 // grab the first key. 
                 int key = keysToMatch[0];
@@ -60,7 +68,7 @@ namespace challenge.Ben
                 foreach (int keyInClosedSet in keysInClosedSet)
                 {
                     keysToMatch.Remove(keyInClosedSet);
-                    rowsInClosedSet.Add(_allRows.Where(n => n.EnterpriseID == keyInClosedSet).First());
+                    rowsInClosedSet.Add(keyInClosedSet);
                 }
 
                 _closedRowSets.Add(rowsInClosedSet); 
@@ -71,11 +79,11 @@ namespace challenge.Ben
         {
             row[] toReturn = null; 
             int enterpriseId = input.EnterpriseID;
-            foreach (List<row> rowSet in _closedRowSets)
+            foreach (List<int> rowSet in _closedRowSets)
             {
-                if(rowSet.Any(n=>n.EnterpriseID == enterpriseId))
+                if(rowSet.Any(n=>n == enterpriseId))
                 {
-                    toReturn = rowSet.ToArray();
+                    toReturn = _allRows.Where(r => rowSet.Contains(r.EnterpriseID)).ToArray();
                     break; 
                 }
             }
