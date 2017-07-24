@@ -48,7 +48,8 @@ namespace LucasPlayground
             {
                 return (r.LAST != "" ? (r.DOB != default(DateTime) ? r.LAST + r.FIRST + r.DOB.ToString("d") : "NODOB") : "NONAME");
             }, 4, (r1, r2) =>
-                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString()),
+                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString()) || challenge.Program.FuzzyAddressMatch(r1, r2) || 
+                ((r1.SSN <= 0 || r2.SSN <= 0)),
             ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
@@ -169,7 +170,7 @@ namespace LucasPlayground
                         if (!matches.ContainsKey(r.EnterpriseID))
                         {
                             matches[r.EnterpriseID] = new List<int>();
-
+                            addGroup = true;
                         }
                         matches[r.EnterpriseID] = matches[r.EnterpriseID].Union(group.Select(r2 => r2.EnterpriseID)).ToList();
                     }
