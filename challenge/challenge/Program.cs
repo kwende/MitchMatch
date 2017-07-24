@@ -58,7 +58,6 @@ namespace challenge
             AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
             AddMatches(data, r => r.PHONE, 5, (r1, r2) => true, ref matches);
             AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1, r2) => true, ref matches);
-            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1, r2) => true, ref matches);
 
             AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
 
