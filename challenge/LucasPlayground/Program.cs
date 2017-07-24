@@ -18,7 +18,8 @@ namespace LucasPlayground
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
-            Console.WriteLine("Remaining: " + data.Length);
+            row[] remainingRows = data;
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
 
@@ -26,48 +27,59 @@ namespace LucasPlayground
             Console.WriteLine();
             Console.WriteLine("MRN");
             AddMRNMatches(data, ref matches);
-            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("SSN");
             var addedSSN = AddMatches(data, r => r.SSN, 4, ref matches, false, false, false);
-            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("PHONE");
             var addedPhone = AddMatches(data, r => r.PHONE, 5, ref matches, true, true, false);
-            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("NAME + DOB");
             var addedNameDOB = AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, ref matches, true, true, false);
-            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("NAME + PHONE");
             var addedNamePhone = AddMatches(data, r => (r.PHONE <= 0 ? "" : r.LAST + r.FIRST + r.PHONE), 4, ref matches, false, false, false);
-            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("NAME + ADDRESS");
             var addedNameAddress = AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, ref matches, true, true, false);
-            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("ADDRESS + DOB");
             var addedAddressDOB = AddMatches(data, r => r.ADDRESS1 + r.DOB.ToString("d"), 4, ref matches, true, true, false);
-            Console.WriteLine("Remaining: " + data.Where(r => !matches.ContainsKey(r.EnterpriseID)).Count());
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
-            //AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => true, ref matches);
 
-            //AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => true, ref matches);
+            Console.WriteLine();
+            Console.WriteLine("SOFT MATCH");
+            var addedSoftMatches = AddSoftMatches(remainingRows, ref matches, true);
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
-            var remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+
+
             Console.WriteLine(remainingRows.Count());
             Console.ReadLine();
         }
 
-        public static row[] AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
+        public static void AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
         {
             var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
             //Pair off and make a soft check on field to verify sameness
@@ -86,7 +98,6 @@ namespace LucasPlayground
                 //    Console.WriteLine(s.EnterpriseID);
                 //}
             }
-            return null;
         }
 
         public static row[] FilterToRows<T>(IEnumerable<row> data, Func<row, T> selector, T desiredValue) where T : IComparable
@@ -164,6 +175,50 @@ namespace LucasPlayground
             }
 
             Console.WriteLine("Not partially matched: " + counter);
+            return addedThisTime;
+        }
+
+        public static List<List<row>> AddSoftMatches(row[] remainingRows, ref Dictionary<int, List<int>> matches, bool printMatches = false)
+        {
+            List<List<row>> addedThisTime = new List<List<row>>();
+            //For what's left, brute force soft match on at least 2 of name, DOB, address
+            for (int i = 0; i < remainingRows.Count(); i++)
+            {
+                for (int j = 0; j < remainingRows.Count(); j++)
+                {
+                    if (i == j)
+                        continue;
+
+                    int fieldAgreement = 0;
+
+                    var ri = remainingRows[i];
+                    var rj = remainingRows[j];
+
+                    if (challenge.Program.OneDifference(ri.LAST, rj.LAST))
+                        fieldAgreement++;
+
+                    if (challenge.Program.OneDifference(ri.ADDRESS1, rj.ADDRESS1))
+                        fieldAgreement++;
+
+                    if (challenge.Program.OneDifference(ri.DOB.ToString("d"), rj.DOB.ToString("d")))
+                        fieldAgreement++;
+
+                    if (fieldAgreement >= 2)
+                    {
+                        if (!matches.ContainsKey(ri.EnterpriseID))
+                        {
+                            challenge.Program.Add(ri, rj, ref matches);
+                            addedThisTime.Add(new List<row> { ri, rj });
+                            if (printMatches)
+                            {
+                                ri.Print();
+                                rj.Print();
+                                Console.WriteLine();
+                            }
+                        }
+                    }
+                }
+            }
             return addedThisTime;
         }
     }

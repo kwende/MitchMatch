@@ -155,7 +155,7 @@ namespace challenge
             Console.ReadLine();
         }
 
-        static void Add(row a, row b, ref Dictionary<int, List<int>> matches)
+        public static void Add(row a, row b, ref Dictionary<int, List<int>> matches)
         {
             AddOrdered(a, b, ref matches);
             AddOrdered(b, a, ref matches);
@@ -230,7 +230,7 @@ namespace challenge
 
         }
 
-        static bool OneDifference(string sm, string sn)
+        public static bool OneDifference(string sm, string sn)
         {
             if (sm.Length != sn.Length)
                 return false;
