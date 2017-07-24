@@ -141,6 +141,12 @@ namespace challenge
                 }
             }
 
+            var toHandVerify = UnMatched(data, matches);
+            foreach(var row in toHandVerify)
+            {
+                RowLibrary.Print(row);
+            }
+
             Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
 
