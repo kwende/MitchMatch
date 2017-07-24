@@ -30,10 +30,10 @@ namespace challenge
             var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
             //var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
-            var data = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
+            var allTruePositiveData = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
 
-            var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
+            var fourMillion = allTruePositiveData.Where(r => r.MRN >= 4000000).ToArray();
             //Pair off and make a soft check on field to verify sameness
             Console.WriteLine(fourMillion.Count());
 
@@ -52,7 +52,7 @@ namespace challenge
                 //}
             }
 
-            data = UnMatched(data, matches);
+            var data = UnMatched(allTruePositiveData, matches);
 
             var badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
 
@@ -150,6 +150,13 @@ namespace challenge
 
             Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
+
+            var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
+            Console.WriteLine(tc.ClosedRowSets.Where(s => s.Count() > 3).Count());
+            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
+            Console.WriteLine(tc.ClosedRowSets.Where(s => s.Count() > 3).Sum(s => s.Count()));
+
+
 
             for (int i = 0; i < 10; i++)
             {
