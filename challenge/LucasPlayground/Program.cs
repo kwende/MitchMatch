@@ -48,8 +48,7 @@ namespace LucasPlayground
             {
                 return (r.LAST != "" ? (r.DOB != default(DateTime) ? r.LAST + r.FIRST + r.DOB.ToString("d") : "NODOB") : "NONAME");
             }, 4, (r1, r2) =>
-                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString()) || challenge.Program.FuzzyAddressMatch(r1, r2) || 
-                ((r1.SSN <= 0 || r2.SSN <= 0)),
+                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString()) || challenge.Program.FuzzyAddressMatch(r1, r2) || (r1.SSN <= 0 || r2.SSN <= 0),
             ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
@@ -60,7 +59,7 @@ namespace LucasPlayground
             {
                 return (r.ADDRESS1 != "" ? (r.DOB != default(DateTime) ? r.DOB.ToString("d") + r.ADDRESS1 : "NODOB") : "NOADDRESS");
             }, 4, (r1, r2) =>
-                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString()),
+                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString()) || (r1.FIRST != "" && r1.FIRST == r2.FIRST) || (r1.LAST != "" && r1.LAST == r2.LAST) || (r1.SSN <= 0 || r2.SSN <= 0),
             ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
@@ -71,8 +70,8 @@ namespace LucasPlayground
             {
                 return (r.LAST != "" ? (r.ADDRESS1 != "" ? r.LAST + r.FIRST + r.ADDRESS1 : "NOADDRESS") : "NONAME");
             }, 4, (r1, r2) =>
-                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString())
-            , ref matches);
+                challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || challenge.Program.OneDifference(r1.SSN.ToString(), r2.SSN.ToString()) || challenge.Program.FuzzyDateEquals(r1.DOB, r2.DOB) || (r1.SSN <= 0 || r2.SSN <= 0),
+            ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
