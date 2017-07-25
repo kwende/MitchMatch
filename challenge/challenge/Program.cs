@@ -10,6 +10,8 @@ namespace challenge
 {
     public class Program
     {
+        static int[] _badSSNs;
+
         static bool M(row r, row s, Func<row, string> f)
         {
             string rs = f(r);
@@ -19,6 +21,38 @@ namespace challenge
                 return true;
 
             return false;
+        }
+
+        static bool SoftM(row r, row s, Func<row, string> f)
+        {
+            string rs = f(r);
+            string ss = f(s);
+
+            if (rs != "" && ss != "" && OneDifference(rs,ss))
+                return true;
+
+            return false;
+        }
+
+        static bool AddressDOBMatchConfidence(row r, row s)
+        {
+            if (r.ADDRESS1 == "" || s.ADDRESS1 == "")
+                return false;
+
+            if (!_badSSNs.Contains(r.SSN) && !_badSSNs.Contains(s.SSN) && OneDifference(r.SSN.ToString(), s.SSN.ToString()))
+                return true;
+
+            return (M(r, s, t => t.FIRST) || M(r, s, t => t.LAST));
+        }
+
+
+
+        static bool PhoneMatchConfidence(row r, row s)
+        {
+            if (!_badSSNs.Contains(r.SSN) && !_badSSNs.Contains(s.SSN) && OneDifference(r.SSN.ToString(), s.SSN.ToString()))
+                return true;
+
+            return SoftM(r, s, t => t.DOB.ToString()) || SoftM(r, s, t => t.FIRST);
         }
 
         static void Main(string[] args)
@@ -33,6 +67,8 @@ namespace challenge
             var allTruePositiveData = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
 
+            _badSSNs = allTruePositiveData.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
+
             var fourMillion = allTruePositiveData.Where(r => r.MRN >= 4000000).ToArray();
             //Pair off and make a soft check on field to verify sameness
             Console.WriteLine(fourMillion.Count());
@@ -42,25 +78,17 @@ namespace challenge
                 var r = fourMillion[i];
                 var s = fourMillion[i + 1];
                 Add(r, s, ref matches);
-                //if(M(r,s,t=>t.ADDRESS1) || M(r,s,t => t.ALIAS) || M(r,s,t => t.DOB.ToString("d")) || M(r,s,t=>t.EMAIL) || M(r,s,t => t.FIRST) || M(r,s,t=>t.LAST) || M(r,s,t=>t.MOTHERS_MAIDEN_NAME) || M(r,s,t=>t.PHONE.ToString()) || M(r,s,t=>t.SSN.ToString()))
-                //{
-
-                //}
-                //else
-                //{
-                //    Console.WriteLine(s.EnterpriseID);
-                //}
             }
+
 
             var data = UnMatched(allTruePositiveData, matches);
 
-            var badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
 
             AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
-            AddMatches(data, r => r.PHONE, 5, (r1, r2) => true, ref matches);
+            AddMatches(data, r => r.PHONE, 5, PhoneMatchConfidence, ref matches);
             AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1, r2) => true, ref matches);
 
-            AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
+            AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, AddressDOBMatchConfidence, ref matches);
 
             AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
 
@@ -80,7 +108,7 @@ namespace challenge
                     var ri = remainingRows[i];
                     var rj = remainingRows[j];
 
-                    if (!badSSNs.Contains(ri.SSN) && !badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
+                    if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
                         fieldAgreement++;
 
                     if (KDifferences(ri.LAST, rj.LAST, 2))
@@ -117,7 +145,7 @@ namespace challenge
                     var ri = remainingRows2[i];
                     var rj = remainingRows2[j];
 
-                    if (!badSSNs.Contains(ri.SSN) && !badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
+                    if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
                         fieldAgreement++;
 
                     if (KDifferences(ri.LAST, rj.LAST, 2))
@@ -159,6 +187,22 @@ namespace challenge
             Add(15460667, 15923220, ref matches);//
             Add(15688015, 15555730, ref matches);//
 
+            var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
+            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() > 3);
+            Console.WriteLine("\n" + bigComponents.Count());
+            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
+            Console.WriteLine(bigComponents.Sum(s => s.Count()));
+
+            foreach (var component in bigComponents)
+            {
+                Console.WriteLine("\n");
+                foreach (int id in component)
+                {
+                    RowLibrary.Print(allTruePositiveData.Where(r => r.EnterpriseID == id).First());
+                }
+                Console.WriteLine("\n");
+            }
+
             var toHandVerify = UnMatched(data, matches);
             foreach (var row in toHandVerify)
             {
@@ -167,23 +211,6 @@ namespace challenge
 
             Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
-
-
-
-            var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
-            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() > 3);
-            Console.WriteLine(bigComponents.Count());
-            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
-            Console.WriteLine(bigComponents.Sum(s => s.Count()));
-
-            foreach(var component in bigComponents)
-            {
-                Console.WriteLine("\n");
-                foreach(int id in component)
-                {
-                    RowLibrary.Print(allTruePositiveData.Where(r => r.EnterpriseID == id).First());
-                }
-            }
 
 
             for (int i = 0; i < 10; i++)
