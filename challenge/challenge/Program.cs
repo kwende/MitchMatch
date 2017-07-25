@@ -142,6 +142,23 @@ namespace challenge
                 }
             }
 
+            Add(15811621, 15750288, ref matches);//
+            Add(15802888, 15456558, ref matches);//
+            Add(15510682, 15598625, ref matches);//
+            Add(15562243, 15863734, ref matches);//
+            Add(15843982, 15988253, ref matches);//
+            Add(15447438, 16021452, ref matches);//
+            Add(15566242, 15393356, ref matches);//
+            Add(15869829, 15444537, ref matches);//
+            Add(15483298, 15544065, ref matches);//
+            Add(15380819, 15586885, ref matches);//
+            Add(15474114, 15393886, ref matches);//
+            Add(15476947, 15766192, ref matches);//
+            Add(15671788, 15696806, ref matches);//
+            Add(15476869, 15541825, ref matches);//
+            Add(15460667, 15923220, ref matches);//
+            Add(15688015, 15555730, ref matches);//
+
             var toHandVerify = UnMatched(data, matches);
             foreach (var row in toHandVerify)
             {
@@ -151,11 +168,22 @@ namespace challenge
             Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
 
-            var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
-            Console.WriteLine(tc.ClosedRowSets.Where(s => s.Count() > 3).Count());
-            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
-            Console.WriteLine(tc.ClosedRowSets.Where(s => s.Count() > 3).Sum(s => s.Count()));
 
+
+            var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
+            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() > 3);
+            Console.WriteLine(bigComponents.Count());
+            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
+            Console.WriteLine(bigComponents.Sum(s => s.Count()));
+
+            foreach(var component in bigComponents)
+            {
+                Console.WriteLine("\n");
+                foreach(int id in component)
+                {
+                    RowLibrary.Print(allTruePositiveData.Where(r => r.EnterpriseID == id).First());
+                }
+            }
 
 
             for (int i = 0; i < 10; i++)
@@ -268,18 +296,23 @@ namespace challenge
 
         public static void Add(row a, row b, ref Dictionary<int, List<int>> matches)
         {
+            Add(a.EnterpriseID, b.EnterpriseID, ref matches);
+        }
+
+        public static void Add(int a, int b, ref Dictionary<int, List<int>> matches)
+        {
             AddOrdered(a, b, ref matches);
             AddOrdered(b, a, ref matches);
         }
 
-        static void AddOrdered(row a, row b, ref Dictionary<int, List<int>> matches)
+        static void AddOrdered(int a, int b, ref Dictionary<int, List<int>> matches)
         {
-            if (!matches.ContainsKey(a.EnterpriseID))
-                matches[a.EnterpriseID] = new List<int>();
+            if (!matches.ContainsKey(a))
+                matches[a] = new List<int>();
 
-            matches[a.EnterpriseID].Add(b.EnterpriseID);
+            matches[a].Add(b);
 
-            matches[a.EnterpriseID] = matches[a.EnterpriseID].Distinct().ToList();
+            matches[a] = matches[a].Distinct().ToList();
         }
 
         static row[] UnMatched(IEnumerable<row> data, Dictionary<int, List<int>> matches)
