@@ -140,6 +140,16 @@ namespace LucasPlayground
 
             Console.WriteLine(remainingRows.Count());
             Console.ReadLine();
+
+
+            Console.WriteLine();
+            Console.WriteLine("HAND REMOVED");
+            var removedHandMatched = RemoveHandErrors(data, ref matches);
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
+
+            Console.WriteLine(remainingRows.Count());
+            Console.ReadLine();
         }
 
         private static int _printCount = 0;
@@ -453,6 +463,54 @@ namespace LucasPlayground
             }
 
             return addedThisTime;
+        }
+
+        public static void Remove(row a, row b, ref Dictionary<int, List<int>> matches)
+        {
+            Remove(a.EnterpriseID, b.EnterpriseID, ref matches);
+        }
+
+        public static void Remove(int a, int b, ref Dictionary<int, List<int>> matches)
+        {
+            RemoveOrdered(a, b, ref matches);
+            RemoveOrdered(b, a, ref matches);
+        }
+
+        static void RemoveOrdered(int a, int b, ref Dictionary<int, List<int>> matches)
+        {
+            if (matches.ContainsKey(a))
+            {
+                matches[a].Remove(b);
+                if (matches[a].Count == 0)
+                {
+                    matches.Remove(a);
+                }
+            }
+        }
+
+        private static List<List<row>> RemoveHandErrors(row[] remainingRows, ref Dictionary<int, List<int>> matches)
+        {
+            List<int[]> pairs = new List<int[]>
+            {
+                //new int[] {15688015, 15555730},
+            };
+
+            List<List<row>> removedThisTime = new List<List<row>>();
+
+            foreach (int[] pair in pairs)
+            {
+                row a = remainingRows.Where(row => row.EnterpriseID == pair[0]).FirstOrDefault();
+                row b = remainingRows.Where(row => row.EnterpriseID == pair[1]).FirstOrDefault();
+
+                Remove(a, b, ref matches);
+                removedThisTime.Add(new List<row> { a, b });
+                if (_printActuals)
+                {
+                    PrintPair(a, b);
+                }
+            }
+
+            return removedThisTime;
         }
     }
 }
