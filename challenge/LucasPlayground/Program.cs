@@ -14,9 +14,9 @@ namespace LucasPlayground
         {
             Random random = new Random();
 
-            var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
+            var lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
-            var data = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
+            var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
             row[] remainingRows = data;
             Console.WriteLine("Remaining: " + remainingRows.Length);
@@ -27,6 +27,8 @@ namespace LucasPlayground
             Console.WriteLine();
             Console.WriteLine("MRN");
             AddMRNMatches(data, ref matches);
+
+
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -77,7 +79,8 @@ namespace LucasPlayground
 
             Console.WriteLine();
             Console.WriteLine("NAME + PHONE");
-            var addedNamePhone = AddMatches(data, r => {
+            var addedNamePhone = AddMatches(data, r =>
+            {
                 return (r.LAST != "" ? (r.PHONE > 0 ? r.LAST + r.FIRST + r.PHONE : "NOPHONE") : "NONAME");
             }, 4, (r1, r2) => true, ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
@@ -102,14 +105,52 @@ namespace LucasPlayground
 
         public static void AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
         {
-            var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
+            var fourMillion = data.Where(r => r.MRN >= 4000000).OrderBy(r => r.MRN).ToArray();
             //Pair off and make a soft check on field to verify sameness
             for (int i = 0; i < fourMillion.Count(); i += 2)
             {
                 var r = fourMillion[i];
                 var s = fourMillion[i + 1];
                 challenge.Program.Add(r, s, ref matches);
+                if (_printActuals)
+                {
+                    PrintPair(r, s);
+                }
             }
+        }
+
+        public static void AddMRNMatchesBenStyle(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
+        {
+            var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
+            //Pair off and make a soft check on field to verify sameness
+
+            Random rand = new Random();
+
+            using (StreamWriter fout = File.CreateText("C:/users/ben/desktop/distances.csv"))
+            {
+                for (int i = 0; i < fourMillion.Count(); i += 2)
+                {
+                    var r = fourMillion[i];
+                    var s = fourMillion[i + 1];
+
+                    //if (rand.Next() % 100 == 0)
+                    {
+                        double distance = Ben.EditDistance.ComputeDistanceForRecordPair(r, s);
+                        //fout.WriteLine($"{r.MRN}, {s.MRN}, {distance}"); 
+
+                        if(distance > .6)
+                        {
+                            fout.WriteLine(r.ToString());
+                            fout.WriteLine(s.ToString());
+                            fout.WriteLine();
+                        }
+                    }
+
+                    challenge.Program.Add(r, s, ref matches);
+                }
+            }
+
+            Console.WriteLine("done"); 
         }
 
         public static row[] FilterToRows<T>(IEnumerable<row> data, Func<row, T> selector, T desiredValue) where T : IComparable

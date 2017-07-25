@@ -593,5 +593,29 @@ namespace challenge
         public string PHONE2;
         public string EMAIL;
         public string ALIAS;
+
+        public override string ToString()
+        {
+            return string.Format("{0,-15}, {1, -15}, {2,-20}, {3, -3}, {14, -25}, {4,-1}, {5},  {6},  {7}, {9,25}, {10,5}, {11,10}, {12,2}, {13,5}, {17, -10}, {18}",
+                FIRST,
+                MIDDLE,
+                LAST,
+                SUFFIX,
+                GENDER,
+                SSN,
+                DOB.ToString("dd/MM/yyyy"),
+                PHONE,
+                PHONE2,//
+                ADDRESS1,
+                ADDRESS2,
+                CITY,
+                STATE,
+                ZIP,
+                ALIAS,
+                MOTHERS_MAIDEN_NAME,//
+                EMAIL,//
+                MRN,
+                EnterpriseID);
+        }
     }
 }

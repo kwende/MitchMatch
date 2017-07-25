@@ -2,6 +2,7 @@ import nltk
 import numpy as np
 from helpers.FileReader import LoadAndTrimToLastTenPercent, LoadNonZeroSocialSecurityNumbers
 import time
+import os.path
 
 def main():
     asArrays, asStrings = LoadNonZeroSocialSecurityNumbers(LoadAndTrimToLastTenPercent("C:/Users/Ben/Desktop/FInalDataset.csv"))
