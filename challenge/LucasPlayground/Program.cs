@@ -84,7 +84,7 @@ namespace LucasPlayground
                 {
                     return (r.LAST != "" ? (r.DOB != default(DateTime) ? r.LAST + r.FIRST + r.DOB.ToString("d") : "NODOB") : "NONAME");
                 }, 4, (r1, r2) =>
-                    challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || 
+                    challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) ||
                     challenge.Program.FuzzyAddressMatch(r1, r2) ||
                     !IsSSNValid(r1.SSN) ||
                     !IsSSNValid(r2.SSN) ||
@@ -199,7 +199,7 @@ namespace LucasPlayground
                     {
                         sw.WriteLine(s.ToString());
                         sw.WriteLine(r.ToString());
-                        sw.WriteLine(); 
+                        sw.WriteLine();
                     }
                 }
             }
@@ -234,7 +234,7 @@ namespace LucasPlayground
             {
                 if (group.Count() >= sizeToThrowAway) //These are all garbage
                 {
-                    if(_printLargeGroupValues)
+                    if (_printLargeGroupValues)
                     {
                         Console.WriteLine(group.Key + $" (size {group.Count()})");
                     }
