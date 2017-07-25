@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -45,6 +46,9 @@ namespace LucasPlayground
                     challenge.Program.FuzzyDateEquals(r1.DOB, r2.DOB) ||
                     challenge.Program.FuzzyAddressMatch(r1, r2),
                 ref matches);
+
+
+
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -83,7 +87,7 @@ namespace LucasPlayground
                 {
                     return (r.LAST != "" ? (r.DOB != default(DateTime) ? r.LAST + r.FIRST + r.DOB.ToString("d") : "NODOB") : "NONAME");
                 }, 4, (r1, r2) =>
-                    challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) || 
+                    challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) ||
                     challenge.Program.FuzzyAddressMatch(r1, r2) ||
                     !IsSSNValid(r1.SSN) ||
                     !IsSSNValid(r2.SSN) ||
@@ -193,13 +197,14 @@ namespace LucasPlayground
                     var s = fourMillion[i + 1];
                     challenge.Program.Add(r, s, ref matches);
 
-                    double editDistance = Ben.EditDistance.ComputeDistanceForRecordPair(r, s);
-                    if (editDistance > .6)
-                    {
-                        sw.WriteLine(s.ToString());
-                        sw.WriteLine(r.ToString());
-                        sw.WriteLine(); 
-                    }
+                    double editDistance = challenge.Ben.EditDistance.ComputeDistanceForRecordPair(r, s);
+                    //if (editDistance > .6)
+                    //{
+                    //    sw.WriteLine(s.ToString());
+                    //    sw.WriteLine(r.ToString());
+                    //    sw.WriteLine(); 
+                    //}
+                    sw.WriteLine($"{r.MRN}, {s.MRN}, {editDistance}");
                 }
             }
         }
@@ -233,7 +238,7 @@ namespace LucasPlayground
             {
                 if (group.Count() >= sizeToThrowAway) //These are all garbage
                 {
-                    if(_printLargeGroupValues)
+                    if (_printLargeGroupValues)
                     {
                         Console.WriteLine(group.Key + $" (size {group.Count()})");
                     }

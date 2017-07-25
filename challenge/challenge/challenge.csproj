@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ben\EditDistance.cs" />
+    <Compile Include="Ben\OffByNSocialSecurityNumbers.cs" />
     <Compile Include="Ben\TransitiveClosure.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

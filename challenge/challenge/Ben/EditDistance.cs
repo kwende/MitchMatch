@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LucasPlayground.Ben
+namespace challenge.Ben
 {
-    class EditDistance
+    public class EditDistance
     {
         public static double ComputeDistanceForRecordPair(row row1, row row2)
         {
