@@ -132,6 +132,11 @@ namespace LucasPlayground
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+            Console.WriteLine();
+            Console.WriteLine("HAND MATCHED");
+            var addedHandMatched = AddHandMatches(data, ref matches);
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine(remainingRows.Count());
             Console.ReadLine();
@@ -336,6 +341,15 @@ namespace LucasPlayground
                                 PrintPair(ri, rj);
                             }
                         }
+                        else if (!matches.ContainsKey(rj.EnterpriseID))
+                        {
+                            challenge.Program.Add(ri, rj, ref matches);
+                            addedThisTime.Add(new List<row> { ri, rj });
+                            if (_printActuals)
+                            {
+                                PrintPair(ri, rj);
+                            }
+                        }
                     }
                 }
             }
@@ -386,9 +400,58 @@ namespace LucasPlayground
                                 PrintPair(ri, rj);
                             }
                         }
+                        else if (!matches.ContainsKey(rj.EnterpriseID))
+                        {
+                            challenge.Program.Add(ri, rj, ref matches);
+                            addedThisTime.Add(new List<row> { ri, rj });
+                            if (_printActuals)
+                            {
+                                PrintPair(ri, rj);
+                            }
+                        }
                     }
                 }
             }
+            return addedThisTime;
+        }
+
+        private static List<List<row>> AddHandMatches(row[] remainingRows, ref Dictionary<int, List<int>> matches)
+        {
+            List<int[]> pairs = new List<int[]>
+            {
+                new int[] {15811621, 15750288},
+                new int[] {15802888, 15456558},
+                new int[] {15510682, 15598625},
+                new int[] {15562243, 15863734},
+                new int[] {15843982, 15988253},
+                new int[] {15447438, 16021452},
+                new int[] {15566242, 15393356},
+                new int[] {15869829, 15444537},
+                new int[] {15483298, 15544065},
+                new int[] {15380819, 15586885},
+                new int[] {15474114, 15393886},
+                new int[] {15476947, 15766192},
+                new int[] {15671788, 15696806},
+                new int[] {15476869, 15541825},
+                new int[] {15460667, 15923220},
+                new int[] {15688015, 15555730},
+            };
+
+            List<List<row>> addedThisTime = new List<List<row>>();
+
+            foreach (int[] pair in pairs)
+            {
+                row a = remainingRows.Where(row => row.EnterpriseID == pair[0]).FirstOrDefault();
+                row b = remainingRows.Where(row => row.EnterpriseID == pair[1]).FirstOrDefault();
+
+                challenge.Program.Add(a, b, ref matches);
+                addedThisTime.Add(new List<row> { a, b });
+                if (_printActuals)
+                {
+                    PrintPair(a, b);
+                }
+            }
+
             return addedThisTime;
         }
     }
