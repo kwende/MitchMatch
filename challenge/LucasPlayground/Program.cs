@@ -16,7 +16,8 @@ namespace LucasPlayground
         {
             Random random = new Random();
 
-            var lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
+            //var lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
+            var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
