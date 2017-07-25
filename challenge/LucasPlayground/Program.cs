@@ -30,6 +30,7 @@ namespace LucasPlayground
             Console.WriteLine();
             Console.WriteLine("MRN");
             AddMRNMatches(data, ref matches);
+            //AddMRNMatchesBen(data, ref matches); 
 
 
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
@@ -177,6 +178,29 @@ namespace LucasPlayground
                 var r = fourMillion[i];
                 var s = fourMillion[i + 1];
                 challenge.Program.Add(r, s, ref matches);
+            }
+        }
+
+        public static void AddMRNMatchesBen(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
+        {
+            var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
+            //Pair off and make a soft check on field to verify sameness
+            using (StreamWriter sw = File.CreateText("C:/users/ben/desktop/errors.csv"))
+            {
+                for (int i = 0; i < fourMillion.Count(); i += 2)
+                {
+                    var r = fourMillion[i];
+                    var s = fourMillion[i + 1];
+                    challenge.Program.Add(r, s, ref matches);
+
+                    double editDistance = Ben.EditDistance.ComputeDistanceForRecordPair(r, s);
+                    if (editDistance > .6)
+                    {
+                        sw.WriteLine(s.ToString());
+                        sw.WriteLine(r.ToString());
+                        sw.WriteLine(); 
+                    }
+                }
             }
         }
 
