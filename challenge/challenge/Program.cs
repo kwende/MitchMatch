@@ -11,6 +11,7 @@ namespace challenge
     public class Program
     {
         static int[] _badSSNs;
+        static Dictionary<int, row> _rowByEnterpriseId;
 
         static bool M(row r, row s, Func<row, string> f)
         {
@@ -65,6 +66,13 @@ namespace challenge
             //var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var allTruePositiveData = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
+
+            _rowByEnterpriseId = new Dictionary<int, row>();
+            foreach(var r in allTruePositiveData)
+            {
+                _rowByEnterpriseId[r.EnterpriseID] = r;
+            }
+
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
 
             _badSSNs = allTruePositiveData.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
@@ -83,6 +91,10 @@ namespace challenge
 
             var data = UnMatched(allTruePositiveData, matches);
 
+            //var noMRNs = allTruePositiveData.Where(r => r.MRN == -1);
+            //var matchNoMRNS = BipartiteMatch(noMRNs, allTruePositiveData, FuzzyMatchAllowFirst, true);
+            //Console.WriteLine(noMRNs.Where(r => matchNoMRNS.ContainsKey(r.EnterpriseID) && matchNoMRNS[r.EnterpriseID].Count() >= 3).Count());
+
 
             AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
             AddMatches(data, r => r.PHONE, 5, PhoneMatchConfidence, ref matches);
@@ -93,82 +105,15 @@ namespace challenge
             AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
 
             var remainingRows = UnMatched(data, matches);
+            var fuzzyMatchResults = BipartiteMatch(remainingRows, remainingRows,FuzzyMatchNoFirst);
+            AddMatchDictionary(fuzzyMatchResults, matches);
 
             //For what's left, brute force soft match on at least 2 of name, DOB, address
-            for (int i = 0; i < remainingRows.Count(); i++)
-            {
-                Console.Write("\r" + i + "/" + remainingRows.Count());
-                for (int j = 0; j < remainingRows.Count(); j++)
-                {
-                    if (i == j)
-                        continue;
 
-                    int fieldAgreement = 0;
-
-                    var ri = remainingRows[i];
-                    var rj = remainingRows[j];
-
-                    if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
-                        fieldAgreement++;
-
-                    if (KDifferences(ri.LAST, rj.LAST, 2))
-                        fieldAgreement++;
-
-                    if (FuzzyAddressMatch(ri, rj))
-                        fieldAgreement++;
-
-                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
-                        fieldAgreement++;
-
-                    if (fieldAgreement >= 2)
-                    {
-                        if (!matches.ContainsKey(ri.EnterpriseID))
-                        {
-                            Add(ri, rj, ref matches);
-                        }
-                    }
-                }
-            }
 
             var remainingRows2 = UnMatched(data, matches);
-
-            for (int i = 0; i < remainingRows2.Count(); i++)
-            {
-                Console.Write("\r" + i + "/" + remainingRows.Count());
-                for (int j = 0; j < remainingRows2.Count(); j++)
-                {
-                    if (i == j)
-                        continue;
-
-                    int fieldAgreement = 0;
-
-                    var ri = remainingRows2[i];
-                    var rj = remainingRows2[j];
-
-                    if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
-                        fieldAgreement++;
-
-                    if (KDifferences(ri.LAST, rj.LAST, 2))
-                        fieldAgreement++;
-
-                    if (M(ri, rj, r => r.FIRST))
-                        fieldAgreement++;
-
-                    if (FuzzyAddressMatch(ri, rj))
-                        fieldAgreement++;
-
-                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
-                        fieldAgreement++;
-
-                    if (fieldAgreement >= 2)
-                    {
-                        if (!matches.ContainsKey(ri.EnterpriseID))
-                        {
-                            Add(ri, rj, ref matches);
-                        }
-                    }
-                }
-            }
+            var fuzzyMatch2Results = BipartiteMatch(remainingRows2, remainingRows2, FuzzyMatchAllowFirst);
+            AddMatchDictionary(fuzzyMatch2Results, matches);
 
             Add(15811621, 15750288, ref matches);//
             Add(15802888, 15456558, ref matches);//
@@ -192,6 +137,39 @@ namespace challenge
             Console.WriteLine("\n" + bigComponents.Count());
             Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
             Console.WriteLine(bigComponents.Sum(s => s.Count()));
+
+            var triplets = tc.ClosedRowSets.Where(s => s.Count() == 3).ToArray();
+            Console.WriteLine(triplets.Count());
+            Console.WriteLine(allTruePositiveData.Where(r => r.MRN == -1 && r.SSN == -1).Count());
+
+            //Validate that every triplet has a non-MRN entry
+            Console.WriteLine("Likely false positive triplets:");
+            foreach(var triplet in triplets)
+            {
+                if (!triplet.Any(eid => _rowByEnterpriseId[eid].MRN == -1 && _rowByEnterpriseId[eid].PHONE == -1))
+                {
+                    Console.WriteLine();
+                    foreach(var eid in triplet)
+                    {
+                        RowLibrary.Print(_rowByEnterpriseId[eid]);
+                    }
+                    Console.WriteLine();
+                }
+            }
+
+            throw new NotImplementedException("Want to validate that all missing SSN mising MRN rows are in a triplet");
+
+            //Generate 10 random triplets
+            for(int i = 0; i < 30; i++)
+            {
+                int j = random.Next(triplets.Length);
+                Console.WriteLine("\n");
+                foreach(int eid in triplets[j])
+                {
+                    RowLibrary.Print(_rowByEnterpriseId[eid]);
+                }
+            }
+
 
             foreach (var component in bigComponents)
             {
@@ -226,48 +204,39 @@ namespace challenge
             int nPaired = 0;
             int nUniquelyPaired = 0;
 
-
-
-
-            for (int i = 0; i < data.Count(); i++)
-            {
-                int maxExtent = 0;
-                int nMaxMatches = 0;
-                for (int j = 0; j < data.Count(); j++)
-                {
-                    if (i == j)
-                    {
-                        continue;
-                    }
-
-                    int matchExtent = MatchExtent(data[i], data[j]);
-
-                    if (matchExtent > maxExtent)
-                    {
-                        maxExtent = matchExtent;
-                        nMaxMatches = 0;
-                    }
-
-                    if (matchExtent == maxExtent && matchExtent > 0)
-                    {
-                        nMaxMatches++;
-                    }
-                }
-
-                if (nMaxMatches > 0)
-                    nPaired++;
-                else
-                {
-                    Console.WriteLine(data[i].EnterpriseID);
-                }
-
-                if (nMaxMatches == 1)
-                    nUniquelyPaired++;
-
-                if (i % 100 == 0)
-                    Console.Write("\r" + (i + 1) + " " + nPaired + " " + nUniquelyPaired);
-            }
             Console.ReadLine();
+        }
+
+        public static bool FuzzyMatchNoFirst(row ri, row rj)
+        {
+            return FuzzyMatch(ri, rj, false);
+        }
+
+        public static bool FuzzyMatchAllowFirst(row ri, row rj)
+        {
+            return FuzzyMatch(ri, rj, true);
+        }
+
+        public static bool FuzzyMatch(row ri, row rj, bool useFirst)
+        {
+            int fieldAgreement = 0;
+
+            if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
+                fieldAgreement++;
+
+            if (KDifferences(ri.LAST, rj.LAST, 2))
+                fieldAgreement++;
+
+            if (FuzzyAddressMatch(ri, rj))
+                fieldAgreement++;
+
+            if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                fieldAgreement++;
+
+            if (useFirst && KDifferences(ri.FIRST, rj.FIRST, 2))
+                fieldAgreement++;
+
+            return fieldAgreement >= 2;
         }
 
         public static bool FuzzyAddressMatch(row a, row b)
@@ -318,6 +287,40 @@ namespace challenge
             }
 
             return toReturn;
+        }
+
+        public static Dictionary<int, List<int>> BipartiteMatch(IEnumerable<row> S, IEnumerable<row> T, Func<row,row,bool> isMatch, bool printPairs = false)
+        {
+            Dictionary<int, List<int>> toReturn = new Dictionary<int, List<int>>();
+
+            int c = 0;
+            foreach (var s in S)
+            {
+                if (!printPairs)
+                    Console.Write($"\r{c++}/{S.Count()}");
+                int nMatches = 0;
+                foreach (var t in T)
+                    if (s != t && isMatch(s, t))
+                    {
+                        nMatches++;
+                        Add(s, t, ref toReturn);
+                    }
+                if (printPairs && nMatches == 1)
+                    RowLibrary.Print(s);
+            }
+            Console.WriteLine();
+            return toReturn;
+        }
+
+        static void AddMatchDictionary(Dictionary<int, List<int>> toAdd, Dictionary<int, List<int>> matches)
+        {
+            foreach(var pair in toAdd)
+            {
+                foreach(int x in pair.Value)
+                {
+                    Add(pair.Key, x, ref matches);
+                }
+            }
         }
 
 
