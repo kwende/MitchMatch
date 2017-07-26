@@ -213,7 +213,7 @@ namespace LucasPlayground
                     var s = fourMillion[i + 1];
                     challenge.Program.Add(r, s, ref matches);
 
-                    double editDistance = Ben.EditDistance.ComputeDistanceForRecordPair(r, s);
+                    double editDistance = challenge.Ben.EditDistance.ComputeDistanceForRecordPair(r, s);
                     if (editDistance > .6)
                     {
                         sw.WriteLine(s.ToString());
