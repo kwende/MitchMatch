@@ -12,49 +12,7 @@ namespace challenge
     {
         static int[] _badSSNs;
         static Dictionary<int, row> _rowByEnterpriseId;
-
-        static bool M(row r, row s, Func<row, string> f)
-        {
-            string rs = f(r);
-            string ss = f(s);
-
-            if (rs != "" && ss != "" && rs == ss)
-                return true;
-
-            return false;
-        }
-
-        static bool SoftM(row r, row s, Func<row, string> f)
-        {
-            string rs = f(r);
-            string ss = f(s);
-
-            if (rs != "" && ss != "" && OneDifference(rs,ss))
-                return true;
-
-            return false;
-        }
-
-        static bool AddressDOBMatchConfidence(row r, row s)
-        {
-            if (r.ADDRESS1 == "" || s.ADDRESS1 == "")
-                return false;
-
-            if (!_badSSNs.Contains(r.SSN) && !_badSSNs.Contains(s.SSN) && OneDifference(r.SSN.ToString(), s.SSN.ToString()))
-                return true;
-
-            return (M(r, s, t => t.FIRST) || M(r, s, t => t.LAST));
-        }
-
-
-
-        static bool PhoneMatchConfidence(row r, row s)
-        {
-            if (!_badSSNs.Contains(r.SSN) && !_badSSNs.Contains(s.SSN) && OneDifference(r.SSN.ToString(), s.SSN.ToString()))
-                return true;
-
-            return SoftM(r, s, t => t.DOB.ToString()) || SoftM(r, s, t => t.FIRST);
-        }
+        static long[] _badPhoneNumbers;
 
         static void Main(string[] args)
         {
@@ -73,9 +31,17 @@ namespace challenge
                 _rowByEnterpriseId[r.EnterpriseID] = r;
             }
 
-            Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
-
             _badSSNs = allTruePositiveData.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
+            _badPhoneNumbers = allTruePositiveData.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
+
+            foreach(var pn in _badPhoneNumbers)
+            {
+                Console.WriteLine(pn);
+            }
+
+           
+
+            Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
 
             var fourMillion = allTruePositiveData.Where(r => r.MRN >= 4000000).ToArray();
             //Pair off and make a soft check on field to verify sameness
@@ -91,9 +57,9 @@ namespace challenge
 
             var data = UnMatched(allTruePositiveData, matches);
 
-            //var noMRNs = allTruePositiveData.Where(r => r.MRN == -1);
-            //var matchNoMRNS = BipartiteMatch(noMRNs, allTruePositiveData, FuzzyMatchAllowFirst, true);
-            //Console.WriteLine(noMRNs.Where(r => matchNoMRNS.ContainsKey(r.EnterpriseID) && matchNoMRNS[r.EnterpriseID].Count() >= 3).Count());
+            var noMRNs = allTruePositiveData.Where(r => r.MRN == -1);
+            var matchNoMRNS = BipartiteMatch(noMRNs, allTruePositiveData, ExactMatchInTwoFields, true);
+            AddMatchDictionary(matchNoMRNS, matches);
 
 
             AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
@@ -156,11 +122,26 @@ namespace challenge
                     Console.WriteLine();
                 }
             }
+            
+            Console.WriteLine("Possible false negatives, likely matches triple");
+            var noSSNnoMRN = allTruePositiveData.Where(r => r.MRN == -1 && r.SSN == -1);
+            foreach(var r in noSSNnoMRN)
+            {
+                if (!triplets.Any(t => t.Contains(r.EnterpriseID)))
+                {
+                    RowLibrary.Print(r);
+                }
+            }
 
-            throw new NotImplementedException("Want to validate that all missing SSN mising MRN rows are in a triplet");
+            Console.WriteLine("\nUnmatched");
+            var toHandVerify = UnMatched(data, matches);
+            foreach (var row in toHandVerify)
+            {
+                RowLibrary.Print(row);
+            }
 
             //Generate 10 random triplets
-            for(int i = 0; i < 30; i++)
+            for (int i = 0; i < 30; i++)
             {
                 int j = random.Next(triplets.Length);
                 Console.WriteLine("\n");
@@ -181,12 +162,6 @@ namespace challenge
                 Console.WriteLine("\n");
             }
 
-            var toHandVerify = UnMatched(data, matches);
-            foreach (var row in toHandVerify)
-            {
-                RowLibrary.Print(row);
-            }
-
             Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
 
@@ -201,10 +176,50 @@ namespace challenge
                 Console.WriteLine(data[nextTry].EnterpriseID);
             }
 
-            int nPaired = 0;
-            int nUniquelyPaired = 0;
-
             Console.ReadLine();
+        }
+
+        static bool M(row r, row s, Func<row, string> f)
+        {
+            string rs = f(r);
+            string ss = f(s);
+
+            if (rs != "" && ss != "" && rs == ss)
+                return true;
+
+            return false;
+        }
+
+        static bool SoftM(row r, row s, Func<row, string> f)
+        {
+            string rs = f(r);
+            string ss = f(s);
+
+            if (rs != "" && ss != "" && OneDifference(rs, ss))
+                return true;
+
+            return false;
+        }
+
+        static bool AddressDOBMatchConfidence(row r, row s)
+        {
+            if (r.ADDRESS1 == "" || s.ADDRESS1 == "")
+                return false;
+
+            if (!_badSSNs.Contains(r.SSN) && !_badSSNs.Contains(s.SSN) && OneDifference(r.SSN.ToString(), s.SSN.ToString()))
+                return true;
+
+            return (M(r, s, t => t.FIRST) || M(r, s, t => t.LAST));
+        }
+
+
+
+        static bool PhoneMatchConfidence(row r, row s)
+        {
+            if (!_badSSNs.Contains(r.SSN) && !_badSSNs.Contains(s.SSN) && OneDifference(r.SSN.ToString(), s.SSN.ToString()))
+                return true;
+
+            return SoftM(r, s, t => t.DOB.ToString()) || SoftM(r, s, t => t.FIRST);
         }
 
         public static bool FuzzyMatchNoFirst(row ri, row rj)
@@ -224,6 +239,9 @@ namespace challenge
             if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
                 fieldAgreement++;
 
+            if (!_badPhoneNumbers.Contains(ri.PHONE) && !_badPhoneNumbers.Contains(rj.PHONE) && OneDifference(ri.PHONE.ToString(), rj.PHONE.ToString()))
+                fieldAgreement++;
+
             if (KDifferences(ri.LAST, rj.LAST, 2))
                 fieldAgreement++;
 
@@ -234,6 +252,28 @@ namespace challenge
                 fieldAgreement++;
 
             if (useFirst && KDifferences(ri.FIRST, rj.FIRST, 2))
+                fieldAgreement++;
+
+            return fieldAgreement >= 2;
+        }
+
+        public static bool ExactMatchInTwoFields(row ri, row rj)
+        {
+            int fieldAgreement = 0;
+
+            if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && ri.SSN == rj.SSN)
+                fieldAgreement++;
+
+            if (!_badPhoneNumbers.Contains(ri.PHONE) && !_badPhoneNumbers.Contains(rj.PHONE) && ri.PHONE.ToString() == rj.PHONE.ToString())
+                fieldAgreement++;
+
+            if (M(ri, rj, r => r.FIRST) || M(ri, rj, r => r.LAST))
+                fieldAgreement++;
+
+            if (M(ri,rj,r=>r.ADDRESS1))
+                fieldAgreement++;
+
+            if (ri.DOB != default(DateTime) && rj.DOB != default(DateTime) && ri.DOB.ToString() == rj.DOB.ToString())
                 fieldAgreement++;
 
             return fieldAgreement >= 2;
@@ -337,6 +377,9 @@ namespace challenge
 
         static void AddOrdered(int a, int b, ref Dictionary<int, List<int>> matches)
         {
+            if (a == b)
+                throw new ArgumentException("A record can't match itself");
+
             if (!matches.ContainsKey(a))
                 matches[a] = new List<int>();
 
@@ -378,11 +421,11 @@ namespace challenge
                 {
                     foreach (var r in group)
                     {
-                        if (!matches.ContainsKey(r.EnterpriseID))
+                        foreach(var s in group)
                         {
-                            matches[r.EnterpriseID] = new List<int>();
+                            if (r != s)
+                                Add(r, s, ref matches);
                         }
-                        matches[r.EnterpriseID] = matches[r.EnterpriseID].Union(group.Select(r2 => r2.EnterpriseID)).ToList();
                     }
                 }
             }
