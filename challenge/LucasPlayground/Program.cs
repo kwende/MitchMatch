@@ -123,7 +123,7 @@ namespace LucasPlayground
             {
                 return (r.LAST != "" ? (r.ADDRESS1 != "" ? r.LAST + r.FIRST + r.ADDRESS1 : "NOADDRESS") : "NONAME");
             }, 4, (r1, r2) =>
-                FuzzyPhoneMatch(r1.PHONE, r2.PHONE) || 
+                FuzzyPhoneMatch(r1.PHONE, r2.PHONE) ||
                 FuzzySSNMatch(r1.SSN, r2.SSN) ||
                 FuzzyDateEquals(r1.DOB, r2.DOB),
             ref matches);
@@ -185,7 +185,6 @@ namespace LucasPlayground
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine(remainingRows.Count());
-            Console.ReadLine();
 
 
             //******************  HAND REMOVE   ******************//
@@ -196,16 +195,13 @@ namespace LucasPlayground
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine(remainingRows.Count());
-            Console.ReadLine();
-
 
 
             var tc = TransitiveClosure.Compute(matches, data);
-            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() >= 3).Select(s => s.Select(id => data.Where(d => d.EnterpriseID == id).First()).ToArray());
+            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() >= 4).Select(s => s.Select(id => data.Where(d => d.EnterpriseID == id).First()).ToArray());
             Console.WriteLine("\n" + bigComponents.Count());
             Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
             Console.WriteLine(bigComponents.Sum(s => s.Count()));
-
         }
 
 
@@ -340,6 +336,11 @@ namespace LucasPlayground
 
             if (a.Month == b.Month && a.Day == b.Day && (OneOrOneDigit(a.Year, b.Year) || TransposedDigit(a.Year, b.Year) || OffBy100(a.Year, b.Year)))
                 return true;
+
+            if (a.Month == b.Day && a.Day == b.Month && a.Year == b.Year)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -487,19 +488,19 @@ namespace LucasPlayground
 
                     var ri = remainingRows[i];
                     var rj = remainingRows[j];
-
-                    if (FuzzySSNMatch(ri.SSN, rj.SSN))
+                    if (FuzzyStringMatch(ri.LAST, rj.LAST))
+                    {
                         fieldAgreement++;
 
-                    if (challenge.Program.KDifferences(ri.LAST, rj.LAST, 2))
-                        fieldAgreement++;
+                        if (FuzzySSNMatch(ri.SSN, rj.SSN))
+                            fieldAgreement++;
 
-                    if (challenge.Program.FuzzyAddressMatch(ri, rj))
-                        fieldAgreement++;
+                        if (challenge.Program.FuzzyAddressMatch(ri, rj))
+                            fieldAgreement++;
 
-                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
-                        fieldAgreement++;
-
+                        if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                            fieldAgreement++;
+                    }
                     if (fieldAgreement >= 2)
                     {
                         if (!matches.ContainsKey(ri.EnterpriseID))
