@@ -17,8 +17,8 @@ namespace LucasPlayground
         {
             Random random = new Random();
 
-            //var lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
-            var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
+            var lines = File.ReadLines(@"C:/users/brush/desktop/FInalDataset.csv");
+            //var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
@@ -48,24 +48,19 @@ namespace LucasPlayground
                     challenge.Program.FuzzyAddressMatch(r1, r2),
                 ref matches);
 
+            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups(addedSSN);
 
+            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/social_matches.csv"))
+            //{
+            //    foreach (Tuple<double, int, int> tuple in tuples)
+            //    {
+            //        sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}"); 
+            //    }
+            //}
 
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
-            Console.WriteLine();
-            Console.WriteLine("NAME + ADDRESS");
-            var addedNameAddress = AddMatches(data, r =>
-                {
-                    return (r.LAST != "" ? (r.ADDRESS1 != "" ? r.LAST + r.FIRST + r.ADDRESS1 : "NOADDRESS") : "NONAME");
-                }, 4, (r1, r2) =>
-                    challenge.Program.FuzzyDateEquals(r1.DOB, r2.DOB) ||
-                    !IsSSNValid(r1.SSN) ||
-                    !IsSSNValid(r2.SSN) ||
-                    FuzzySSNMatch(r1.SSN, r2.SSN),
-                ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
 
             Console.WriteLine();
             Console.WriteLine("NAME + PHONE");
@@ -96,6 +91,43 @@ namespace LucasPlayground
                 ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
+
+
+            /////////////////////////////////////
+            Console.WriteLine();
+            Console.WriteLine("NAME + ADDRESS");
+
+            // TODO: Change condition on fuzzydateequals to allow simple transpose of two digits and century? 
+
+            var addedNameAddress = AddMatches(data, r =>
+            {
+                return (r.LAST != "" ? (r.ADDRESS1 != "" ? r.LAST + r.FIRST + r.ADDRESS1 : "NOADDRESS") : "NONAME");
+            }, 4, (r1, r2) =>
+                challenge.Program.FuzzyDateEquals(r1.DOB, r2.DOB) ||
+                FuzzySSNMatch(r1.SSN, r2.SSN),
+                ref matches);
+
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
+
+            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<string>(addedNameAddress);
+
+            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/name+address_matches.csv"))
+            //{
+            //    foreach (Tuple<double, int, int> tuple in tuples)
+            //    {
+            //        if (tuple.Item1 > .4)
+            //        {
+            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
+            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
+            //            sw.WriteLine();
+            //            //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+            //        }
+            //        //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+            //    }
+            //}
+
+            /////////////////////////////////////
 
             Console.WriteLine();
             Console.WriteLine("PHONE");

@@ -11,6 +11,173 @@ namespace challenge
     public class Program
     {
         static int[] _badSSNs;
+        static Dictionary<int, row> _rowByEnterpriseId;
+        static long[] _badPhoneNumbers;
+
+        static void Main(string[] args)
+        {
+            Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
+
+            Random random = new Random();
+
+            //var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
+            var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
+            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
+            var allTruePositiveData = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
+
+            _rowByEnterpriseId = new Dictionary<int, row>();
+            foreach(var r in allTruePositiveData)
+            {
+                _rowByEnterpriseId[r.EnterpriseID] = r;
+            }
+
+            _badSSNs = allTruePositiveData.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
+            _badPhoneNumbers = allTruePositiveData.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
+
+            foreach(var pn in _badPhoneNumbers)
+            {
+                Console.WriteLine(pn);
+            }
+
+           
+
+            Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
+
+            var fourMillion = allTruePositiveData.Where(r => r.MRN >= 4000000).ToArray();
+            //Pair off and make a soft check on field to verify sameness
+            Console.WriteLine(fourMillion.Count());
+
+            for (int i = 0; i < fourMillion.Count(); i += 2)
+            {
+                var r = fourMillion[i];
+                var s = fourMillion[i + 1];
+                Add(r, s, ref matches);
+            }
+
+
+            var data = UnMatched(allTruePositiveData, matches);
+
+            var noMRNs = allTruePositiveData.Where(r => r.MRN == -1);
+            var matchNoMRNS = BipartiteMatch(noMRNs, allTruePositiveData, ExactMatchInTwoFields, true);
+            AddMatchDictionary(matchNoMRNS, matches);
+
+
+            AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
+            AddMatches(data, r => r.PHONE, 5, PhoneMatchConfidence, ref matches);
+            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1, r2) => true, ref matches);
+
+            AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, AddressDOBMatchConfidence, ref matches);
+
+            AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
+
+            var remainingRows = UnMatched(data, matches);
+            var fuzzyMatchResults = BipartiteMatch(remainingRows, remainingRows,FuzzyMatchNoFirst);
+            AddMatchDictionary(fuzzyMatchResults, matches);
+
+            //For what's left, brute force soft match on at least 2 of name, DOB, address
+
+
+            var remainingRows2 = UnMatched(data, matches);
+            var fuzzyMatch2Results = BipartiteMatch(remainingRows2, remainingRows2, FuzzyMatchAllowFirst);
+            AddMatchDictionary(fuzzyMatch2Results, matches);
+
+            Add(15811621, 15750288, ref matches);//
+            Add(15802888, 15456558, ref matches);//
+            Add(15510682, 15598625, ref matches);//
+            Add(15562243, 15863734, ref matches);//
+            Add(15843982, 15988253, ref matches);//
+            Add(15447438, 16021452, ref matches);//
+            Add(15566242, 15393356, ref matches);//
+            Add(15869829, 15444537, ref matches);//
+            Add(15483298, 15544065, ref matches);//
+            Add(15380819, 15586885, ref matches);//
+            Add(15474114, 15393886, ref matches);//
+            Add(15476947, 15766192, ref matches);//
+            Add(15671788, 15696806, ref matches);//
+            Add(15476869, 15541825, ref matches);//
+            Add(15460667, 15923220, ref matches);//
+            Add(15688015, 15555730, ref matches);//
+
+            var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
+            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() > 3);
+            Console.WriteLine("\n" + bigComponents.Count());
+            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
+            Console.WriteLine(bigComponents.Sum(s => s.Count()));
+
+            var triplets = tc.ClosedRowSets.Where(s => s.Count() == 3).ToArray();
+            Console.WriteLine(triplets.Count());
+            Console.WriteLine(allTruePositiveData.Where(r => r.MRN == -1 && r.SSN == -1).Count());
+
+            //Validate that every triplet has a non-MRN entry
+            Console.WriteLine("Likely false positive triplets:");
+            foreach(var triplet in triplets)
+            {
+                if (!triplet.Any(eid => _rowByEnterpriseId[eid].MRN == -1 && _rowByEnterpriseId[eid].PHONE == -1))
+                {
+                    Console.WriteLine();
+                    foreach(var eid in triplet)
+                    {
+                        RowLibrary.Print(_rowByEnterpriseId[eid]);
+                    }
+                    Console.WriteLine();
+                }
+            }
+            
+            Console.WriteLine("Possible false negatives, likely matches triple");
+            var noSSNnoMRN = allTruePositiveData.Where(r => r.MRN == -1 && r.SSN == -1);
+            foreach(var r in noSSNnoMRN)
+            {
+                if (!triplets.Any(t => t.Contains(r.EnterpriseID)))
+                {
+                    RowLibrary.Print(r);
+                }
+            }
+
+            Console.WriteLine("\nUnmatched");
+            var toHandVerify = UnMatched(data, matches);
+            foreach (var row in toHandVerify)
+            {
+                RowLibrary.Print(row);
+            }
+
+            //Generate 10 random triplets
+            for (int i = 0; i < 30; i++)
+            {
+                int j = random.Next(triplets.Length);
+                Console.WriteLine("\n");
+                foreach(int eid in triplets[j])
+                {
+                    RowLibrary.Print(_rowByEnterpriseId[eid]);
+                }
+            }
+
+
+            foreach (var component in bigComponents)
+            {
+                Console.WriteLine("\n");
+                foreach (int id in component)
+                {
+                    RowLibrary.Print(allTruePositiveData.Where(r => r.EnterpriseID == id).First());
+                }
+                Console.WriteLine("\n");
+            }
+
+            Console.WriteLine("");
+            Console.WriteLine(matches.Count() + " matched entries");
+
+
+            for (int i = 0; i < 10; i++)
+            {
+                int nextTry = random.Next(data.Count());
+                while (matches.ContainsKey(data[nextTry].EnterpriseID))
+                {
+                    nextTry = random.Next(data.Count());
+                }
+                Console.WriteLine(data[nextTry].EnterpriseID);
+            }
+
+            Console.ReadLine();
+        }
 
         static bool M(row r, row s, Func<row, string> f)
         {
@@ -28,7 +195,7 @@ namespace challenge
             string rs = f(r);
             string ss = f(s);
 
-            if (rs != "" && ss != "" && OneDifference(rs,ss))
+            if (rs != "" && ss != "" && OneDifference(rs, ss))
                 return true;
 
             return false;
@@ -55,219 +222,61 @@ namespace challenge
             return SoftM(r, s, t => t.DOB.ToString()) || SoftM(r, s, t => t.FIRST);
         }
 
-        static void Main(string[] args)
+        public static bool FuzzyMatchNoFirst(row ri, row rj)
         {
-            Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
+            return FuzzyMatch(ri, rj, false);
+        }
 
-            Random random = new Random();
+        public static bool FuzzyMatchAllowFirst(row ri, row rj)
+        {
+            return FuzzyMatch(ri, rj, true);
+        }
 
-            //var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
-            var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
-            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
-            var allTruePositiveData = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
-            Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
+        public static bool FuzzyMatch(row ri, row rj, bool useFirst)
+        {
+            int fieldAgreement = 0;
 
-            _badSSNs = allTruePositiveData.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
+            if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
+                fieldAgreement++;
 
-            var fourMillion = allTruePositiveData.Where(r => r.MRN >= 4000000).ToArray();
-            //Pair off and make a soft check on field to verify sameness
-            Console.WriteLine(fourMillion.Count());
+            if (!_badPhoneNumbers.Contains(ri.PHONE) && !_badPhoneNumbers.Contains(rj.PHONE) && OneDifference(ri.PHONE.ToString(), rj.PHONE.ToString()))
+                fieldAgreement++;
 
-            for (int i = 0; i < fourMillion.Count(); i += 2)
-            {
-                var r = fourMillion[i];
-                var s = fourMillion[i + 1];
-                Add(r, s, ref matches);
-            }
+            if (KDifferences(ri.LAST, rj.LAST, 2))
+                fieldAgreement++;
 
+            if (FuzzyAddressMatch(ri, rj))
+                fieldAgreement++;
 
-            var data = UnMatched(allTruePositiveData, matches);
+            if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                fieldAgreement++;
 
+            if (useFirst && KDifferences(ri.FIRST, rj.FIRST, 2))
+                fieldAgreement++;
 
-            AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
-            AddMatches(data, r => r.PHONE, 5, PhoneMatchConfidence, ref matches);
-            AddMatches(data, r => r.LAST + r.FIRST + r.DOB.ToString("d"), 4, (r1, r2) => true, ref matches);
+            return fieldAgreement >= 2;
+        }
 
-            AddMatches(data, r => r.DOB.ToString("d") + r.ADDRESS1, 4, AddressDOBMatchConfidence, ref matches);
+        public static bool ExactMatchInTwoFields(row ri, row rj)
+        {
+            int fieldAgreement = 0;
 
-            AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
+            if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && ri.SSN == rj.SSN)
+                fieldAgreement++;
 
-            var remainingRows = UnMatched(data, matches);
+            if (!_badPhoneNumbers.Contains(ri.PHONE) && !_badPhoneNumbers.Contains(rj.PHONE) && ri.PHONE.ToString() == rj.PHONE.ToString())
+                fieldAgreement++;
 
-            //For what's left, brute force soft match on at least 2 of name, DOB, address
-            for (int i = 0; i < remainingRows.Count(); i++)
-            {
-                Console.Write("\r" + i + "/" + remainingRows.Count());
-                for (int j = 0; j < remainingRows.Count(); j++)
-                {
-                    if (i == j)
-                        continue;
+            if (M(ri, rj, r => r.FIRST) || M(ri, rj, r => r.LAST))
+                fieldAgreement++;
 
-                    int fieldAgreement = 0;
+            if (M(ri,rj,r=>r.ADDRESS1))
+                fieldAgreement++;
 
-                    var ri = remainingRows[i];
-                    var rj = remainingRows[j];
+            if (ri.DOB != default(DateTime) && rj.DOB != default(DateTime) && ri.DOB.ToString() == rj.DOB.ToString())
+                fieldAgreement++;
 
-                    if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
-                        fieldAgreement++;
-
-                    if (KDifferences(ri.LAST, rj.LAST, 2))
-                        fieldAgreement++;
-
-                    if (FuzzyAddressMatch(ri, rj))
-                        fieldAgreement++;
-
-                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
-                        fieldAgreement++;
-
-                    if (fieldAgreement >= 2)
-                    {
-                        if (!matches.ContainsKey(ri.EnterpriseID))
-                        {
-                            Add(ri, rj, ref matches);
-                        }
-                    }
-                }
-            }
-
-            var remainingRows2 = UnMatched(data, matches);
-
-            for (int i = 0; i < remainingRows2.Count(); i++)
-            {
-                Console.Write("\r" + i + "/" + remainingRows.Count());
-                for (int j = 0; j < remainingRows2.Count(); j++)
-                {
-                    if (i == j)
-                        continue;
-
-                    int fieldAgreement = 0;
-
-                    var ri = remainingRows2[i];
-                    var rj = remainingRows2[j];
-
-                    if (!_badSSNs.Contains(ri.SSN) && !_badSSNs.Contains(rj.SSN) && OneDifference(ri.SSN.ToString(), rj.SSN.ToString()))
-                        fieldAgreement++;
-
-                    if (KDifferences(ri.LAST, rj.LAST, 2))
-                        fieldAgreement++;
-
-                    if (M(ri, rj, r => r.FIRST))
-                        fieldAgreement++;
-
-                    if (FuzzyAddressMatch(ri, rj))
-                        fieldAgreement++;
-
-                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
-                        fieldAgreement++;
-
-                    if (fieldAgreement >= 2)
-                    {
-                        if (!matches.ContainsKey(ri.EnterpriseID))
-                        {
-                            Add(ri, rj, ref matches);
-                        }
-                    }
-                }
-            }
-
-            Add(15811621, 15750288, ref matches);//
-            Add(15802888, 15456558, ref matches);//
-            Add(15510682, 15598625, ref matches);//
-            Add(15562243, 15863734, ref matches);//
-            Add(15843982, 15988253, ref matches);//
-            Add(15447438, 16021452, ref matches);//
-            Add(15566242, 15393356, ref matches);//
-            Add(15869829, 15444537, ref matches);//
-            Add(15483298, 15544065, ref matches);//
-            Add(15380819, 15586885, ref matches);//
-            Add(15474114, 15393886, ref matches);//
-            Add(15476947, 15766192, ref matches);//
-            Add(15671788, 15696806, ref matches);//
-            Add(15476869, 15541825, ref matches);//
-            Add(15460667, 15923220, ref matches);//
-            Add(15688015, 15555730, ref matches);//
-
-            var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
-            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() > 3);
-            Console.WriteLine("\n" + bigComponents.Count());
-            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
-            Console.WriteLine(bigComponents.Sum(s => s.Count()));
-
-            foreach (var component in bigComponents)
-            {
-                Console.WriteLine("\n");
-                foreach (int id in component)
-                {
-                    RowLibrary.Print(allTruePositiveData.Where(r => r.EnterpriseID == id).First());
-                }
-                Console.WriteLine("\n");
-            }
-
-            var toHandVerify = UnMatched(data, matches);
-            foreach (var row in toHandVerify)
-            {
-                RowLibrary.Print(row);
-            }
-
-            Console.WriteLine("");
-            Console.WriteLine(matches.Count() + " matched entries");
-
-
-            for (int i = 0; i < 10; i++)
-            {
-                int nextTry = random.Next(data.Count());
-                while (matches.ContainsKey(data[nextTry].EnterpriseID))
-                {
-                    nextTry = random.Next(data.Count());
-                }
-                Console.WriteLine(data[nextTry].EnterpriseID);
-            }
-
-            int nPaired = 0;
-            int nUniquelyPaired = 0;
-
-
-
-
-            for (int i = 0; i < data.Count(); i++)
-            {
-                int maxExtent = 0;
-                int nMaxMatches = 0;
-                for (int j = 0; j < data.Count(); j++)
-                {
-                    if (i == j)
-                    {
-                        continue;
-                    }
-
-                    int matchExtent = MatchExtent(data[i], data[j]);
-
-                    if (matchExtent > maxExtent)
-                    {
-                        maxExtent = matchExtent;
-                        nMaxMatches = 0;
-                    }
-
-                    if (matchExtent == maxExtent && matchExtent > 0)
-                    {
-                        nMaxMatches++;
-                    }
-                }
-
-                if (nMaxMatches > 0)
-                    nPaired++;
-                else
-                {
-                    Console.WriteLine(data[i].EnterpriseID);
-                }
-
-                if (nMaxMatches == 1)
-                    nUniquelyPaired++;
-
-                if (i % 100 == 0)
-                    Console.Write("\r" + (i + 1) + " " + nPaired + " " + nUniquelyPaired);
-            }
-            Console.ReadLine();
+            return fieldAgreement >= 2;
         }
 
         public static bool FuzzyAddressMatch(row a, row b)
@@ -320,6 +329,40 @@ namespace challenge
             return toReturn;
         }
 
+        public static Dictionary<int, List<int>> BipartiteMatch(IEnumerable<row> S, IEnumerable<row> T, Func<row,row,bool> isMatch, bool printPairs = false)
+        {
+            Dictionary<int, List<int>> toReturn = new Dictionary<int, List<int>>();
+
+            int c = 0;
+            foreach (var s in S)
+            {
+                if (!printPairs)
+                    Console.Write($"\r{c++}/{S.Count()}");
+                int nMatches = 0;
+                foreach (var t in T)
+                    if (s != t && isMatch(s, t))
+                    {
+                        nMatches++;
+                        Add(s, t, ref toReturn);
+                    }
+                if (printPairs && nMatches == 1)
+                    RowLibrary.Print(s);
+            }
+            Console.WriteLine();
+            return toReturn;
+        }
+
+        static void AddMatchDictionary(Dictionary<int, List<int>> toAdd, Dictionary<int, List<int>> matches)
+        {
+            foreach(var pair in toAdd)
+            {
+                foreach(int x in pair.Value)
+                {
+                    Add(pair.Key, x, ref matches);
+                }
+            }
+        }
+
 
         public static void Add(row a, row b, ref Dictionary<int, List<int>> matches)
         {
@@ -334,6 +377,9 @@ namespace challenge
 
         static void AddOrdered(int a, int b, ref Dictionary<int, List<int>> matches)
         {
+            if (a == b)
+                throw new ArgumentException("A record can't match itself");
+
             if (!matches.ContainsKey(a))
                 matches[a] = new List<int>();
 
@@ -375,11 +421,11 @@ namespace challenge
                 {
                     foreach (var r in group)
                     {
-                        if (!matches.ContainsKey(r.EnterpriseID))
+                        foreach(var s in group)
                         {
-                            matches[r.EnterpriseID] = new List<int>();
+                            if (r != s)
+                                Add(r, s, ref matches);
                         }
-                        matches[r.EnterpriseID] = matches[r.EnterpriseID].Union(group.Select(r2 => r2.EnterpriseID)).ToList();
                     }
                 }
             }
