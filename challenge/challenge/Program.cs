@@ -61,8 +61,8 @@ namespace challenge
 
             Random random = new Random();
 
-            var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
-            //var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
+            //var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
+            var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var allTruePositiveData = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
