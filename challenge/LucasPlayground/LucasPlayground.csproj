@@ -50,6 +50,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BenLayground\BenLayground.csproj">
+      <Project>{9d3c8ff2-97cc-4dfe-8f67-5f4379b59e72}</Project>
+      <Name>BenLayground</Name>
+    </ProjectReference>
     <ProjectReference Include="..\challenge\challenge.csproj">
       <Project>{28561ecc-5344-480e-baf0-f9f99a51802d}</Project>
       <Name>challenge</Name>

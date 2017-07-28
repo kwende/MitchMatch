@@ -198,10 +198,10 @@ namespace LucasPlayground
                 {
                     return (r.ADDRESS1 != "" ? (r.DOB != default(DateTime) ? r.DOB.ToString("d") + r.ADDRESS1 : "NODOB") : "NOADDRESS");
                 }, 4, (r1, r2) =>
+                    //(r1.LAST != "" && r1.LAST == r2.LAST) || 
+                    //(r1.FIRST != "" && r1.FIRST == r2.FIRST) ||
                     (r1.FIRST != "" && challenge.Program.OneDifference(r1.FIRST, r2.FIRST)) ||
-                    !IsSSNValid(r1.SSN) ||
-                    !IsSSNValid(r2.SSN) ||
-                    FuzzySSNMatch(r1.SSN, r2.SSN),
+                    (IsSSNValid(r1.SSN) && IsSSNValid(r2.SSN) && FuzzySSNMatch(r1.SSN, r2.SSN)),
                 ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
