@@ -187,6 +187,13 @@ namespace LucasPlayground
             Console.WriteLine(remainingRows.Count());
 
 
+            //****************** FINAL SOFTMATCH ******************//
+            Console.WriteLine();
+            Console.WriteLine("FINAL SOFTMATCH");
+            var addedSoftMatchesFinal = AddSoftMatchesFinal(data, remainingRows, ref matches);
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
+
             //******************  HAND REMOVE   ******************//
             Console.WriteLine();
             Console.WriteLine("HAND REMOVED");
@@ -693,6 +700,68 @@ namespace LucasPlayground
                 }
             }
 
+            return addedThisTime;
+        }
+
+        public static List<List<row>> AddSoftMatchesFinal(row[] data, row[] remainingRows, ref Dictionary<int, List<int>> matches)
+        {
+            List<List<row>> addedThisTime = new List<List<row>>();
+
+            for (int i = 0; i < remainingRows.Count(); i++)
+            {
+                for (int j = 0; j < data.Count(); j++)
+                {
+                    var ri = remainingRows[i];
+                    var rj = data[j];
+                    if (ri.EnterpriseID == rj.EnterpriseID)
+                    {
+                        continue;
+                    }
+
+                    int fieldAgreement = 0;
+
+                    if (FuzzySSNMatch(ri.SSN, rj.SSN))
+                        fieldAgreement++;
+
+                    if (challenge.Program.KDifferences(ri.LAST, rj.LAST, 2))
+                        fieldAgreement++;
+
+                    if (challenge.Program.FuzzyAddressMatch(ri, rj))
+                        fieldAgreement++;
+
+                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                        fieldAgreement++;
+
+
+                    if (NonemptyEquality(ri.FIRST, rj.FIRST))
+                        fieldAgreement++;
+
+                    if (fieldAgreement >= 1)
+                    {
+                        if (fieldAgreement >= 2)
+                        {
+                            if (!matches.ContainsKey(ri.EnterpriseID))
+                            {
+                                challenge.Program.Add(ri, rj, ref matches);
+                                addedThisTime.Add(new List<row> { ri, rj });
+                                if (_printActuals)
+                                {
+                                    PrintPair(ri, rj);
+                                }
+                            }
+                            else if (!matches.ContainsKey(rj.EnterpriseID))
+                            {
+                                challenge.Program.Add(ri, rj, ref matches);
+                                addedThisTime.Add(new List<row> { ri, rj });
+                                if (_printActuals)
+                                {
+                                    PrintPair(ri, rj);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             return addedThisTime;
         }
 
