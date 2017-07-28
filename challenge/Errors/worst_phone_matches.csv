@@ -1,0 +1,594 @@
+JENNIFER       , LISA           , RAPER               ,    , JANE DOE                 , F, 828592607,  29/07/1995,  9088002033,       690 EAST 182 STREET,    2E,      BRONX, NY, 10457, 112782    , 15778257
+CHRISTINA      , LISA           , RAPER               ,    ,                          , F, -1,  29/07/1995,  9088002033,       690 EAST 182 STREET,    2E,      BRONX, NY, 10457, 112838    , 15715015
+
+MATTHEW        ,                , WATKINS             ,    ,                          , M, 805078606,  23/05/1990,  9733878989,            859 220 STREET,     2,      BRONX, NY, 10469, 118001    , 15604141
+ARNOLDO        ,                , WATKINS             ,    , JOHN DOE                 , M, -1,  23/05/1990,  9733878989,       2260 CROTONA AVENUE,    6T,      BRONX, NY, 10457, 118038    , 15519045
+
+THIAGO         , T              , JONAS               ,    ,                          , M, -1,  14/09/1991,  2674689930,        911 SIMPSON STREET,    34,      BRONX, NY, 10453, 123119    , 15465415
+ASHER          , T              , JONAS               ,    , JOHN DOE                 , M, 847989223,  14/09/1991,  2674689930,        911 SIMPSON STREET,    34,      BRONX, NY, 10453, 123212    , 15708918
+
+TAMMY          ,                , TORRES              ,    ,                          , F, -1,  10/02/1994,  8623589109,   175 ALEXANDER AVENUE 4J,    4J,      BRONX, NY, 10454, 126347    , 15548264
+ELISE          ,                , TORRES              ,    ,                          , F, 802207864,  10/02/1994,  8623589109,      175 ALEXANDER AVENUE,    4J,      BRONX, NY, 10454, 126439    , 15674783
+
+MATTIE         ,                , BENSON              ,    ,                          , F, 860278268,  18/10/2009,  9731193527,       320 E 156TH STREETE,   14G,      BRONX, NY, 10451, 127747    , 15761241
+ERICA          ,                , BENSON              ,    ,                          , F, -1,  18/10/2009,  9731193527,        320 E 156TH STREET,   14G,      BRONX, NY, 10451, 127874    , 15591087
+
+FABIAN         , WALTER         , BURNETTE            ,    ,                          , M, -1,  06/07/2013,  2034907801,     236 WEST 136TH STREET,    PH,   NEW YORK, NY, 10030, 139198    , 15742117
+ENZO           , WALTER         , BURNETTE            ,    ,                          , M, 849526307,  06/07/2013,  2034907801,     236 WEST 136TH STTEET,     1,   NEW YORK, NY, 10030, 139222    , 15785823
+
+IRENE          ,                , CONLEY              ,    ,                          , F, -1,  23/07/2003,  9349442985,            1035 GRANDCONC,   6DS,      BRONX, NY, 10452, 142721    , 15905195
+AMY            ,                , CONLEY              ,    ,                          , F, 845056464,  23/07/2003,  9349442985,       685 HIGH RIDGE ROAD,   P H,   STAMFORD, CT,  6905, 142808    , 15472400
+
+CLAUDIA        ,                , DUGGIN              ,    , JANE DOE                 , F, 800085705,  20/02/1994,  2035491418,         280300 EAST 161ST,    4X,      BRONX, NY, 10451, 146707    , 16017327
+MIRAYAH        ,                , DUGGIN              ,    ,                          , F, -1,  20/02/1994,  2035491418,          280 E 161 STREET,    4X,      BRONX, NY, 10451, 146777    , 15709030
+
+JUAN           , COREY          , CURTIS              ,    ,                          , M, 666666666,  18/05/2012,  8485673008,         680 TINTON AVENUE,   21G,      BRONX, NY, 10455, 147832    , 15454072
+DAVID          , COREY          , CURTIS              ,    ,                          , M, 891192332,  18/05/2012,  8485673008,         680 TINTON AVENUE,   22G,      BRONX, NY, 10455, 147920    , 15982863
+
+ULLRICH        ,                , BROWN               ,    ,                          , M, -1,  12/03/2014,  5701543954,    575 CASTLE HILL AVENUE,   12K,      BRONX, NY, 10473, 150620    , 15538999
+JOSEY          , MICHAEL        , BROWN               ,    ,                          , M, 854842272,  12/03/2014,  5701543954,    575 CASTLE HILL AVENUE,   12K,      BRONX, NY, 10472, 150690    , 15411867
+
+BOBBIE         ,                , MCCRAY              ,    ,                          , F, 863788393,  07/06/1981,  2124769084,      3238 TENBROCK AVENUE,  BSMT,      BRONX, NY, 10469, 151700    , 15827685
+TRACY          , BONNIE         , ROSENBERG           ,    ,                          , F, 863788399,  07/06/1981,  2124769084,      3238 TENBROCK AVENUE,  BSMT,      BRONX, NY, 10469, 151795    , 15593300
+
+WILMA          ,                , WITTY               ,    ,                          , F, -1,  11/12/2006,  5163675670,           2131 3RD AVENUE,     2,   NEW YORK, NY, 10035, 152238    , 15532388
+BEVERLY        ,                , WITTY               ,    ,                          , F, 802074886,  11/12/2006,  5163675670,           2131 3RD AVENUE,      ,   NEW YORK, NY, 10035, 152274    , 15633062
+
+NINGXIN        ,                , GUARACA             ,    ,                          , M, 880036859,  12/12/2011,  5164684288,     4334 CARPENTER AVENUE,     2,      BRONX, NY, 10459, 162491    , 15896565
+LYLE           ,                , GUARACA             ,    ,                          , M, -1,  12/12/2011,  5164684288,     691 EAST 138TH STREET,   302,      BRONX, NY, 10454, 162594    , 15601439
+
+BIANCA         ,                , KNAACK              ,    ,                          , F, -1,  13/04/2013,  9088411192,          1275 DELMAR LOOP,     8,   BROOKLYN, NY, 11239, 168324    , 15523403
+PAULINE        ,                , KNAACK              ,    ,                          , F, 868474056,  13/04/2013,  9088411192,            1275 DELMAR LP,    8C,   BROOKLYN, NY, 11239, 168383    , 15784897
+
+RHONDA         , JOANNE         , RODRIGUEZ           ,    ,                          , F, 880683498,  25/09/2003,  8451428310,        967 SHERMAN AVENUE,     3,      BRONX, NY, 10456, 177918    , 15959962
+BARLIN         ,                , RODRIGUEZ           ,    , JANE DOE                 , F, -1,  25/09/2003,  8451428310,        967 SHERMAN AVENUE,     5,      BRONX, NY, 10456, 177980    , 15411570
+
+AMY            ,                , WILSON              ,    ,                          , F, 841226481,  13/06/2011,  9296723745,            633 ARMSTREDAM,    7G,   NEW YORK, NY, 10472, 189252    , 15691390
+VIRGINIA       ,                , WILSON              ,    ,                          , F, 555555555,  13/06/2011,  9296723745,       633 ARMSTEAD AVENUE,    7G,      BRONX, NY, 10472, 189335    , 15836991
+
+PAUL           , JEREMY         , HICKS               ,    ,                          , M, 889246288,  21/03/2012,  5706601581,          20929 111TH ROAD,    PH, QUEENS VILLAGE, NY, 11429, 190052    , 15435188
+JESSE          ,                , HICKS               ,    ,                          , M, -1,  21/03/2012,  5706601581,            20929 111 ROAD,    PH,     HOLLIS, NY, 11423, 190072    , 15380892
+
+JOSHUA         ,                , CARDENAS            ,    ,                          , M, -1,  14/06/2012,  8481313058,                          ,      ,           ,   ,    -1, 196602    , 15589058
+HUNTER         , M              , CARDENAS            ,    ,                          , M, 856760287,  14/06/2012,  8481313058,     1710 MONGOMERY AVENUE,    5F,      BRONX, NY, 10453, 196669    , 15921071
+
+ROBERT         , THOMAS         , BARTOW              ,    ,                          , M, 857728496,  02/07/1992,  4849766082,        295 W 150TH STREET,    43,   NEW YORK, NY, 10039, 198705    , 15583579
+DANIEL         , T              , BARTOW              ,    ,                          , M, -1,  02/07/1992,  4849766082,     295 WEST 130TH STREET,    43,         NY, NY, 10039, 198759    , 15723800
+
+RONALD         ,                , MARSH               ,    ,                          , M, -1,  05/12/2008,  5164908826,                 DOMICILED,      ,   BROOKLYN, NY, 11203, 200144    , 15842904
+STEPHEN        ,                , MARSH               ,    ,                          , M, 835666308,  05/12/2008,  5164908826,      367 EAST 96TH STREET,    3F,   BROOKLYN, NY, 11212, 200223    , 15717716
+
+WILLIS         , P              , CAPPONI             ,    ,                          , M, -1,  18/09/2001,  8485284706,                          ,      ,           ,   ,    -1, 201124    , 15443616
+JOSE           , P              , CAPPONI             ,    ,                          , M, 883379453,  18/09/2001,  8485284706,          1482 YORK AVENUE,    1G,   NEW YORK, NY, 10021, 201170    , 15725193
+
+WENDY          , D              , SIMS                ,    ,                          , F, -1,  22/04/2006,  5703077577,                     19619,     1,   NEW YORK, NY, 10001, 202646    , 15508090
+BROOKE         ,                , SIMS                ,    ,                          , F, 856244948,  22/04/2006,  5703077577,          12814 115 AVENUE,   2FL, SOUTH OZONE PARK, NY, 11420, 202728    , 15460863
+
+KRISTEN        ,                , KELLIZLOPEZ         ,    ,                          , F, -1,  07/12/1995,  9595207438,        708 DECATUR STREET,   708,   BROOKLYN, NY, 11233, 207786    , 15617439
+MERYEMA        ,                , KELLIZLOPEZ         ,    ,                          , F, 839974793,  07/12/1995,  9595207438,     786 MACDONOUGH STREET,    2R,   BROOKLYN, NY, 11233, 207837    , 15496091
+
+ADDYSEN        ,                , CONLON              ,    ,                          , F, -1,  09/11/2008,  9346288527,           17223 91 AVENUE,    PH,    JAMAICA, NY, 11432, 210548    , 15679949
+VIRGINIA       ,                , CONLON              ,    ,                          , F, 820679989,  09/11/2008,  9346288527,    169 12 HIGHLAND AVENUE,    PH,    JAMAICA, NY, 11432, 210595    , 15396827
+
+EULA           ,                , GILLIGAN            ,    ,                          , F, 808443223,  26/07/2014,  3476344813,    1816 WHITE PLAINS ROAD,    4D,      BRONX, NY, 10462, 212856    , 15812951
+MARY           , L              , GILLIGAN            ,    ,                          , F, -1,  26/07/2014,  3476344813,    1816 WHITE PLAINS ROAD,    4D,      BRONX, NY, 10462, 212899    , 15720625
+
+ANDREW         , DALE           , HENDERSON           ,    ,                          , M, -1,  10/04/2009,  2675927132,        135 WASHINGTON WLK,      ,      BKLYN, NY, 11205, 219874    , 15578567
+TIMOTHY        ,                , HENDERSON           ,    ,                          , M, 859297494,  10/04/2009,  2675927132,        135 WASHINGTON WLK,    3A,   BROOKLYN, NY, 11205, 219914    , 15641988
+
+ROOSEVELT      ,                , POLANSKY            ,    ,                          , M, 809039446,  14/12/1995,  7325084706,             40 RIVER ROAD,    3H,   NEW YORK, NY, 10044, 225923    , 15482590
+ANTHONY        ,                , POLANSKY            ,    ,                          , M, -1,  14/12/1995,  7325084706,             40 RIVER ROAD,    3H,   NEW YORK, NY, 10044, 226021    , 15667250
+
+STEPHEN        ,                , KEARNEY             ,    , ALBERT RONALD VITAL      , M, 857336553,  04/02/2011,  5515739089,            1139 47TH ROAD,    4L, LONG ISLAND CTY, NY, 11101, 236025    , 15532515
+WILLIAM        , DANA           , KEARNEY             ,    ,                          , M, -1,  04/02/2011,  5515739089,               113147 ROAD,     7, LONG ISLAND CTY, NY, 11101, 236073    , 15570877
+
+ENRIQUE        , GARY           , GORDILS             ,    ,                          , M, -1,  09/04/2005,  8609308217,        1473 BRYANT AVENUE,    1B,      BRONX, NY, 10460, 237618    , 15513078
+KADYEN         ,                , GORDILS             ,    ,                          , M, 805624396,  09/04/2005,  8609308217,        1473 BRYANT AVENUE,    1B,      BRONX, NY, 10460, 237690    , 15813371
+
+GAVIN          , SHAWN          , KOZAK               ,    ,                          , M, -1,  18/12/2001,  8453901652,         14423 38TH AVENUE,  3FLR,   FLUSHING, NY, 11354, 245784    , 15735761
+ROBERT         , SHAWN          , KOZAK               ,    ,                          , M, 865076332,  18/12/2001,  8453901652,         14423 78TH STREET,    PH,   FLUSHING, NY, 11354, 245799    , 15767335
+
+ANGEL          ,                , VICK                ,    ,                          , M, -1,  15/04/2004,  5167539922,                          ,      ,           ,   ,    -1, 291740    , 15691367
+ISAIAH         , J              , VICK                ,    ,                          , M, 825520865,  15/04/2004,  5167539922,        11651 157TH STREET,    3G,    JAMAICA, NY, 11434, 291783    , 15992920
+
+SHARON         ,                , RAMIREZMALAGON      ,    ,                          , F, -1,  10/08/1993,  9293413639,      2420 BRONX PARK EAST,    1E,      BRONX, NY, 10467, 292727    , 15937342
+DANYELLE       ,                , RAMIREZMALAGON      ,    ,                          , F, 876863328,  10/08/1993,  9293413639,      2420 BRONX PARK EAST,    1E,      BRONX, NY, 10467, 292749    , 15740528
+
+MARY           ,                , ABRAHAM             ,    ,                          , F, 892770464,  06/12/1990,  5512903132,          259 W 152 STREET,    5B,   NEW YORK, NY, 10039, 298146    , 15845294
+LEOLA          ,                , ABRAHAM             ,    ,                          , F, -1,  06/12/1990,  5512903132,          259 W 152 STREET,    5B,         NY, NY, 10039, 298264    , 15631358
+
+WILLIAM        , JEFFREY        , STOVALL             ,    ,                          , M, 858586957,  05/05/2002,  8627505598, 25 EAST MOSHOLU PARKWAY N,    2K,      BRONX, NY, 10467, 298703    , 15435562
+JAMES          ,                , STOVALL             ,    ,                          , M, -1,  05/05/2002,  8627505598,      1466 GRAND CONCOURSE,    1A,      BRONX, NY, 10457, 298746    , 15890037
+
+REBECCA        , KENNETH        , BLANCH              ,    ,                          , M, 999999999,  14/12/2006,  2014275853,            3406 32 STREET,    5A, LONG ISLAND CTY, NY, 11105, 301003    , 15913570
+JOHN           , KENNETH        , BLANCH              ,    ,                          , M, 806280565,  14/12/2006,  2014275853,          5319 96TH STREET,     2,     CORONA, NY, 11368, 301025    , 15884271
+
+TONY           , JACK           , MARKO               ,    ,                          , M, 850729692,  05/07/1998,  9592081227,     1240 STRATFORD AVENUE,    B3,      BRONX, NY, 10472, 303535    , 15940429
+RICHARD        ,                , MARKO               ,    ,                          , M, -1,  05/07/1998,  9592081227,      240 STRATFORD AVENUE,    3B,      BRONX, NY, 10462, 303576    , 15482674
+
+WILLIE         , JOHNATHON      , SLOAN               ,    ,                          , M, -1,  13/06/2007,  9731455933,      2052 HARRISON AVENUE,     2,      BRONX, NY, 10453, 308450    , 15657163
+LAMONT         , JOHNATHON      , SLOAN               ,    ,                          , M, 844697302,  13/06/2007,  9731455933,      2052 HARRISON AVENUE,     2,      BRONX, NY, 10453, 308469    , 15485806
+
+EDDIE          ,                , NEUMANN             ,    ,                          , M, -1,  28/12/1993,  8603091887,         6467 ESSEX STREET,   18B,   NEW YORK, NY, 10002, 309150    , 15529716
+BOBBY          ,                , NEUMANN             ,    ,                          , M, 836350720,  28/12/1993,  8603091887,          164 ALLEN STREET,    4B,   NEW YORK, NY, 10002, 309170    , 15751438
+
+BERNARDO       ,                , OKUNOYE             ,    ,                          , M, 844659983,  18/08/2007,  9293163199,          267 W 152 STREET,      ,   NEW YORK, NY, 10039, 315547    , 15742867
+AUDRELL        ,                , OKUNOYE             ,    ,                          , M, -1,  18/08/2007,  9293163199,     267 WEST 152ND STREET,   2 H,   NEW YORK, NY, 10039, 315573    , 15877352
+
+JEROME         ,                , VISHAJ              ,    ,                          , M, 896403533,  13/09/2005,  9172158724,    198 ST NICHOLAS AVENUE,     1,   BROOKLYN, NY, 11237, 319958    , 15801481
+RONALD         ,                , VISHAJ              ,    ,                          , M, -1,  13/09/2005,  9172158724,    198 ST NICHOLAS AVENUE,      ,   BROOKLYN, NY, 11237, 320043    , 15741172
+
+HECTOR         , M              , MELBYE              ,    ,                          , M, 874795846,  13/04/1999,  2121314482,      3663 PAULDING AVENUE,   1FL,      BRONX, NY, 10469, 322080    , 15526002
+LUIS           , M              , MELBYE              ,    ,                          , M, -1,  13/04/1999,  2121314482,      1366 PLIMPTON AVENUE,    2C,      BRONX, NY, 10452, 322098    , 15965217
+
+HELEN          ,                , GENTILE             ,    ,                          , F, 809462359,  12/12/1991,  9173625611,   720 COMMONWEALTH AVENUE,    12,      BRONX, NY, 10462, 323471    , 15436778
+PATRICIA       ,                , GENTILE             ,    ,                          , F, -1,  12/12/1991,  9173625611,   720 COMMONWEALTH AVENUE,     2,      BRONX, NY, 10472, 323584    , 16003405
+
+ROSARIO        ,                , ARAHOVITES          ,    ,                          , F, 832969029,  19/10/2004,  9592437014,     620 WEST 170TH STREET,    1C,   NEW YORK, NY, 10032, 332361    , 15922507
+SHELLY         ,                , ARAHOVITES          ,    ,                          , F, -1,  19/10/2004,  9592437014,        620 W 170TH STREET,    1C,   NEW YORK, NY, 10032, 332426    , 15481822
+
+KUSH           ,                , TERRY               ,    ,                          , M, -1,  18/04/1993,  8627245780,   1249 BRONX RIVER AVENUE,    1F,      BRONX, NY, 10472, 333320    , 15484145
+JAN            , JOSE           , TERRY               ,    ,                          , M, 885772099,  18/04/1993,  8627245780,       1234 COLGATE AVENUE,   2FL,      BRONX, NY, 10472, 333345    , 15862833
+
+JAMES          ,                , FRANCO              ,    ,                          ,  , -1,  18/08/1997,  9088102556,     800 EAST 180TH STREET,    8L,      BRONX, NY, 10460, 334150    , 15504290
+RICHARD        ,                , FRANCO              ,    ,                          , M, 804694288,  18/08/1997,  9088102556,     800 EAST 180TH STREET,    8L,      BRONX, NY, 10460, 334218    , 15664809
+
+PAUL           ,                , MARTIN              ,    ,                          , M, -1,  20/10/1993,  9345845375,       1230 TREMONT AVENUE,     8,      BRONX, NY, 10460, 336405    , 15578293
+ROBERT         , EDMUND         , MARTIN              ,    ,                          , M, 887742568,  20/10/1993,  9345845375,          523 FIFTH AVENUE,   224,     PELHAM, NY, 10803, 336464    , 15620625
+
+JASON          ,                , MCCOUN              ,    ,                          , M, -1,  28/07/2003,  9594563633,  101125 WEST 147TH STREET,   11E,   NEW YORK, NY, 10039, 339428    , 15707215
+KODY           ,                , MCCOUN              ,    ,                          , M, 842785093,  28/07/2003,  9594563633,        101 W 147TH STREET,   11E,   NEW YORK, NY, 10039, 339529    , 15923471
+
+MARIA          ,                , MIRPHUL             ,    ,                          , F, 895353047,  15/03/1998,  5168692263,   760 HUNTS PPOINT AVENUE,    2B,      BRONX, NY, 10474, 340736    , 15706942
+IRENE          ,                , MIRPHUL             ,    ,                          , F, -1,  15/03/1998,  5168692263,           4415 3RD AVENUE,      ,      BRONX, NY, 10457, 340802    , 15963878
+
+VIVIAN         , MARGARET       , NGUYEN              ,    ,                          , F, 830939975,  01/04/2004,  5185007721,        2463 MARION AVENUE,    10,      BRONX, NY, 10458, 340907    , 15647261
+KHLOEY         ,                , NGUYEN              ,    ,                          , F, -1,  01/04/2004,  5185007721,    2766 UNIVERSITY AVENUE,      ,      BRONX, NY, 10468, 340969    , 15972382
+
+JOSEPH         ,                , RAJAN               ,    ,                          , M, 827430537,  13/11/1997,  5703531017,     2310 VALENTINE AVENUE,    55,      BRONX, NY, 10458, 342384    , 15686323
+LARRY          ,                , RAJAN               ,    ,                          , M, -1,  13/11/1997,  5703531017,         3018 HEATH AVENUE,   A12,      BRONX, NY, 10463, 342444    , 15405704
+
+JAMES          , CLYDE          , GREENBERG           ,    ,                          , M, 862525742,  03/05/2008,  3476248601,        465 E 167TH STREET,     7,      BRONX, NY, 10456, 349097    , 15910498
+RICHARD        , CLYDE          , GREENBERG           ,    ,                          , M, -1,  03/05/2008,  3476248601,        265 E 167TH STREET,     7,      BRONX, NY, 10456, 349126    , 15503777
+
+EDDIE          , R              , NAVLET              ,    ,                          , M, 827950873,  15/05/1998,  5168801053,           593 OAK TERRACE,   4 B,      BRONX, NY, 10454, 358905    , 15500535
+JERRY          , R              , NAVLET              ,    ,                          , M, -1,  15/05/1998,  5168801053,          415 BROOK AVENUE,   1ST,      BRONX, NY, 10454, 358925    , 15518710
+
+JOHN           , DENNIS         , NEWSOME             ,    ,                          , M, 847522672,  28/07/2005,  9594706646,       270 NEW MAIN STREET,    PH,    YONKERS, NY, 10701, 366940    , 15522281
+TRACY          ,                , NEWSOME             ,    ,                          , M, -1,  28/07/2005,  9594706646,        270 NEWMAIN AVENUE,     3,    YONKERS, NY, 10701, 366955    , 15904123
+
+WJAMES         , RUSSELL        , WINN                ,    ,                          , M, -1,  25/03/2002,  5166942988,         710 TINTON AVENUE,   11E,      BRONX, NY, 10455, 376130    , 15820102
+JUSTIN         , RUSSELL        , WINN                ,    ,                          , M, 808074574,  25/03/2002,  5166942988,         710 TINTON AVENUE,   11E,      BRONX, NY, 10455, 376171    , 15495394
+
+SHADAE         , TAMEKA         , WEBER               ,    ,                          , F, 885329077,  27/02/2004,  9085146240,    1042 WOODYCREST AVENUE,    PH,      BRONX, NY, 10452, 384438    , 15442711
+TABITHA        , TAMEKA         , WEBER               ,    ,                          , F, -1,  27/02/2004,  9085146240,    1042 WOODYCREST AVENUE,    PH,      BRONX, NY, 10452, 384510    , 16010633
+
+AUDREY         , GLADYS         , DILL                ,    ,                          , F, -1,  14/12/1992,  6101139271,                          ,      ,           ,   ,    -1, 385994    , 15686166
+ELVIA          ,                , DILL                ,    ,                          , F, 877566657,  14/12/1992,  6101139271,  17515 ROCKAWAY BOULEVARD,   527,    JAMAICA, NY, 11434, 386045    , 15504913
+
+PWEH           , J              , FEEBACK             ,    ,                          , F, -1,  05/03/1997,  9731362347,        345 CYPRESS AVENUE,    1A,      BRONX, NY, 10454, 393528    , 15796113
+KU             , J              , FEEBACK             ,    ,                          , F, 823337477,  05/03/1997,  9731362347,   2775 KINGBRIDGE TERRACE,    B5,      BRONX, NY, 10463, 393564    , 15526434
+
+COTTON         , WALTER         , VITTITOE            ,    ,                          , M, 828679343,  05/02/1998,  5514283760,    2245 BRONX WOOD AVENUE,    4D,      BRONX, NY, 10469, 398109    , 15525491
+GABRIEL        , WALTER         , VITTITOE            ,    ,                          , M, -1,  05/02/1998,  5514283760,    2245 BRONX WOOD AVENUE,    4D,      BRONX, NY, 10469, 398165    , 15710210
+
+JEFFERY        ,                , HA                  ,    ,                          , M, -1,  23/12/1999,  6093044782,     990 WILLOUGHBY AVENUE,     1,   BROOKLYN, NY, 11221, 400006    , 15721250
+DAWAUN         , HIEU           , HA                  ,    ,                          , M, 895037275,  23/12/1999,  6093044782,     990 WILLOUGHBY AVENUE,     1,   BROOKLYN, NY, 11221, 400012    , 15891495
+
+ROBERT         , DON            , BRAGG               ,    ,                          , M, -1,  12/07/2000,  5182812408,        730 E 163RD STREET,    7B,      BRONX, NY, 10456, 416520    , 15742541
+CHARLES        , DON            , BRAGG               ,    ,                          , M, 845662042,  12/07/2000,  5182812408,        751 E 161ST STREET,   14C,      BRONX, NY, 10456, 416525    , 15796119
+
+J              ,                , COLLINS             ,    ,                          , M, 835204989,  08/03/1990,  6099072084,        13454 175TH STREET,    PH,    JAMAICA, NY, 11434, 417279    , 15953704
+CHARLES        ,                , COLLINS             ,    ,                          , M, -1,  08/03/1990,  6099072084,         4668 FOREST TRAIL,    PH,   LITHONIA, GA, 30038, 417280    , 15955396
+
+SCOTT          ,                , VERHOFF             ,    ,                          , M, 882573852,  29/11/1997,  2676384162,       14021 157ST JAMAICA,    PH,    JAMAICA, NY, 11434, 430620    , 15916391
+JOHNNY         ,                , VERHOFF             ,    ,                          , M, -1,  29/11/1997,  2676384162,          14021 157 STREET,    PH,    JAMAICA, NY, 11434, 430665    , 15945004
+
+JASON          ,                , ASSAEDI             ,    ,                          , M, 874957500,  05/06/1995,  2122777664,        760 E 183RD STREET,   325,      BRONX, NY, 10463, 431027    , 15854957
+TERRY          ,                , ASSAEDI             ,    ,                          , M, -1,  05/06/1995,  2122777664,      786 CAULDWELL AVENUE,     1,      BRONX, NY, 10456, 431041    , 15558997
+
+PAUL           , ODELL          , HERNANDEZ           ,    ,                          , M, 859738607,  30/03/1991,  6092579890,     834 EAST 161ST STREET,    4A,      BRONX, NY, 10459, 431293    , 15452019
+SERGIO         ,                , HERNANDEZ           ,    ,                          , M, -1,  30/03/1991,  6092579890,       834 EAST 161 STREET,    4A,      BRONX, NY, 10459, 431329    , 15709485
+
+ROBERT         ,                , CRUZ                ,    ,                          , M, -1,  12/08/1994,  9294081801,                          ,      ,           ,   ,    -1, 432717    , 15429015
+ADAN           ,                , CRUZ                ,    ,                          , M, 869309565,  12/08/1994,  9294081801,                          ,      ,           ,   ,    -1, 432737    , 15792717
+
+KELLI          ,                , IKRAM               ,    ,                          , F, -1,  13/09/2002,  2036497493,           2825 GRAND CONC,    5G,      BRONX, NY, 10468, 433205    , 15600052
+TATEM          ,                , IKRAM               ,    ,                          , F, 883925748,  13/09/2002,  2036497493,       2825 GRANDCONCOURSE,    5G,      BRONX, NY, 10468, 433216    , 15622748
+
+PALA           ,                , HOPPER              ,    ,                          , F, 895638634,  01/07/1992,  2033215986,           1234 SPOFFORD A,    5E,      BRONX, NY, 10474, 436442    , 15614424
+HSERKU         ,                , HOPPER              ,    ,                          , F, -1,  01/07/1992,  2033215986,      1234 SPOFFORD AVENUE,    5E,      BRONX, NY, 10474, 436491    , 15949033
+
+THADORE        ,                , DOMINGUEZ           ,    ,                          , M, 843538358,  09/05/1991,  5185838055,          357 E 163 STREET,    1D,      BRONX, NY, 10451, 438519    , 15852267
+DYLAN          ,                , DOMINGUEZ           ,    ,                          , M, -1,  09/05/1991,  5185838055,       357 EAST 163 STREET,    1D,      BRONX, NY, 10456, 438548    , 15434553
+
+THURSTON       , CARL           , ESENWEIN            ,    ,                          , M, -1,  26/08/2006,  8458559306,       1084 CARROLL STREET,   1FL,   BROOKLYN, NY, 11225, 440329    , 15510032
+DONALD         , CARL           , ESENWEIN            ,    ,                          , M, 857864959,  26/08/2006,  8458559306,          273 PENNSYLVANIA,     2,      BKLYN, NY, 11207, 440374    , 15377307
+
+HENRY          ,                , DELANEY             ,    ,                          , M, 848282260,  22/09/2004,  6317521623,   12526 SUTPHIN BOULEVARD,    PH,    JAMAICA, NY, 11435, 447390    , 15735173
+ELLIS          ,                , DELANEY             ,    ,                          , M, -1,  22/09/2004,  6317521623,           13035 176 PLACE,    PH,    JAMAICA, NY, 11434, 447415    , 16021831
+
+MARY           , ANNABELLE      , SANTANA             ,    ,                          , F, -1,  26/09/2005,  2671771835,    2443 ST REYMOND AVENUE,   1FL,      BRONX, NY, 10461, 449867    , 15896071
+CYNTHIA        , ANNABELLE      , SANTANA             ,    ,                          , F, 845075686,  26/09/2005,  2671771835,        2169 ARTHUR AVENUE,    PH,      BRONX, NY, 10457, 449886    , 16002983
+
+LATASHIA       ,                , HOLMES              ,    ,                          , F, -1,  13/09/1996,  2035887062,     547 WEST 157ST STREET,    31,   NEW YORK, NY, 10032, 454398    , 15619185
+TIFFANY        ,                , HOLMES              ,    ,                          , F, 884858604,  13/09/1996,  2035887062,        547 W 157TH STREET,    31,   NEW YORK, NY, 10032, 454431    , 15465814
+
+GALILEA        , R              , WILLIAMS            ,    ,                          , F, -1,  30/10/1993,  7321694839,       1430 WEBSTER AVENUE,   17G,      BRONX, NY, 10456, 458135    , 15691880
+DESTINY        , R              , WILLIAMS            ,    ,                          , F, 862898742,  30/10/1993,  7321694839,          1120 CLAY AVENUE,    3H,      BRONX, NY, 10456, 458162    , 15922630
+
+RICHARD        , BRANDON        , LEWIS               ,    ,                          , M, 879837850,  09/09/1996,  5188236354,        2192 MORRIS AVENUE, 5:00 AM,      BRONX, NY, 10453, 458775    , 15452896
+JUSEF          ,                , LEWIS               ,    ,                          , M, -1,  09/09/1996,  5188236354,        2192 MORRIS AVENUE,    5A,         BX, NY, 10453, 458800    , 15456803
+
+SHERISA        ,                , LILLIE              ,    ,                          , F, -1,  12/11/2004,  8485936658,      1403 NEW YORK AVENUE,    5G,   BROOKLYN, NY, 11210, 464391    , 15793894
+JANET          ,                , LILLIE              ,    ,                          , F, 880897875,  12/11/2004,  8485936658,      1403 NEW YORK AVENUE,    5G,   BROOKLYN, NY, 11213, 464429    , 15875132
+
+DAVID          ,                , ANDERSON            ,    ,                          , M, 889689643,  20/02/1999,  4845726713,         8020 134TH STREET,   215,    JAMAICA, NY, 11435, 470221    , 15467110
+BRYON          ,                , ANDERSON            ,    ,                          , M, -1,  20/02/1999,  4845726713,            1401 36 AVENUE,    5F,    ASTORIA, NY, 11106, 470265    , 15928387
+
+ROSA           , JESSICA        , PENDLETON           ,    ,                          , F, 892843737,  23/11/2007,  9089326518,             402 TORY BAVE,    PH,      BRONX, NY, 10473, 471098    , 15465768
+HEATHER        , JESSICA        , PENDLETON           ,    ,                          , F, -1,  23/11/2007,  9089326518,          402 TORRY AVENUE,    PH,      BRONX, NY, 10473, 471130    , 15703703
+
+TAYLOR         ,                , PETERSON            ,    ,                          , F, -1,  04/09/2003,  8454315726,     521 CMN WEALTH AVENUE,   G54,      BRONX, NY, 10473, 473298    , 15605980
+EDEN           , DONNA          , PETERSON            ,    ,                          , F, 847468065,  04/09/2003,  8454315726,   521 COMMONWEALTH AVENUE,   G54,      BRONX, NY, 10473, 473343    , 15940600
+
+RALPH          , GARY           , SENN                ,    ,                          , M, -1,  29/12/2003,  8627167565,     115 WEST 172ND STREET,    2F,      BRONX, NY, 10452, 476415    , 15808163
+LYNN           , GARY           , SENN                ,    ,                          , M, 895639636,  29/12/2003,  8627167565,     115 WEST 172ND STREET,    2F,   NEW YORK, NY, 10036, 476487    , 15671101
+
+BRISAIDA       ,                , THOMAS              ,    ,                          , F, -1,  11/06/1999,  6105732773,         443 BOLTON AVENUE,    PH,      BRONX, NY, 10473, 479164    , 15990156
+DEBBRAK        ,                , THOMAS              ,    ,                          , F, 825569075,  11/06/1999,  6105732773,         1241 CROES AVENUE,    PH,      BRONX, NY, 10472, 479183    , 15941287
+
+ROBERT         ,                , RAHMAN              ,    ,                          , M, -1,  13/11/2015,  2129216189,     1250 STRATFORD AVENUE,    1R,      BRONX, NY, 10472, 479339    , 15702782
+STEPHEN        ,                , RAHMAN              ,    ,                          , M, 838668475,  13/11/2015,  2129216189,     1250 STRATFORD AVENUE,    1B,      BRONX, NY, 10472, 479356    , 15930948
+
+JACK           , ERIC           , LAPAN               ,    ,                          , M, 832208097,  24/08/1995,  5705633514, 265 E BEDFORD PARK BOULEVARD,    3A,      BRONX, NY, 10458, 483274    , 15730720
+SUNUNGURA      ,                , LAPAN               ,    ,                          , M, -1,  24/08/1995,  5705633514,     265 E BEDFORD PARKWAY,    4A,      BRONX, NY, 10458, 483304    , 15425862
+
+JIMMY          , DAVID          , JOSEPHS             ,    ,                          , M, 830372590,  23/04/1995,  9597932569,      1925 MONTEREY AVENUE,    6B,      BRONX, NY, 10457, 484467    , 15850684
+PABLO          ,                , JOSEPHS             ,    ,                          , M, -1,  23/04/1995,  9597932569,      1925 MONTERAY AVENUE,    6B,      BRONX, NY, 10457, 484481    , 15536434
+
+ANTHONY        , STEVEN         , DODSON              ,    , RICHARD  LOGAN           , M, -1,  07/02/2008,  5513123492,        11437 204TH STREET,    PH,  ST ALBANS, NY, 11412, 491828    , 15562843
+TRAVIS         , STEVEN         , DODSON              ,    ,                          , M, 809238795,  07/02/2008,  5513123492,        11437 204TH STREET,   PVT,  ST.ALBANS, NY, 11412, 491830    , 15689297
+
+SALVADOR       , MASON          , SMITH               ,    ,                          , M, 804793652,  08/10/2004,  7327981633,        220 W 133RD STREET,   10N,   NEW YORK, NY, 10030, 492786    , 15524723
+ERICK          ,                , SMITH               ,    ,                          , M, -1,  08/10/2004,  7327981633,     220 WEST 133RD STREET,   10E,         NY, NY, 10030, 492819    , 15376865
+
+JILL           ,                , FANNIN              ,    ,                          , F, 877577534,  10/02/1994,  9173663275,        2275 CRUGER AVENUE,    3A,      BRONX, NY, 10467, 499106    , 15570042
+FLORDEMARIA    ,                , FANNIN              ,    ,                          , F, -1,  10/02/1994,  9173663275,           15 E 199 STREET,    4B,      BRONX, NY, 10468, 499126    , 15641287
+
+MARIANA        ,                , SEBOLSKY            ,    ,                          , F, 852555697,  15/07/2001,  2123304422,    111 NORTH THIRD AVENUE,    2T, MOUNT VERNON, NY, 10550, 499152    , 15882434
+JUDY           ,                , SEBOLSKY            ,    ,                          , F, -1,  15/07/2001,  2123304422,      111 NORTH 3RD AVENUE,    2T,  MT VERNON, NY, 10550, 499190    , 15936375
+
+FRANK          , OWEN           , ESTEP               ,    ,                          , M, 875273575,  23/02/2007,  7183114223,       635 RIVERSIDE DRIVE,    7B,   NEW YORK, NY, 10031, 507357    , 15697229
+COLION         ,                , ESTEP               ,    ,                          , M, -1,  23/02/2007,  7183114223,       635 RIVERSIDE DRIVE,    7B,   NEW YORK, NY, 10031, 507430    , 15659426
+
+MICHELLE       , ADA            , NADER               ,    ,                          , F, 820047615,  05/12/1998,  8606593602,       2135 WALLACE AVENUE,   132,      BRONX, NY, 10462, 511392    , 15611743
+DAWN           ,                , NADER               ,    ,                          , F, 999999999,  05/12/1998,  8606593602,      1738 GARFIELD STREET,    PH,      BRONX, NY, 10460, 511451    , 15944934
+
+CONSTANCE      ,                , SORIA               ,    ,                          , F, -1,  22/03/2004,  5519155373,    2015 UNIVERSITY AVENUE,   4CS,      BRONX, NY, 10453, 512141    , 15546895
+ISABELLA       ,                , SORIA               ,    ,                          , F, 869926329,  22/03/2004,  5519155373,        1499 MORRIS AVENUE,    2F,      BRONX, NY, 10457, 512174    , 15864782
+
+EMILY          , MILDRED        , RIVERA              ,    ,                          ,  , 857538454,  04/09/1993,  5516032988,       1055 SHERMAN AVENUE,    4F,      BRONX, NY, 10456, 517614    , 15893029
+JOHANNA        ,                , RIVERA              ,    ,                          , F, -1,  04/09/1993,  5516032988,       1055 SHERMAN AVENUE,    4F,      BRONX, NY, 10456, 517677    , 15731142
+
+MARY           , JENNIFER       , BENEDUCCI           ,    ,                          , F, 853742955,  26/03/1998,  5164335794,          344 E 146 STREET,  1 FL,   NEW YORK, NY, 10039, 519634    , 15868799
+GINA           ,                , BENEDUCCI           ,    ,                          , F, -1,  26/03/1998,  5164335794,          441 E 155 STREET,    2M,      BRONX, NY, 10455, 519647    , 15564205
+
+JENNIFER       ,                , SHIELDS             ,    ,                          , F, 857556468,  03/10/1996,  8605494458,        687 STMARKS AVENUE,   3 B,   BROOKLYN, NY, 11216, 525366    , 15627071
+BRITTANY       ,                , SHIELDS             ,    ,                          , F, -1,  03/10/1996,  8605494458,      245 EAST 39TH STREET,   2 B,   NEW YORK, NY, 10016, 525403    , 15590506
+
+TAMMY          ,                , PARKS               ,    ,                          , F, -1,  16/07/2005,  7329249006,           2333 5TH AVENUE,   7GG,   NEW YORK, NY, 10037, 528619    , 15895753
+JOHNA          ,                , PARKS               ,    ,                          , F, 838765284,  16/07/2005,  7329249006,        138 RUTLAND AVENUE,    PH, FAIRFIELD CT, CT,  6432, 528645    , 15512644
+
+ANGELINA       ,                , DEOLIVEIRA          ,    ,                          , U, -1,  04/11/2011,  5516036460,         8268 164TH STREET,  HOSP,    JAMAICA, NY, 11432, 530829    , 15538244
+SARAH          ,                , DEOLIVEIRA          ,    ,                          , F, 823298533,  04/11/2011,  5516036460,         8268 164TH STREET,  HOSP,    JAMAICA, NY, 11432, 530872    , 15386917
+
+LUKE           ,                , BECK                ,    ,                          , M, 866626954,  24/08/1992,  2676591222,       80 MCCLELLAN STREET,   5 F,      BRONX, NY, 10452, 540969    , 15980709
+HAROLDA        ,                , BECK                ,    ,                          , M, -1,  24/08/1992,  2676591222,       80 MCCLELLAN STREET,   5 F,      BRONX, NY, 10452, 541012    , 15636878
+
+CATRINA        , H              , KOUKI               ,    ,                          , F, 878647428,  28/07/1994,  2672942515,         115 HENWOOD PLACE,    6D,      BRONX, NY, 10458, 543125    , 15609350
+HOLLY          ,                , KOUKI               ,    ,                          , F, -1,  28/07/1994,  2672942515,         115 HENWOOD PLACE,    6D,      BRONX, NY, 10458, 543177    , 15857476
+
+ALICIA         , SHERYL         , HUGLEY              ,    ,                          , F, 873464684,  24/02/2008,  8453133745,     2327 VALENTINE AVENUE,    2A,      BRONX, NY, 10456, 550356    , 15664373
+JORDAN         ,                , HUGLEY              ,    ,                          , F, -1,  24/02/2008,  8453133745,     2327 VALENTINE AVENUE,    2A,      BRONX, NY, 10458, 550369    , 15680869
+
+BEVERLY        ,                , HETHERINGTON        ,    ,                          , F, -1,  09/02/2004,  8456645694,        3475 BIVONA STREET,      ,      BRONX, NY, 10475, 551162    , 15576898
+CHELSEA        ,                , HETHERINGTON        ,    ,                          , F, 832780540,  09/02/2004,  8456645694,       1215 WHEELER AVENUE,    3A,      BRONX, NY, 10472, 551209    , 15619550
+
+KAREN          ,                , ABDULLAWEZA         ,    ,                          , F, -1,  11/10/2011,  4847762434,           4522 MONTICELLO,     2,      BRONX, NY, 10466, 554055    , 15920989
+M              ,                , ABDULLAWEZA         ,    ,                          , F, 883208375,  11/10/2011,  4847762434,           3451 ELY AVENUE,    PH,      BRONX, NY, 10469, 554077    , 15627977
+
+ISAIAH         , JAMES          , MAGEE               ,    ,                          , M, 858537846,  19/03/2002,  4847416458,           11351 212STREET,      , QUEENS VILLAGE, NY, 11429, 555008    , 15903515
+ANDREW         ,                , MAGEE               ,    ,                          , M, -1,  19/03/2002,  4847416458,          11351 212 STREET,    PH, QNS VILLAGE, NY, 11429, 555052    , 15817657
+
+SHEILA         ,                , FRANCO              ,    ,                          , F, -1,  13/08/2003,  6095707665,   41 STNICHOLAS TERRACE 5,    58,   NEW YORK, NY, 10027, 556551    , 15763738
+GLADYS         ,                , FRANCO              ,    ,                          , U, 846692220,  13/08/2003,  6095707665, 41 STREET NICHOLAS TERRANCE,    58,   NEW YORK, NY, 10027, 556572    , 15610621
+
+JULIAN         ,                , RITCHIE             ,    ,                          , M, 877605277,  02/02/2002,  9082519903,      1774 EASTBURN AVENUE,    3D,      BRONX, NY, 10457, 560716    , 15674803
+GREGORIO       ,                , RITCHIE             ,    ,                          , M, -1,  02/02/2002,  9082519903,      1774 EASTBURN AVENUE,    3D,      BRONX, NY, 10457, 560731    , 15589993
+
+WILLIAM        , L              , FULTON              ,    ,                          , M, -1,  02/05/2010,  9733315359,            203 AIDA COURT,   PVT, GREENWHICH, CT,  6830, 561358    , 15716573
+HENRY          ,                , FULTON              ,    ,                          , M, 828724368,  02/05/2010,  9733315359,      20 IDAR COURT STREET,    20,   GREENICH, CT,  6830, 561379    , 15472973
+
+AUTUMN         , L              , FERNANDEZ           ,    ,                          , F, -1,  26/05/2013,  6095089645,         9421 121TH STREET,    1B,  RICH HILL, NY, 11419, 562253    , 15481377
+FLOR           , L              , FERNANDEZ           ,    ,                          , F, 803948739,  26/05/2013,  6095089645,      11907 LIBERTY AVENUE,  2FLR, SOUTH RICHMOND HILL, NY, 11419, 562318    , 15452626
+
+SCOTT          ,                , OUARDY              ,    ,                          , M, 827388773,  24/04/1999,  2125093608,      2234 DAVIDSON AVENUE,    5A,      BRONX, NY, 10453, 563691    , 15524965
+BRUCE          ,                , OUARDY              ,    ,                          , M, -1,  24/04/1999,  2125093608,          68 CLINTON PLACE,      ,      BRONX, NY, 10475, 563707    , 15988717
+
+YVONNE         ,                , OLIVO               ,    ,                          , F, 845403234,  27/03/2002,  8451978131,     226 WEST 116TH STREET,    3W,   NEW YORK, NY, 10026, 578048    , 15836131
+SUK            ,                , OLIVO               ,    ,                          , F, -1,  27/03/2002,  8451978131,     226 WEST 116TH STREET,    3W,   NEW YORK, NY, 10026, 578071    , 15606452
+
+SJ             , JOHNNY         , WEISBERG            ,    ,                          , M, 852507335,  24/12/2007,  9346503280,        1771 ANDREW AVENUE,    PH,      BRONX, NY, 10453, 578542    , 15455228
+ABEL           , JOHNNY         , WEISBERG            ,    ,                          , M, -1,  24/12/2007,  9346503280,            57 PITT STREET,     8,   NEW YORK, NY, 10002, 578575    , 15995269
+
+COURTNEY       , ROSE           , SILVAYMONTI         ,    ,                          , F, -1,  11/12/2003,  5701522330,     1860 LAFAYETTE AVENUE,    3B,      BRONX, NY, 10473, 579053    , 16007724
+ALIZA          ,                , SILVAYMONTI         ,    ,                          , F, 872222945,  11/12/2003,  5701522330,     1860 LAFAYETTE AVENUE,    3B,      BRONX, NY, 10473, 579068    , 15764764
+
+DENNIS         ,                , IUSMEN              ,    ,                          , M, -1,  26/06/1993,  9298168687,       2785 SAMPSON AVENUE,    3A,      BRONX, NY, 10465, 581874    , 15873926
+BOBBY          ,                , IUSMEN              ,    ,                          , M, 807802568,  26/06/1993,  9298168687,       2785 SAMPSON AVENUE,    3A,      BRONX, NY, 10465, 581887    , 15942576
+
+CHARLES        ,                , SLATE               ,    ,                          , M, -1,  10/07/2004,  9594315825,                 63 E BRDY,   5FL,   NEW YORK, NY, 10002, 583706    , 15452950
+JUSTIN         , CLAYTON        , SLATE               ,    ,                          , M, 803064457,  10/07/2004,  9594315825,              63 EAST BWAY,   5FL,   NEW YORK, NY, 10002, 583728    , 15847243
+
+KATIE          ,                , SMITH               ,    ,                          ,  , -1,  14/02/1995,  5519495910,         15 W 139TH STREET,   10E,   NEW YORK, NY, 10037, 586127    , 15825292
+ADAMA          ,                , SMITH               ,    ,                          , F, 803605392,  14/02/1995,  5519495910,         15 W 139TH STREET,   10E,   NEW YORK, NY, 10037, 586147    , 15468937
+
+SHAWN          ,                , PERRY               ,    ,                          , M, -1,  17/12/1995,  8629254876,         730 OAKLAND PLACE, 3:00 AM,      BRONX, NY, 10457, 588339    , 15401113
+DAVID          , BILLY          , PERRY               ,    ,                          , M, 839836726,  17/12/1995,  8629254876,    611 CROTONA PARK NORTH,   14C,      BRONX, NY, 10457, 588364    , 15885024
+
+KATHRYN        ,                , MOVILIS             ,    ,                          , F, -1,  26/03/2003,  9178704742,       1590 UNIONPORT ROAD,    4A,      BRONX, NY, 10462, 588982    , 15519130
+LEANNA         ,                , MOVILIS             ,    ,                          , F, 850878975,  26/03/2003,  9178704742,     2242 WEBSTER AVENUE34,    34,      BRONX, NY, 10457, 588993    , 16004740
+
+PAMELAJ        ,                , BELLANTONI          ,    ,                          , F, 844303763,  30/08/1995,  2034829753,        210 FENMORE STREET,     2,   BROOKLYN, NY, 11225, 596641    , 15854844
+VERONICA       ,                , BELLANTONI          ,    ,                          , F, -1,  30/08/1995,  2034829753,       210 FENIMORE STREET,     2,   BROOKLYN, NY, 11225, 596674    , 15946069
+
+LUIZ           , ANDREW         , CRANFORD            ,    ,                          , M, 802333008,  07/09/2002,  8481665903,        1130 BRYANT AVENUE,    3B,      BRONX, NY, 10459, 598223    , 15898047
+KYLE           , ANDREW         , CRANFORD            ,    ,                          , M, -1,  07/09/2002,  8481665903,        1130 BRYANT AVENUE,     3,      BRONX, NY, 10459, 598240    , 15997825
+
+TRAVIS         , JASON          , OSBORN              ,    ,                          , M, -1,  27/07/2008,  2011882212,    61 EAST CLIFFORD PLACE,     2,      BRONX, NY, 10453, 604314    , 15707026
+COOPER         , JASON          , OSBORN              ,    ,                          , M, 847698292,  27/07/2008,  2011882212,       60 AMSTERDAM AVENUE,    4A,         NY, NY, 10031, 604338    , 15816618
+
+FABRICIO       ,                , LAMB                ,    ,                          , M, -1,  23/12/1999,  8454606761,          1378 BOSTON ROAD,     2,      BRONX, NY, 10456, 605243    , 15664128
+MICHAEL        ,                , LAMB                ,    ,                          , M, 895829736,  23/12/1999,  8454606761,          1378 BOSTON ROAD,     2,      BRONX, NY, 10456, 605249    , 15904843
+
+DAMON          ,                , DELEONGALICIA       ,    ,                          , M, -1,  21/03/1994,  2033166828,         3535 GRACE AVENUE,    PH,      BRONX, NY, 10472, 605997    , 15425053
+MICHAEL        ,                , DELEONGALICIA       ,    ,                          , M, 878429284,  21/03/1994,  2033166828,    1670 EAST 174TH STREET,    6D,      BRONX, NY, 10472, 606034    , 15461392
+
+STEVE          ,                , TERRILL             ,    ,                          , M, 830928997,  21/06/1994,  2672559947,         1045 FAILE STREET,     2,      BRONX, NY, 10459, 607481    , 15434922
+HECTOR         , WILLIAM        , TERRILL             ,    ,                          , M, -1,  21/06/1994,  2672559947,         1045 FAILE STREET,     2,      BRONX, NY, 10459, 607540    , 15693678
+
+BREIONNA       ,                , BROWN               ,    ,                          , F, 820654893,  30/10/2005,  6108535604,       250 WEST 146 STREET,   5 Q,         NY, NY, 10039, 617633    , 16011021
+JACKIE         ,                , BROWN               ,    ,                          , F, -1,  30/10/2005,  6108535604,            250 WEST 146ST,   5 K,   NEW YORK, NY, 10039, 617693    , 15569052
+
+SCOTT          ,                , MARRERO             ,    ,                          , M, 846085304,  22/11/2002,  7323628619,        125 W 228TH STREET,    9F,      BRONX, NY, 10463, 618115    , 15677045
+GARY           ,                , MARRERO             ,    ,                          , M, -1,  22/11/2002,  7323628619,          125 W 228 STREET,    9F,      BRONX, NY, 10463, 618135    , 15569266
+
+DAVID          ,                , BURDEAU             ,    ,                          , M, 824068838,  02/10/1994,  2675552860,           80 E 210 STREET,    4A,      BRONX, NY, 10467, 620539    , 15703553
+BRENT          ,                , BURDEAU             ,    ,                          , M, -1,  02/10/1994,  2675552860,        80 EAST 210 STREET,    4A,      BRONX, NY, 10467, 620553    , 15435359
+
+ATHENA         , JOANNE         , ATKINSON            ,    ,                          , F, 896703840,  05/06/2002,  9737142916,      1106 MORRIS AVENUE5D,    5D,      BRONX, NY, 10456, 622145    , 16022278
+KELLEY         , JOANNE         , ATKINSON            ,    ,                          , F, -1,  05/06/2002,  9737142916,        1106 MORRIS AVENUE,    4E,      BRONX, NY, 10456, 622153    , 15856089
+
+GLADYS         ,                , PALMER              ,    ,                          , F, 806066247,  29/09/1995,  9591677849,         711 WALTON AVENUE,    1P,      BRONX, NY, 10451, 622473    , 15514665
+HARRIETT       ,                , PALMER              ,    ,                          , F, -1,  29/09/1995,  9591677849,         711 WALTON AVENUE,    1P,      BRONX, NY, 10451, 622499    , 15684004
+
+JIBRIL         ,                , CERVANTES           ,    ,                          , M, 0,  22/03/1992,  9591592194,     1928 WHITE PLACE ROAD,     3,      BRONX, NY, 10462, 622890    , 15498657
+DYLAN          ,                , CERVANTES           ,    ,                          , M, 875893111,  22/03/1992,  9591592194,      1271 KINGBRIDGE ROAD,  SUPT,      BRONX, NY, 10458, 622926    , 15618073
+
+MICHELLE       ,                , WHEELER             ,    ,                          , F, -1,  02/06/2003,  9599472769,       1224 COLGATE EVENUE,    1F,      BRONX, NY, 10456, 624809    , 15492538
+JENNIFER       , DONYA          , WHEELER             ,    ,                          , F, 894042703,  02/06/2003,  9599472769,       1224 COLGATE AVENUE,    1F,      BRONX, NY, 10472, 624824    , 15643219
+
+GWENM          ,                , LEVITT              ,    ,                          , F, 884468366,  08/09/1994,  9296011743,         975 WALTON AVENUE,   1CF,      BRONX, NY, 10452, 626383    , 15986615
+DEBBIE         ,                , LEVITT              ,    ,                          , F, -1,  08/09/1994,  9296011743,         975 WALTON AVENUE,  1C S,      BRONX, NY, 10452, 626423    , 15976484
+
+LAKEESHA       , V              , ESCOBAR             ,    ,                          , F, -1,  18/08/2003,  8608476079,       312 WEST 127 STREET,      ,         NY, NY, 10027, 631169    , 15923569
+SHARON         , V              , ESCOBAR             ,    ,                          , F, 826967905,  18/08/2003,  8608476079,      1363 FRANKLIN AVENUE,    6H,      BRONX, NY, 10456, 631252    , 15459422
+
+ALISAH         , KATHRYN        , OWENS               ,    ,                          , F, -1,  20/03/1999,  8605933553, 9707 HORACE HARDING EXPRESSWAY,    4B,     CORONA, NY, 11368, 632901    , 15504625
+ROSLYN         , KATHRYN        , OWENS               ,    ,                          , F, 806628796,  20/03/1999,  8605933553, 9707 HORACE HARDING EXPRESSWAY,    4B,     CORONA, NY, 11368, 632941    , 15621449
+
+DELIA          ,                , KOZAK               ,    ,                          , F, -1,  27/05/2009,  6095453729,      568 AMSTERDAM AVENUE,    1B,   NEW YORK, NY, 10024, 635947    , 15771454
+VICKI          ,                , KOZAK               ,    ,                          , F, 842454009,  27/05/2009,  6095453729,        512 W 134TH STREET,    31,   NEW YORK, NY, 10031, 636014    , 15820527
+
+ZACHARY        ,                , CONWAY              ,    ,                          , M, -1,  08/03/2015,  7326379165,          3113 69TH STREET,   1FL,   WOODSIDE, NY, 11377, 806254    , 15406274
+INF            ,                , CONWAY              ,    ,                          , M, 833760200,  08/03/2015,  7326379165,          3113 69TH STREET,   1FL,   WOODSIDE, NY, 11377, 814069    , 15469427
+
+KEVIN          ,                , PETTINELLI          ,    ,                          , M, 839843203,  01/02/2012,  8489222292,       3039 WALLACE AVENUE,    5C,      BRONX, NY, 10467, 838961    , 15740846
+MICHAEL        ,                , PETTINELLI          ,    ,                          , M, -1,  01/02/2012,  8489222292,       3039 WALLACE AVENUE,    5C,      BRONX, NY, 10467, 841022    , 15917908
+
+KAREN          , MARIE          , DAVIS               ,    ,                          , F, -1,  20/09/1992,  7327583981,          4108 12TH STREET,    2D, LONG ISLAND CTY, NY, 11101, 886146    , 15746336
+BETTY          ,                , DAVIS               ,    , BETTY MARIE DAVIS        , F, 863983340,  20/09/1992,  7327583981,          4108 12TH STREET,    2E, LONG ISLAND CTY, NY, 11101, 886635    , 15912369
+
+HYDE           ,                , MCKITRICK           ,    , HYDE THOMAS MCKITRICK    , M, -1,  07/06/2006,  8625201189,        219 E 121TH STREET,  PROG,   NEW YORK, NY, 10035, 889570    , 15904934
+MAKAI          , THOMAS         , MCKITRICK           ,    ,                          , M, 872749559,  07/06/2006,  8625201189,        219 E 121ST STREET,      ,   NEW YORK, NY, 10035, 890010    , 15959030
+
+CHIFFON        ,                , FULLER              ,    ,                          , F, 840859876,  24/10/2005,  6105658370,     253 EAST 202ND STREET,    3J,      BRONX, NY, 10458, 893330    , 15827296
+DYNESHIA       ,                , FULLER              ,    ,                          , F, -1,  24/10/2005,  6105658370,      2830 GRAND CONCOURSE,    B2,      BRONX, NY, 10458, 893801    , 15582364
+
+ROBERTA        , JOANN          , PETERSON            ,    ,                          , F, 865908742,  10/03/1997,  9178732096,         12 W 184TH STREET,     5,      BRONX, NY, 10468, 914117    , 15592099
+HAILEY         ,                , PETERSON            ,    , HAILEY JOANN PETERSON    , F, -1,  10/03/1997,  9178732096,      12 WEST 184TH STREET,     5,      BRONX, NY, 10468, 914375    , 15992448
+
+ANNA           ,                , SPENCER             ,    ,                          , F, 849878039,  14/10/2004,  9739638680,        1065 REVERE AVENUE,    PH,      BRONX, NY, 10465, 932652    , 15704660
+LUCILLE        ,                , SPENCER             ,    ,                          , F, -1,  14/10/2004,  9739638680,                          ,      ,           ,   ,    -1, 932679    , 15421124
+
+TYRONE         , J              , MYERS               ,    ,                          , M, 852228944,  25/03/2003,  2676797589,          8702 23RD AVE207,   207, EAST ELMHURST, NY, 11369, 934772    , 15810338
+DAJUAN         ,                , MYERS               ,    , DAJUAN J MYERS           , M, -1,  25/03/2003,  2676797589,            9509 41 AVENUE,    2C,   ELMHURST, NY, 11373, 934913    , 15622922
+
+LESLIE         ,                , CORALLO             ,    , LESLIE MARTI CORALLO     , F, 866072903,  07/04/1994,  2674743360,      1518 PLINPTON STREET,    1A,      BRONX, NY, 10452, 939510    , 15839011
+BARBARA        , MARTI          , CORALLO             ,    ,                          , F, -1,  07/04/1994,  2674743360,      1518 PLIMPTON AVENUE,    A1,      BRONX, NY, 10452, 939620    , 15659726
+
+FLORA          , LINDA          , CANTY               ,    ,                          , F, 848968577,  02/12/1994,  7326761445,   3801 HUDSON MANOR TERR2,    2S,      BRONX, NY, 10463, 960726    , 15786645
+EVELYN         ,                , CANTY               ,    ,                          , F, -1,  02/12/1994,  7326761445, 3801 HUDSON MANOR TERRACE,    2S,      BRONX, NY, 10463, 960869    , 15461490
+
+JESUS          ,                , MAVRAKIS            ,    ,                          , M, -1,  22/12/1995,  9346734450,         3312 PERRY AVENUE,      ,      BRONX, NY, 10467, 967255    , 15930532
+WILLIAM        ,                , MAVRAKIS            ,    ,                          , M, 876474927,  22/12/1995,  9346734450,         3312 PERRY AVENUE,      ,      BRONX, NY, 10467, 967474    , 15811704
+
+YARETZI        , RITA           , BREY                ,    ,                          , F, 824685578,  28/12/2010,  2033046630,                 1980 7AVE,    1E,   NEW YORK, NY, 10026, 980248    , 15729066
+BROOKLYN       , RITA           , BREY                ,    ,                          , F, -1,  28/12/2010,  2033046630,                 1980 7AVE,    1E,   NEW YORK, NY, 10026, 980277    , 15599479
+
+SANDRA         ,                , MIDDLETONAUSTIN     ,    ,                          , F, 873050858,  09/08/2008,  9349811789,                          ,      ,           ,   ,    -1, 981049    , 15401946
+HELEN          ,                , MIDDLETONAUSTIN     ,    , ANJLI AJIT SHAH          , F, -1,  09/08/2008,  9349811789,                          ,      ,           ,   ,    -1, 981121    , 15860453
+
+JARRAD         ,                , GRIER               ,    ,                          , M, -1,  12/05/2007,  2032441007,       2710 CRESTON AVENUE,     3,      BRONX, NY, 10468, 981881    , 15760915
+ANTHONY        ,                , GRIER               ,    , THOMAS ROBERT JENSEN     , M, 870724429,  12/05/2007,  2032441007,          787 ELTON AVENUE,    1A,         BX, NY, 10451, 981959    , 15905106
+
+JOSEPH         ,                , LOVE                ,    ,                          , M, 835746569,  29/03/1999,  8483943909,                          ,      ,           ,   ,    -1, 983848    , 15489406
+SALVADOR       ,                , LOVE                ,    , SALVADOR JOSEPH LOVE     , M, -1,  29/03/1999,  8483943909,                          ,      ,           ,   ,    -1, 984117    , 15875712
+
+GABRIEL        , E              , FELTNER             ,    ,                          , M, 862962334,  20/06/1995,  6095787256,         1515 HAZEN STREET,  JAIL, EAST ELMHURST, NY, 11370, 987178    , 15587055
+THOMAS         ,                , FELTNER             ,    , THOMAS E FELTNER         , M, -1,  20/06/1995,  6095787256,         1515 HAZEN STREET,  JAIL, EAST ELMHURST, NY, 11370, 987290    , 15450341
+
+DAVID          , LEROY          , PETERSEN            ,    ,                          , M, 883862249,  01/09/1997,  8481678555,    437 MORRIS PARK AVENUE,   51A,      BRONX, NY, 10460, 1040266   , 16012131
+HENRY          ,                , PETERSEN            ,    , HENRY LEROY PETERSEN     , M, -1,  01/09/1997,  8481678555,                          ,      ,           ,   ,    -1, 1040375   , 15948511
+
+ISIAH          , JOSEPH         , NOAKES              ,    , RAYMOND C PEEL           , M, -1,  28/03/2006,  9599786420,        1963 JEROME AVENUE,    PH,      BRONX, NY, 10463, 1048150   , 15710794
+ANTHONY        ,                , NOAKES              ,    ,                          , M, 865240380,  28/03/2006,  9599786420,     4370 CARPENTER AVENUE,     2,      BRONX, NY, 10466, 1048323   , 15516093
+
+KELLI          , DIANE          , KENT                ,    ,                          , F, -1,  22/05/2004,  8482992257,         1905 ARNOW AVENUE,    PH,      BRONX, NY, 10456, 1077668   , 15642500
+BARBARA        , DIANE          , KENT                ,    ,                          , F, 854378795,  22/05/2004,  8482992257,          4169 BOYD AVENUE,    PH,      BRONX, NY, 10466, 1077858   , 15676581
+
+SERGIO         ,                , BABASA              ,    ,                          , M, 890739072,  04/09/2011,  7322763791,               33 25 105TH,      ,     CORONA, NY, 11368, 1080788   , 15760519
+ANTHONY        ,                , BABASA              ,    ,                          , M, -1,  04/09/2011,  7322763791,          33 25 105 STREET,      ,     CORONA, NY, 11368, 1081040   , 15841586
+
+DONNA          ,                , RAFFELE             ,    ,                          , F, 892466804,  14/07/1998,  6104422343,         2779CRUGER AVENUE,    2F,      BRONX, NY, 10472, 1088172   , 15651277
+LUCILLE        ,                , RAFFELE             ,    ,                          , F, -1,  14/07/1998,  6104422343,        2749 CRUGER AVENUE,    PH,      BRONX, NY, 10467, 1088266   , 15641895
+
+DAVID          ,                , PARKS               ,    ,                          , M, -1,  27/04/2007,  5188096463,      653 WALBURTON AVENUE,      ,    YONKERS, NY, 10701, 1128137   , 15942246
+JORDAN         , BRIAN          , PARKS               ,    ,                          , M, 898609448,  27/04/2007,  5188096463,      653 WALBURTON AVENUE,    PH,    YONKERS, NY, 10701, 1128373   , 15480246
+
+SISSY          ,                , BUNCH               ,    , BUNCH                    , F, -1,  15/10/1964,  6091085780,                          ,      ,           ,   ,    -1, 1132946   , 15571320
+               ,                , BUNCH               ,    ,                          , F, 809052404,  15/10/1994,  6091085780,                          ,      ,           ,   ,    -1, 1133140   , 15799185
+
+HOPE           ,                , REYNOLDS            ,    ,                          , F, 868323494,  09/10/1924,  4843843830,   272 PENNSYLVANIA AVENUE,    PH,   BROOKLYN, NY, 11207, 1133438   , 15927086
+HOPE           ,                , ORLOWSKI            ,    ,                          , F, -1,  09/10/1954,  4843843830,   272 PENNSYLVANIA AVENUE,    6F,   BROOKLYN, NY, 11207, 1133622   , 15713276
+
+JEFFREY        ,                , MANN                ,    ,                          , M, -1,  26/06/2014,  8458245166,         31 WILDWOOD DRIVE,    PH,  TARRYTOWN, NY, 10591, 1138207   , 15673654
+CHAD           ,                , MANN                ,    ,                          , M, 835033365,  26/06/2014,  8458245166,         31 WYLDWOOD DRIVE,    PH,         NY, NY, 10591, 1138358   , 15739293
+
+KAYLEE         ,                , FRANCIS             ,    ,                          , F, 870938243,  04/11/2013,  5704898717,       3551 WEBSTER AVENUE,      ,      BRONX, NY, 10467, 1154056   , 15493464
+CIERA          , ANNE           , FRANCIS             ,    ,                          , F, -1,  04/11/2013,  5704898717,       3551 WEBSTER AVENUE,  BSMT,      BRONX, NY, 10467, 1154381   , 15728447
+
+OLIVIER        ,                , HOLIDAY             ,    , HOLIDAY                  , M, 829079246,  27/12/1962,  6108226469,         1819 W 9TH STREET,      ,   BROOKLYN, NY, 11223, 1183666   , 15619473
+               ,                , HOLIDAY             ,    ,                          , M, -1,  26/12/1962,  6108226469,         1820 W 9TH STREET,      ,   BROOKLYN, NY, 11223, 1183734   , 16007831
+
+STEVEN         ,                , CROSS               ,    ,                          , M, 826440008,  08/09/2007,  9292578500,      782 PELHAM PARKWAY S,    B3,      BRONX, NY, 10462, 1197673   , 15756051
+NICHOLAS       ,                , CROSS               ,    ,                          , M, -1,  08/09/2007,  9292578500,  782 PELHAM PARKWAY SOUTH,      ,      BRONX, NY, 10462, 1197987   , 15878606
+
+CHONG          ,                , SMITH               ,    ,                          , F, 856424977,  01/08/1999,  8456279765,       1760 ANDREWS AVENUE,    5B,      BRONX, NY, 10453, 1214623   , 15935731
+DANIELLE       ,                , SMITH               ,    ,                          , F, -1,  01/08/1999,  8456279765,      1491 GRAND CONCOURSE,    4B,      BRONX, NY, 10452, 1214735   , 15501771
+
+EUGENE         ,                , OTIS                ,    , JAMES ROGER THOMAS       , M, 828462998,  06/04/2003,  9179801335,        595 E 167TH STREET,    4A,      BRONX, NY, 10456, 1222246   , 15439257
+ROY            ,                , OTIS                ,    ,                          , M, -1,  06/04/2003,  9179801335,          595 E 167 STREET,   6 M,      BRONX, NY, 10456, 1222343   , 15811087
+
+DIANA          ,                , BOLLIGER            ,    ,                          , F, 863632680,  08/02/2007,  7325707413,    1319 EAST 224TH STREET,     2,      BRONX, NY, 10466, 1240129   , 15749770
+CARRIE         ,                , BOLLIGER            ,    ,                          , F, -1,  08/02/2007,  7325707413,    1319 EAST 224TH STREET,   2FL,      BRONX, NY, 10466, 1240147   , 15376791
+
+VICKIE         , MARIE          , KUCH                ,    ,                          , F, 877206446,  02/06/2015,  5703659239,        2230 CRUGER AVENUE,    1B,      BRONX, NY, 10467, 1266000   , 15846667
+DONNA          ,                , KUCH                ,    ,                          , F, -1,  02/06/2015,  5703659239,        2230 CRUGER AVENUE,    1A,      BRONX, NY, 10467, 1266326   , 15419718
+
+UNA            ,                , BARRERA             ,    ,                          , F, 874920282,  06/10/1995,  2037713769,   2375 SOUTHERN BOULEVARD,    5D,      BRONX, NY, 10460, 1278412   , 15648082
+ANA            ,                , BARRERA             ,    ,                          , F, -1,  25/06/2014,  2037713769,   2375 SOUTHERN BOULEVARD,    5D,      BRONX, NY, 10459, 1278417   , 15897961
+
+FRANK          , CHRISTOPHER    , MAREK               ,    , JOHN DOE                 , M, -1,  29/07/1997,  9349279855,                  108 AVED,    5C,   NEW YORK, NY, 10009, 1286421   , 15497496
+ROBERT         , CHRISTOPHER    , MAREK               ,    ,                          , M, 857920922,  29/07/1997,  9349279855,               90 AVENUE D,    5D,   NEW YORK, NY, 10009, 1286699   , 15410524
+
+BRYAN          , WILLIAM        , LOPEZ               ,    ,                          , M, 822658070,  17/03/2007,  2036406336,        2513 COLDEN AVENUE,    PH,      BRONX, NY, 10469, 1322026   , 16027947
+KENNETH        ,                , LOPEZ               ,    , JOHN DOE                 , M, -1,  17/03/2007,  2036406336,       210 EAST 181 STREET,   5 K,      BRONX, NY, 10457, 1322056   , 15483743
+
+MARK           , DAVID          , MIDDAUGH            ,    ,                          , M, 555555555,  22/07/2009,  9733859906,           16605 89 AVENUE,     1,    JAMAICA, NY, 11435, 1322576   , 15995135
+JOHN           , DAVID          , MIDDAUGH            ,    ,                          , M, 882097182,  22/07/2009,  9733859906,                          ,      ,           ,   ,    -1, 1322615   , 15689241
+
+DARRELL        , JOSE           , GOODYEAR            ,    ,                          , M, -1,  20/08/2015,  7327863502,                          ,      ,           ,   ,    -1, 1326488   , 15905821
+RICHARD        , JOSE           , GOODYEAR            ,    ,                          , M, 823057290,  20/08/2015,  7327863502,                          ,      ,           ,   ,    -1, 1326682   , 15428099
+
+KEITH          , PAUL           , NORTON              ,    ,                          , M, 892523746,  07/06/2009,  7323765912,       2170 CRESTON AVENUE,    5D,      BRONX, NY, 10453, 1335357   , 15920009
+NICANDRO       ,                , NORTON              ,    ,                          , M, -1,  07/06/2009,  7323765912,       2170 CRESTON AVENUE,    5D,      BRONX, NY, 10453, 1335538   , 15851321
+
+DODIE          ,                , BALCARCEL           ,    ,                          , F, 858440340,  18/05/1999,  2676694339,      220 EAST134TH STREET,    2B,      BRONX, NY, 10451, 1349346   , 15906505
+MEGAN          ,                , BALCARCEL           ,    , JANE DOE                 , F, -1,  18/05/1999,  2676694339,        9120 CORONA AVENUE,     1,   ELMHURST, NY, 11373, 1349462   , 15399584
+
+LASHAWNA       ,                , SMITH               ,    ,                          , F, -1,  18/03/1997,  5168218091,       2181 MADISON AVENUE,     1,   NEW YORK, NY, 10037, 1360080   , 15723515
+TOBY           ,                , SMITH               ,    , JANE DOE                 , F, 887204430,  18/03/1997,  5168218091,       2181 MADISON AVENUE,    2C,         NY, NY, 10037, 1360197   , 15991738
+
+MARIE          ,                , NAKHLA              ,    ,                          , F, -1,  18/04/2006,  5516592039,         3402 GRACE AVENUE,    PH,      BRONX, NY, 10469, 1375600   , 15515614
+JOY            ,                , NAKHLA              ,    ,                          , F, 880220829,  18/04/2006,  5516592039,         3402 GRACE AVENUE,    PH,      BRONX, NY, 10469, 1375632   , 15587823
+
+KAYLEE         ,                , MCPHERSONTORRES     ,    ,                          , F, -1,  17/05/2000,  8459589971,     1915 BELLIGLY TERRACE,      ,      BRONX, NY, 10453, 1377008   , 15925544
+VERONICA       ,                , MCPHERSONTORRES     ,    , JANE DOE                 , F, 809875565,  17/05/2000,  8459589971,    1915 BELLINGLY TERRACE,      ,      BRONX, NY, 10453, 1377119   , 15527488
+
+OSCAR          ,                , LAIR                ,    ,                          , M, 856765288,  09/05/1990,  7327903317,      400 EAST 30TH STREET,      ,   NEW YORK, NY, 10016, 1382804   , 15716607
+GABRIEL        ,                , LAIR                ,    , JOHN DOE                 , U, -1,  09/05/1990,  7327903317,     219 EAST 121ST STREET,      ,   NEW YORK, NY, 10016, 1382827   , 15540677
+
+ELLA           ,                , CAIN                ,    ,                          , F, 872235879,  03/10/1995,  9597992319,     495 WASHINGTON AVENUE,    4C,   BROOKLYN, NY, 11238, 1420477   , 15423528
+ANNIE          ,                , CAIN                ,    , JANE DOE                 , F, -1,  03/10/1995,  9597992319,      314 LAFAYETTE AVENUE,     2,   BROOKLYN, NY, 11238, 1420607   , 15611270
+
+BONNIE         ,                , MOHAMED             ,    ,                          , F, 856273562,  18/04/2000,  8453215926,         404 E105TH STREET,    4B,   NEW YORK, NY, 10029, 1440133   , 15829941
+CAROL          ,                , MOHAMED             ,    , JANE DOE                 , F, -1,  18/04/2000,  8453215926,          404 E 105 STREET,    4B,   NEW YORK, NY, 10029, 1440222   , 15718020
+
+REYES          , MICHAEL        , EREMITAGGIO         ,    , JOHN DOE                 , M, -1,  24/03/2004,  7329951510,         10115 32ND AVENUE,     1, EAST ELMHURST, NY, 11369, 1441274   , 15500925
+OSCAR          , MICHAEL        , EREMITAGGIO         ,    ,                          , M, 884928298,  24/03/2004,  7329951510,           10115 32 AVENUE,  1FLR, EAST ELMHURST, NY, 11369, 1441413   , 15881764
+
+RONNIE         , E              , HEY                 ,    ,                          , M, -1,  17/09/2003,  9349408066,     1274 LAFAYETTE AVENUE,    4E,      BRONX, NY, 10474, 1443445   , 15598924
+MARK           , A              , HEY                 ,    , JOHN DOE                 , M, 869950207,  17/09/2003,  9349408066,      1274 LAFAYETE AVENUE,    4E,      BRONX, NY, 10474, 1443517   , 15453377
+
+MAHALY         ,                , MCFARLAND           ,    ,                          , F, 802757022,  14/11/1998,  7188527015,         510 COLLEGE PLACE,    PH,   FLUSHING, NY, 11356, 1450976   , 15658303
+NOEMI          ,                , MCFARLAND           ,    ,                          , F, -1,  14/11/1998,  7188527015,         510 COLLAGE PLACE,  BSMT, COLLEGE POINT, NY, 11356, 1451005   , 15600761
+
+ANGEL          , RAFAEL         , GRECO               ,    , JOHN DOE                 , M, -1,  04/04/1993,  8602731812,   2145 SOUTHERN BOULEVARD,    2B,      BRONX, NY, 10460, 1456806   , 15995918
+SCOTT          , RAFAEL         , GRECO               ,    ,                          , M, 838035433,  04/04/1993,  8602731812,         310 WALTON AVENUE,   210,      BRONX, NY, 10451, 1456838   , 15493642
+
+PERRY          , RICHARD        , DEMERY              ,    , JOHN DOE                 , M, 855017557,  24/06/2002,  8621404800,          708 BEACH AVENUE,    PH,      BRONX, NY, 10473, 1458089   , 15756370
+VICTOR         ,                , DEMERY              ,    ,                          , M, 98765432,  24/06/2002,  8621404800,          708 BEACH AVENUE,    PH,      BRONX, NY, 10473, 1458212   , 15888986
+
+CAROL          ,                , KINARD              ,    , JANE DOE                 , F, -1,  21/02/1996,  6318148815,    1715 LONGFELLOW AVENUE,    6N,      BRONX, NY, 10460, 1465255   , 15406633
+REGINA         , DONNA          , KINARD              ,    ,                          , F, 872787565,  21/02/1996,  6318148815, 1715 LONGFELLOW AVENUE 3A,    3A,      BRONX, NY, 10472, 1465344   , 15474677
+
+ISMAEL         ,                , BONNELL             ,    , JOHN DOE                 , M, -1,  13/12/2004,  8484493663,         12807 CEDRIC ROAD,    PH, SO OZONE PK, NY, 11420, 1466057   , 15945504
+CLAYTON        , CHARLES        , BONNELL             ,    ,                          , M, 864336545,  13/12/2004,  8484493663,         12807 CEDRIC ROAD,    PH, SO OZONE PK, NY, 11420, 1466194   , 15536877
+
+NOVALEE        ,                , SCHWALBACH          ,    , JANE DOE                 , F, -1,  18/06/1995,  7184213330,          111 MTHOPE PLACE,   5 D,      BRONX, NY, 10453, 1472866   , 15561550
+KEYTANA        ,                , SCHWALBACH          ,    ,                          , F, 820874829,  18/06/1995,  7184213330,      1230 SPOFFORD AVENUE,    1K,      BRONX, NY, 10474, 1472873   , 15702661
+
+DIEGO          ,                , CLASEN              ,    ,                          , M, 872397032,  06/03/2009,  8481249545,           1309 HOE AVENUE,    1A,      BRONX, NY, 10459, 1474301   , 15697450
+MARCEL         ,                , CLASEN              ,    ,                          , M, -1,  06/03/2009,  8481249545,           1309 HOE AVENUE,    1A,      BRONX, NY, 10459, 1474358   , 15913892
+
+ANTHONY        ,                , CABRERA             ,    ,                          , M, -1,  23/02/1996,  8603072910,       875 MORRISON AVENUE,    16,      BRONX, NY, 10473, 1502086   , 15396401
+JAMES          ,                , CABRERA             ,    , JOHN DOE                 , M, 857783059,  23/02/1996,  8603072910,       875 MORRISON AVENUE,    1L,      BRONX, NY, 10473, 1502249   , 15922361
+
+LAUREN         ,                , CALISSI             ,    , JANE DOE                 , F, 887253548,  01/06/1993,  2011319860,                          ,      ,           ,   ,    -1, 1519307   , 15791762
+ALYSSA         ,                , CALISSI             ,    ,                          , F, -1,  01/06/1993,  2011319860,             5823 VANCLIFF,    25,     CORONA, NY, 11368, 1519409   , 15542003
+
+SVETLANA       ,                , MITTRA              ,    , JANE DOE                 , F, 800538373,  26/07/2001,  2033982687,         1414 HAZEN STREET,      ,   ELMHURST, NY, 11370, 1521621   , 15590728
+YARITZY        ,                , MITTRA              ,    ,                          , F, -1,  26/07/2001,  2033982687,         1414 HAZEN STREET,      ,   ELMHURST, NY, 11377, 1521774   , 15467466
+
+STEVEN         , BEN            , MEZA                ,    ,                          , M, -1,  05/04/1999,  6312759181,        350 ST ANNS AVENUE,    4T,      BRONX, NY, 10454, 1526629   , 15685463
+ELIAS          , BEN            , MEZA                ,    , JOHN DOE                 , M, 869664869,  05/04/1999,  6312759181,        350 ST ANNS AVENUE,    4X,      BRONX, NY, 10454, 1526678   , 15704199
+
+DIEGO          ,                , WYNNE               ,    ,                          , M, -1,  26/05/1998,  9081949782,      2357 DAVIDSON AVENUE,    2B,         BX, NY, 10468, 1541204   , 15973223
+JAMES          , ROBERT         , WYNNE               ,    , JOHN DOE                 , M, 832235945,  26/05/1998,  9081949782,       2138 WALLACE AVENUE,   161,      BRONX, NY, 10462, 1541206   , 15659559
+
+WILLIAM        ,                , MARTINEZ            ,    ,                          , M, -1,  24/05/1994,  6316869941,        2015 SHORE PARKWAY,    5B,   BROOKLYN, NY, 11214, 1571262   , 15459349
+GEORGE         ,                , MARTINEZ            ,    , JOHN DOE                 , M, 836329472,  24/05/1994,  6316869941,         2048 BRAGG STREET,   PVT,   BROOKLYN, NY, 11229, 1571309   , 15559539
+
+BARTOLO        ,                , MEDELLIN            ,    ,                          , M, -1,  09/03/1994,  9292239506,       634 PROSPECT AVENUE,    3D,      BRONX, NY, 10455, 1574759   , 15703453
+DELBERT        ,                , MEDELLIN            ,    , JOHN DOE                 , M, 827398576,  09/03/1994,  9292239506,       634 PROSPECT AVENUE,    3D,      BRONX, NY, 10455, 1574840   , 15744672
+
+ELENA          ,                , SCHAFFNER           ,    , JANE DOE                 , F, 889677832,  13/06/1991,  6105117541,      540 MANHATTAN AVENUE,    51,   NEW YORK, NY, 10027, 1579841   , 15810619
+KARIME         ,                , SCHAFFNER           ,    ,                          , F, -1,  13/06/1991,  6105117541,      540 MANHATTAN AVENUE,    51,   NEW YORK, NY, 10027, 1579938   , 15782935
+
+JOHN           ,                , PRICE               ,    ,                          , M, -1,  25/06/1990,  6101124882,          997 KELLY STREET,    4D,      BRONX, NY, 10459, 1598796   , 16008938
+GREG           ,                , PRICE               ,    , JOHN DOE                 , M, 873620766,  25/06/1990,  6101124882,                          ,      ,           ,   ,    -1, 1598962   , 15603015
+
+LUCAS          , H              , THOMAS              ,    ,                          , M, 879338205,  04/07/1994,  8604516734,      1302 ROSEDALE AVENUE,    4F,      BRONX, NY, 10472, 1604467   , 15862937
+BRANDON        , H              , THOMAS              ,    ,                          , M, -1,  04/07/1994,  8604516734,         1785 STORY AVENUE,   11B,      BRONX, NY, 10473, 1604541   , 15777840
+
+WILLIAM        , DAVID          , DAVENPORT           ,    ,                          , M, -1,  04/02/1996,  2673242811,       1132 CLAY AVENUE 2H,    2H,      BRONX, NY, 10456, 1608124   , 15850513
+JON            , DAVID          , DAVENPORT           ,    , JOHN DOE                 , M, 880282203,  04/02/1996,  2673242811,              1132 CLAY VE,    2H,      BRONX, NY, 10456, 1608225   , 15842526
+
+JAMES          ,                , RAGUSA              ,    ,                          , M, -1,  12/12/1993,  7188708983,        1105 JEROME AVENUE,    3C,      BRONX, NY, 10452, 1615020   , 15608011
+EDWARD         , F              , RAGUSA              ,    , JOHN DOE                 , M, 834387923,  12/12/1993,  7188708983,        1105 JEROME AVENUE,    3C,      BRONX, NY, 10452, 1615058   , 15416753
+
+TRACY          , JOHN           , WARREN              ,    , JOHN DOE                 , M, 855835272,  15/05/2002,  8623201211,         1069 ASTOR AVENUE,     2,      BRONX, NY, 10469, 1619858   , 15607738
+DAVID          , JOHN           , WARREN              ,    ,                          , M, -1,  15/05/2002,  8623201211,         1069 ASTOR AVENUE,     1,      BRONX, NY, 10469, 1619910   , 15488070
+

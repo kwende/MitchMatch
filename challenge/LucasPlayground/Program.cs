@@ -17,7 +17,7 @@ namespace LucasPlayground
         {
             Random random = new Random();
 
-            var lines = File.ReadLines(@"C:/users/brush/desktop/FInalDataset.csv");
+            var lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
             //var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
@@ -74,6 +74,25 @@ namespace LucasPlayground
                     !IsSSNValid(r2.SSN) ||
                     FuzzySSNMatch(r1.SSN, r2.SSN),
                 ref matches);
+
+            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<string>(addedNamePhone);
+
+            //using (StreamWriter sw = File.CreateText("C:/users/ben/desktop/name+phone_matches.csv"))
+            //{
+            //    foreach (Tuple<double, int, int> tuple in tuples)
+            //    {
+            //        if (tuple.Item1 > .45)
+            //        {
+            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
+            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
+            //            sw.WriteLine();
+            //            //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+            //        }
+            //        //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+            //    }
+            //}
+
+
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -91,6 +110,23 @@ namespace LucasPlayground
                 ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
+
+            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<string>(addedNameDOB);
+
+            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/name+dob_bads.csv"))
+            //{
+            //    foreach (Tuple<double, int, int> tuple in tuples)
+            //    {
+            //        //if (tuple.Item1 > .4)
+            //        //{
+            //        //    sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
+            //        //    sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
+            //        //    sw.WriteLine();
+            //        //    //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+            //        //}
+            //        sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+            //    }
+            //}
 
 
             /////////////////////////////////////
@@ -139,6 +175,23 @@ namespace LucasPlayground
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+            List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<long>(addedPhone);
+
+            using (StreamWriter sw = File.CreateText("C:/users/ben/desktop/phone.csv"))
+            {
+                foreach (Tuple<double, int, int> tuple in tuples)
+                {
+                    if (tuple.Item1 >= .5)
+                    {
+                        sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
+                        sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
+                        sw.WriteLine();
+                        //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+                    }
+                    //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+                }
+            }
+
             Console.WriteLine();
             Console.WriteLine("ADDRESS + DOB");
             var addedAddressDOB = AddMatches(data, r =>
@@ -153,6 +206,23 @@ namespace LucasPlayground
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+
+            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<string>(addedNamePhone);
+
+            //using (StreamWriter sw = File.CreateText("C:/users/ben/desktop/address+dob_matches.csv"))
+            //{
+            //    foreach (Tuple<double, int, int> tuple in tuples)
+            //    {
+            //        if (tuple.Item1 > .45)
+            //        {
+            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
+            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
+            //            sw.WriteLine();
+            //            //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+            //        }
+            //        //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
+            //    }
+            //}
 
 
             Console.WriteLine();
