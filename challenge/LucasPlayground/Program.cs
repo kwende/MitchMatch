@@ -204,6 +204,50 @@ namespace LucasPlayground
             Console.WriteLine(remainingRows.Count());
 
             PrintAnalysis(matches, data);
+
+            Console.WriteLine("M/F matches");
+            int countMF = 0, countMFBad = 0;
+            List<List<row>> bad = new List<List<row>>();
+            var tc = TransitiveClosure.Compute(matches, data);
+            foreach (var match in tc.ClosedRowSets)
+            {
+                List<row> rows = new List<row>();
+                bool hasM = false;
+                bool hasF = false;
+                foreach (var id in match)
+                {
+                    row row = data.Where(r => r.EnterpriseID == id).First();
+                    rows.Add(row);
+                    if (row.GENDER == "M")
+                    {
+                        hasM = true;
+                    }
+                    else if (row.GENDER == "F")
+                    {
+                        hasF = true;
+                    }
+                }
+                if (hasM && hasF)
+                {
+                    countMF++;
+                    for (int i = 1; i < rows.Count; i++)
+                    {
+                        if (!(FuzzySSNMatch(rows[i - 1].SSN, rows[i].SSN) || FuzzyStringMatch(rows[i - 1].FIRST, rows[i].LAST)) || !FuzzyStringMatch(rows[i - 1].LAST, rows[i].LAST))
+                        {
+                            bad.Add(rows);
+                            if (_printActuals)
+                            {
+                                PrintRows(rows);
+                            }
+                            countMFBad++;
+                            break;
+                        }
+                    }
+                }
+            }
+            Console.WriteLine($"M/F count: {countMF} / {countMFBad}");
+
+            Console.ReadLine();
         }
 
 
@@ -278,8 +322,6 @@ namespace LucasPlayground
 
             Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
-
-            Console.ReadLine();
         }
 
         private static void CleanData(ref row[] data)
