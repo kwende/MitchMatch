@@ -34,11 +34,6 @@ namespace challenge
             _badSSNs = allTruePositiveData.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
             _badPhoneNumbers = allTruePositiveData.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
 
-            foreach(var pn in _badPhoneNumbers)
-            {
-                Console.WriteLine(pn);
-            }
-
            
 
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
@@ -56,10 +51,6 @@ namespace challenge
 
 
             var data = UnMatched(allTruePositiveData, matches);
-
-            var noMRNs = allTruePositiveData.Where(r => r.MRN == -1);
-            var matchNoMRNS = BipartiteMatch(noMRNs, allTruePositiveData, ExactMatchInTwoFields, true);
-            AddMatchDictionary(matchNoMRNS, matches);
 
 
             AddMatches(data, r => r.SSN, 4, (r1, r2) => true, ref matches);
@@ -99,10 +90,7 @@ namespace challenge
             Add(15688015, 15555730, ref matches);//
 
             var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
-            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() > 3);
-            Console.WriteLine("\n" + bigComponents.Count());
-            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
-            Console.WriteLine(bigComponents.Sum(s => s.Count()));
+            
 
             var triplets = tc.ClosedRowSets.Where(s => s.Count() == 3).ToArray();
             Console.WriteLine(triplets.Count());
@@ -140,18 +128,20 @@ namespace challenge
                 RowLibrary.Print(row);
             }
 
-            //Generate 10 random triplets
-            for (int i = 0; i < 30; i++)
-            {
-                int j = random.Next(triplets.Length);
-                Console.WriteLine("\n");
-                foreach(int eid in triplets[j])
-                {
-                    RowLibrary.Print(_rowByEnterpriseId[eid]);
-                }
-            }
+            ////Generate 10 random triplets
+            //for (int i = 0; i < 30; i++)
+            //{
+            //    int j = random.Next(triplets.Length);
+            //    Console.WriteLine("\n");
+            //    foreach(int eid in triplets[j])
+            //    {
+            //        RowLibrary.Print(_rowByEnterpriseId[eid]);
+            //    }
+            //}
 
+            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() > 3);
 
+            Console.WriteLine($"{bigComponents.Count()} Large Components:");
             foreach (var component in bigComponents)
             {
                 Console.WriteLine("\n");
@@ -164,17 +154,6 @@ namespace challenge
 
             Console.WriteLine("");
             Console.WriteLine(matches.Count() + " matched entries");
-
-
-            for (int i = 0; i < 10; i++)
-            {
-                int nextTry = random.Next(data.Count());
-                while (matches.ContainsKey(data[nextTry].EnterpriseID))
-                {
-                    nextTry = random.Next(data.Count());
-                }
-                Console.WriteLine(data[nextTry].EnterpriseID);
-            }
 
             Console.ReadLine();
         }
@@ -397,7 +376,7 @@ namespace challenge
 
         {
             var grouped = data.GroupBy(groupingValue);
-            Console.WriteLine(grouped.Where(g => g.Count() >= sizeToThrowAway).Count());
+            //Console.WriteLine(grouped.Where(g => g.Count() >= sizeToThrowAway).Count());
             int counter = 0;
             foreach (var group in grouped)
             {
@@ -430,7 +409,7 @@ namespace challenge
                 }
             }
 
-            Console.WriteLine(counter);
+            //Console.WriteLine(counter);
         }
 
         public static bool PartialMatch(row a, row b)
