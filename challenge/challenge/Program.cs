@@ -304,7 +304,7 @@ namespace challenge
             return true;
         }
 
-        static List<string> NumericParts(string s)
+        public static List<string> NumericParts(string s)
         {
             List<string> toReturn = new List<string>();
             string current = "";
@@ -461,7 +461,7 @@ namespace challenge
             return false;
         }
 
-        static bool OneOrOneDigit(int a, int b)
+        public static bool OneOrOneDigit(int a, int b)
         {
             if (System.Math.Abs(a - b) < 2)
                 return true;

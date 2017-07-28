@@ -12,6 +12,9 @@ namespace LucasPlayground
     class Program
     {
         private static int[] _badSSNs = new int[0];
+        private static long[] _badPhones = new long[0];
+        private static string[] _badAddresses = new string[0];
+        private static DateTime[] _badDOBs = new DateTime[0];
 
         static IEnumerable<string> GetLines()
         {
@@ -26,16 +29,17 @@ namespace LucasPlayground
                 lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
             }
 
-            return lines; 
+            return lines;
         }
 
         static void Main(string[] args)
         {
             Random random = new Random();
 
-            var lines = GetLines(); 
+            var lines = GetLines();
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
+
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
             row[] remainingRows = data;
             Console.WriteLine("Remaining: " + remainingRows.Length);
@@ -43,23 +47,31 @@ namespace LucasPlayground
             Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
 
             _badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
+            _badDOBs = new DateTime[] { new DateTime(1900, 1, 1) };
+            _badPhones = data.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
+            _badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ') && g.Count() > 2).Select(g => g.Key).ToArray();
 
+            CleanData(ref data);
+
+
+            //******************       MRN       ******************//
             Console.WriteLine();
             Console.WriteLine("MRN");
             AddMRNMatches(data, ref matches);
             //AddMRNMatchesBen(data, ref matches); 
 
-
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+
+            //******************       SSN       ******************//
             Console.WriteLine();
             Console.WriteLine("SSN");
             var addedSSN = AddMatches(data, r => r.SSN, 4, (r1, r2) =>
-                    (r1.FIRST != "" && challenge.Program.OneDifference(r1.FIRST, r2.FIRST)) ||
-                    (r1.LAST != "" && challenge.Program.OneDifference(r1.LAST, r2.LAST)) ||
-                    challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) ||
-                    challenge.Program.FuzzyDateEquals(r1.DOB, r2.DOB) ||
+                    FuzzyStringMatch(r1.FIRST, r2.FIRST) ||
+                    FuzzyStringMatch(r1.LAST, r2.LAST) ||
+                    FuzzyPhoneMatch(r1.PHONE, r2.PHONE) ||
+                    FuzzyDateEquals(r1.DOB, r2.DOB) ||
                     challenge.Program.FuzzyAddressMatch(r1, r2),
                 ref matches);
 
@@ -67,65 +79,70 @@ namespace LucasPlayground
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
 
+            //******************  NAME + PHONE  ******************//
             Console.WriteLine();
             Console.WriteLine("NAME + PHONE");
             var addedNamePhone = AddMatches(data, r =>
                 {
                     return (r.LAST != "" ? (r.PHONE > 0 ? r.LAST + r.FIRST + r.PHONE : "NOPHONE") : "NONAME");
                 }, 4, (r1, r2) =>
-                    challenge.Program.FuzzyDateEquals(r1.DOB, r2.DOB) ||
-                    challenge.Program.FuzzyAddressMatch(r1, r2) ||
                     !IsSSNValid(r1.SSN) ||
                     !IsSSNValid(r2.SSN) ||
-                    FuzzySSNMatch(r1.SSN, r2.SSN),
+                    FuzzySSNMatch(r1.SSN, r2.SSN) ||
+                    FuzzyDateEquals(r1.DOB, r2.DOB) ||
+                    challenge.Program.FuzzyAddressMatch(r1, r2),
                 ref matches);
 
 
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+
+            //******************   NAME + DOB   ******************//
             Console.WriteLine();
             Console.WriteLine("NAME + DOB");
             var addedNameDOB = AddMatches(data, r =>
                 {
                     return (r.LAST != "" ? (r.DOB != default(DateTime) ? r.LAST + r.FIRST + r.DOB.ToString("d") : "NODOB") : "NONAME");
                 }, 4, (r1, r2) =>
-                    challenge.Program.OneDifference(r1.PHONE.ToString(), r2.PHONE.ToString()) ||
-                    challenge.Program.FuzzyAddressMatch(r1, r2) ||
                     !IsSSNValid(r1.SSN) ||
                     !IsSSNValid(r2.SSN) ||
-                    FuzzySSNMatch(r1.SSN, r2.SSN),
+                    FuzzySSNMatch(r1.SSN, r2.SSN) ||
+                    FuzzyPhoneMatch(r1.PHONE, r2.PHONE) ||
+                    challenge.Program.FuzzyAddressMatch(r1, r2),
                 ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
-            /////////////////////////////////////
+
+            //****************** NAME + ADDRESS ******************//
             Console.WriteLine();
             Console.WriteLine("NAME + ADDRESS");
-
-            // TODO: Change condition on fuzzydateequals to allow simple transpose of two digits and century? 
-
             var addedNameAddress = AddMatches(data, r =>
             {
                 return (r.LAST != "" ? (r.ADDRESS1 != "" ? r.LAST + r.FIRST + r.ADDRESS1 : "NOADDRESS") : "NONAME");
             }, 4, (r1, r2) =>
-                challenge.Program.FuzzyDateEquals(r1.DOB, r2.DOB) ||
-                FuzzySSNMatch(r1.SSN, r2.SSN),
-                ref matches);
+                FuzzySSNMatch(r1.SSN, r2.SSN) ||
+                FuzzyDateEquals(r1.DOB, r2.DOB),
+            ref matches);
 
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+
+            //******************     PHONE      ******************//
             Console.WriteLine();
             Console.WriteLine("PHONE");
             var addedPhone = AddMatches(data, r => r.PHONE, 5, (r1, r2) =>
-                    (r1.FIRST != "" && challenge.Program.OneDifference(r1.FIRST, r2.FIRST)) ||
+                    FuzzyStringMatch(r1.FIRST, r2.FIRST) ||
                     FuzzySSNMatch(r1.SSN, r2.SSN) ||
                     challenge.Program.DateSoftMatch(r1.DOB, r2.DOB),
                 ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+
+            //****************** ADDRESS + DOB  ******************//
             Console.WriteLine();
             Console.WriteLine("ADDRESS + DOB");
             var addedAddressDOB = AddMatches(data, r =>
@@ -134,12 +151,14 @@ namespace LucasPlayground
                 }, 4, (r1, r2) =>
                     //(r1.LAST != "" && r1.LAST == r2.LAST) || 
                     //(r1.FIRST != "" && r1.FIRST == r2.FIRST) ||
-                    (r1.FIRST != "" && challenge.Program.OneDifference(r1.FIRST, r2.FIRST)) ||
-                    (IsSSNValid(r1.SSN) && IsSSNValid(r2.SSN) && FuzzySSNMatch(r1.SSN, r2.SSN)),
+                    FuzzyStringMatch(r1.FIRST, r2.FIRST) ||
+                    FuzzySSNMatch(r1.SSN, r2.SSN),
                 ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+
+            //******************   SOFT MATCH   ******************//
             Console.WriteLine();
             Console.WriteLine("SOFT MATCH");
             var addedSoftMatches = AddSoftMatches(remainingRows, ref matches);
@@ -147,12 +166,15 @@ namespace LucasPlayground
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
 
+            //******************  SOFT MATCH2   ******************//
             Console.WriteLine();
             Console.WriteLine("SOFT MATCH2");
             var addedSoftMatches2 = AddSoftMatches2(remainingRows, ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+
+            //******************   HAND MATCH   ******************//
             Console.WriteLine();
             Console.WriteLine("HAND MATCHED");
             var addedHandMatched = AddHandMatches(data, ref matches);
@@ -163,6 +185,7 @@ namespace LucasPlayground
             Console.ReadLine();
 
 
+            //******************  HAND REMOVE   ******************//
             Console.WriteLine();
             Console.WriteLine("HAND REMOVED");
             var removedHandMatched = RemoveHandErrors(data, ref matches);
@@ -173,6 +196,31 @@ namespace LucasPlayground
             Console.ReadLine();
         }
 
+
+        private static void CleanData(ref row[] data)
+        {
+            foreach (row row in data)
+            {
+                if (_badSSNs.Contains(row.SSN))
+                {
+                    row.SSN = 0;
+                }
+                if (_badPhones.Contains(row.PHONE))
+                {
+                    row.PHONE = 0;
+                }
+                if (_badAddresses.Contains(row.ADDRESS1))
+                {
+                    row.ADDRESS1 = "";
+                }
+            }
+        }
+
+
+        #region Printing
+        private static bool _printLargeGroupValues = false;
+        private static bool _printErrors = false;
+        private static bool _printActuals = false;
         private static int _printCount = 0;
         private static void PrintCheckCount()
         {
@@ -204,8 +252,105 @@ namespace LucasPlayground
             Console.WriteLine();
             PrintCheckCount();
         }
+        #endregion
 
+        #region Soft Matching
+        public static bool IsSSNValid(int a)
+        {
+            return a > 0 && !_badSSNs.Contains(a);
+        }
 
+        public static bool FuzzySSNMatch(int a, int b)
+        {
+            return IsSSNValid(a) && IsSSNValid(b) && challenge.Program.OneDifference(a.ToString(), b.ToString());
+        }
+
+        public static bool NonemptyEquality(string a, string b)
+        {
+            return a != "" && b != "" && a == b;
+        }
+
+        public static bool OneDifference(string sm, string sn)
+        {
+            return challenge.Program.KDifferences(sm, sn, 1);
+        }
+
+        public static bool OneOrOneDigit(int a, int b)
+        {
+            if (System.Math.Abs(a - b) < 2)
+                return true;
+
+            return OneDifference(a.ToString(), b.ToString());
+        }
+
+        public static bool TransposedDigit(int a, int b)
+        {
+            string sa = a.ToString();
+            string sb = b.ToString();
+
+            if (sa.Length != sb.Length)
+            {
+                return false;
+            }
+
+            bool possibleTransposition = true;
+            bool transpositionDetected = false;
+            for (int i = 0; i < sa.Length; i++)
+            {
+                if (sa[i] != sb[i])
+                {
+                    if (!transpositionDetected && i + 1 < sa.Length && sa[i] == sb[i + 1] && sb[i] == sa[i + 1])
+                    {
+                        transpositionDetected = true;
+                    }
+                    else
+                    {
+                        possibleTransposition = false;
+                    }
+                }
+            }
+            return transpositionDetected && possibleTransposition;
+        }
+
+        public static bool OffBy100(int a, int b)
+        {
+            return a == b - 100 || b == a - 100;
+        }
+
+        public static bool FuzzyDateEquals(DateTime a, DateTime b)
+        {
+            if (OneOrOneDigit(a.Month, b.Month) && a.Day == b.Day && a.Year == b.Year)
+                return true;
+
+            if (a.Month == b.Month && OneOrOneDigit(a.Day, b.Day) && a.Year == b.Year)
+                return true;
+
+            if (a.Month == b.Month && a.Day == b.Day && (OneOrOneDigit(a.Year, b.Year) || TransposedDigit(a.Year, b.Year) || OffBy100(a.Year, b.Year)))
+                return true;
+
+            return false;
+        }
+
+        public static bool FuzzyPhoneMatch(long a, long b)
+        {
+            if (a == 0 || b == 0)
+            {
+                return false;
+            }
+            return challenge.Program.OneDifference(a.ToString(), a.ToString());
+        }
+
+        public static bool FuzzyStringMatch(string a, string b)
+        {
+            if (a == "" || b == "")
+            {
+                return false;
+            }
+            return challenge.Program.OneDifference(a, b);
+        }
+        #endregion
+
+        #region Matching
         public static void AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
         {
             var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
@@ -254,10 +399,6 @@ namespace LucasPlayground
             }
             return toReturn.ToArray();
         }
-
-        private static bool _printLargeGroupValues = false;
-        private static bool _printErrors = false;
-        private static bool _printActuals = false;
 
         static List<IGrouping<T, row>> AddMatches<T>(IEnumerable<row> data, Func<row, T> groupingValue, int sizeToThrowAway, Func<row, row, bool> softEquals, ref Dictionary<int, List<int>> matches)
         {
@@ -317,21 +458,6 @@ namespace LucasPlayground
             return addedThisTime;
         }
 
-        public static bool IsSSNValid(int a)
-        {
-            return a > 0 && !_badSSNs.Contains(a);
-        }
-
-        public static bool FuzzySSNMatch(int a, int b)
-        {
-            return IsSSNValid(a) && IsSSNValid(b) && challenge.Program.OneDifference(a.ToString(), b.ToString());
-        }
-
-        public static bool NonemptyEquality(string a, string b)
-        {
-            return a != "" && b != "" && a == b;
-        }
-
         public static List<List<row>> AddSoftMatches(row[] remainingRows, ref Dictionary<int, List<int>> matches)
         {
             List<List<row>> addedThisTime = new List<List<row>>();
@@ -358,7 +484,7 @@ namespace LucasPlayground
                     if (challenge.Program.FuzzyAddressMatch(ri, rj))
                         fieldAgreement++;
 
-                    if (challenge.Program.FuzzyDateEquals(ri.DOB, rj.DOB))
+                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
                         fieldAgreement++;
 
                     if (fieldAgreement >= 2)
@@ -412,7 +538,7 @@ namespace LucasPlayground
                     if (challenge.Program.FuzzyAddressMatch(ri, rj))
                         fieldAgreement++;
 
-                    if (challenge.Program.FuzzyDateEquals(ri.DOB, rj.DOB))
+                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
                         fieldAgreement++;
 
 
@@ -533,5 +659,6 @@ namespace LucasPlayground
 
             return removedThisTime;
         }
+        #endregion
     }
 }
