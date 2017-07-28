@@ -196,14 +196,84 @@ namespace LucasPlayground
 
             Console.WriteLine(remainingRows.Count());
 
-
-            var tc = TransitiveClosure.Compute(matches, data);
-            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() >= 4).Select(s => s.Select(id => data.Where(d => d.EnterpriseID == id).First()).ToArray());
-            Console.WriteLine("\n" + bigComponents.Count());
-            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
-            Console.WriteLine(bigComponents.Sum(s => s.Count()));
+            PrintAnalysis(matches, data);
         }
 
+
+        private static void PrintAnalysis(Dictionary<int, List<int>> matches, row[] allTruePositiveData)
+        {
+
+            var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
+
+            var triplets = tc.ClosedRowSets.Where(s => s.Count() == 3).ToArray();
+
+            //Validate that every triplet has a non-MRN entry
+            Console.WriteLine("Likely false positive triplets:");
+            Dictionary<int, row> _rowByEnterpriseId = new Dictionary<int, row>();
+            foreach (var r in allTruePositiveData)
+            {
+                _rowByEnterpriseId[r.EnterpriseID] = r;
+            }
+
+            foreach (var triplet in triplets)
+            {
+                if (!triplet.Any(eid => _rowByEnterpriseId[eid].MRN == -1 && _rowByEnterpriseId[eid].PHONE == 0))
+                {
+                    Console.WriteLine();
+                    foreach (var eid in triplet)
+                    {
+                        RowLibrary.Print(_rowByEnterpriseId[eid]);
+                    }
+                    Console.WriteLine();
+                }
+            }
+
+            Console.WriteLine("Possible false negatives, likely matches triple");
+            var noSSNnoMRN = allTruePositiveData.Where(r => r.MRN == -1 && r.SSN == -1);
+            foreach (var r in noSSNnoMRN)
+            {
+                if (!triplets.Any(t => t.Contains(r.EnterpriseID)))
+                {
+                    RowLibrary.Print(r);
+                }
+            }
+
+            Console.WriteLine("\nUnmatched");
+            var toHandVerify = challenge.Program.UnMatched(allTruePositiveData, matches);
+            foreach (var row in toHandVerify)
+            {
+                RowLibrary.Print(row);
+            }
+
+            ////Generate 10 random triplets
+            //for (int i = 0; i < 30; i++)
+            //{
+            //    int j = random.Next(triplets.Length);
+            //    Console.WriteLine("\n");
+            //    foreach(int eid in triplets[j])
+            //    {
+            //        RowLibrary.Print(_rowByEnterpriseId[eid]);
+            //    }
+            //}
+
+            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() > 3);
+
+            Console.WriteLine($"{bigComponents.Count()} Large Components:");
+            foreach (var component in bigComponents)
+            {
+                Console.WriteLine("\n");
+                foreach (int id in component)
+                {
+                    RowLibrary.Print(allTruePositiveData.Where(r => r.EnterpriseID == id).First());
+                }
+                Console.WriteLine("\n");
+            }
+
+            Console.WriteLine("");
+            Console.WriteLine(matches.Count() + " matched entries");
+
+            Console.ReadLine();
+        }
 
         private static void CleanData(ref row[] data)
         {

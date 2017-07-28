@@ -20,13 +20,13 @@ namespace challenge
 
             Random random = new Random();
 
-            //var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
-            var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
+            var lines = File.ReadLines(@"C: \Users\jbrownkramer\Desktop\Data\data.csv");
+            //var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var allTruePositiveData = allData.Where(r => r.EnterpriseID >= 15374761).ToArray();
 
             _rowByEnterpriseId = new Dictionary<int, row>();
-            foreach(var r in allTruePositiveData)
+            foreach (var r in allTruePositiveData)
             {
                 _rowByEnterpriseId[r.EnterpriseID] = r;
             }
@@ -34,7 +34,7 @@ namespace challenge
             _badSSNs = allTruePositiveData.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
             _badPhoneNumbers = allTruePositiveData.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
 
-           
+
 
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
 
@@ -62,7 +62,7 @@ namespace challenge
             AddMatches(data, r => r.LAST + r.FIRST + r.ADDRESS1, 4, (r1, r2) => r1.ADDRESS1 != "" && r2.ADDRESS1 != "", ref matches);
 
             var remainingRows = UnMatched(data, matches);
-            var fuzzyMatchResults = BipartiteMatch(remainingRows, remainingRows,FuzzyMatchNoFirst);
+            var fuzzyMatchResults = BipartiteMatch(remainingRows, remainingRows, FuzzyMatchNoFirst);
             AddMatchDictionary(fuzzyMatchResults, matches);
 
             //For what's left, brute force soft match on at least 2 of name, DOB, address
@@ -90,7 +90,7 @@ namespace challenge
             Add(15688015, 15555730, ref matches);//
 
             var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
-            
+
 
             var triplets = tc.ClosedRowSets.Where(s => s.Count() == 3).ToArray();
             Console.WriteLine(triplets.Count());
@@ -98,22 +98,22 @@ namespace challenge
 
             //Validate that every triplet has a non-MRN entry
             Console.WriteLine("Likely false positive triplets:");
-            foreach(var triplet in triplets)
+            foreach (var triplet in triplets)
             {
                 if (!triplet.Any(eid => _rowByEnterpriseId[eid].MRN == -1 && _rowByEnterpriseId[eid].PHONE == -1))
                 {
                     Console.WriteLine();
-                    foreach(var eid in triplet)
+                    foreach (var eid in triplet)
                     {
                         RowLibrary.Print(_rowByEnterpriseId[eid]);
                     }
                     Console.WriteLine();
                 }
             }
-            
+
             Console.WriteLine("Possible false negatives, likely matches triple");
             var noSSNnoMRN = allTruePositiveData.Where(r => r.MRN == -1 && r.SSN == -1);
-            foreach(var r in noSSNnoMRN)
+            foreach (var r in noSSNnoMRN)
             {
                 if (!triplets.Any(t => t.Contains(r.EnterpriseID)))
                 {
@@ -249,7 +249,7 @@ namespace challenge
             if (M(ri, rj, r => r.FIRST) || M(ri, rj, r => r.LAST))
                 fieldAgreement++;
 
-            if (M(ri,rj,r=>r.ADDRESS1))
+            if (M(ri, rj, r => r.ADDRESS1))
                 fieldAgreement++;
 
             if (ri.DOB != default(DateTime) && rj.DOB != default(DateTime) && ri.DOB.ToString() == rj.DOB.ToString())
@@ -308,7 +308,7 @@ namespace challenge
             return toReturn;
         }
 
-        public static Dictionary<int, List<int>> BipartiteMatch(IEnumerable<row> S, IEnumerable<row> T, Func<row,row,bool> isMatch, bool printPairs = false)
+        public static Dictionary<int, List<int>> BipartiteMatch(IEnumerable<row> S, IEnumerable<row> T, Func<row, row, bool> isMatch, bool printPairs = false)
         {
             Dictionary<int, List<int>> toReturn = new Dictionary<int, List<int>>();
 
@@ -333,9 +333,9 @@ namespace challenge
 
         static void AddMatchDictionary(Dictionary<int, List<int>> toAdd, Dictionary<int, List<int>> matches)
         {
-            foreach(var pair in toAdd)
+            foreach (var pair in toAdd)
             {
-                foreach(int x in pair.Value)
+                foreach (int x in pair.Value)
                 {
                     Add(pair.Key, x, ref matches);
                 }
@@ -367,7 +367,7 @@ namespace challenge
             matches[a] = matches[a].Distinct().ToList();
         }
 
-        static row[] UnMatched(IEnumerable<row> data, Dictionary<int, List<int>> matches)
+        public static row[] UnMatched(IEnumerable<row> data, Dictionary<int, List<int>> matches)
         {
             return data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
         }
@@ -400,7 +400,7 @@ namespace challenge
                 {
                     foreach (var r in group)
                     {
-                        foreach(var s in group)
+                        foreach (var s in group)
                         {
                             if (r != s)
                                 Add(r, s, ref matches);
