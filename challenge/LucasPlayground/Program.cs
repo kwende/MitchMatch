@@ -13,12 +13,27 @@ namespace LucasPlayground
     {
         private static int[] _badSSNs = new int[0];
 
+        static IEnumerable<string> GetLines()
+        {
+            IEnumerable<string> lines = null;
+            if (Environment.UserName.ToLower().Contains("sabalka"))
+            {
+                lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
+            }
+            else if (Environment.UserName.ToLower().Contains("brush") ||
+                Environment.UserName.ToLower().Contains("ben"))
+            {
+                lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
+            }
+
+            return lines; 
+        }
+
         static void Main(string[] args)
         {
             Random random = new Random();
 
-            var lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
-            //var lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
+            var lines = GetLines(); 
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
@@ -48,16 +63,6 @@ namespace LucasPlayground
                     challenge.Program.FuzzyAddressMatch(r1, r2),
                 ref matches);
 
-            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups(addedSSN);
-
-            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/social_matches.csv"))
-            //{
-            //    foreach (Tuple<double, int, int> tuple in tuples)
-            //    {
-            //        sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}"); 
-            //    }
-            //}
-
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -74,23 +79,6 @@ namespace LucasPlayground
                     !IsSSNValid(r2.SSN) ||
                     FuzzySSNMatch(r1.SSN, r2.SSN),
                 ref matches);
-
-            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<string>(addedNamePhone);
-
-            //using (StreamWriter sw = File.CreateText("C:/users/ben/desktop/name+phone_matches.csv"))
-            //{
-            //    foreach (Tuple<double, int, int> tuple in tuples)
-            //    {
-            //        if (tuple.Item1 > .45)
-            //        {
-            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
-            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
-            //            sw.WriteLine();
-            //            //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-            //        }
-            //        //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-            //    }
-            //}
 
 
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
@@ -111,24 +99,6 @@ namespace LucasPlayground
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
-            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<string>(addedNameDOB);
-
-            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/name+dob_bads.csv"))
-            //{
-            //    foreach (Tuple<double, int, int> tuple in tuples)
-            //    {
-            //        //if (tuple.Item1 > .4)
-            //        //{
-            //        //    sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
-            //        //    sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
-            //        //    sw.WriteLine();
-            //        //    //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-            //        //}
-            //        sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-            //    }
-            //}
-
-
             /////////////////////////////////////
             Console.WriteLine();
             Console.WriteLine("NAME + ADDRESS");
@@ -146,25 +116,6 @@ namespace LucasPlayground
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
-            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<string>(addedNameAddress);
-
-            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/name+address_matches.csv"))
-            //{
-            //    foreach (Tuple<double, int, int> tuple in tuples)
-            //    {
-            //        if (tuple.Item1 > .4)
-            //        {
-            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
-            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
-            //            sw.WriteLine();
-            //            //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-            //        }
-            //        //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-            //    }
-            //}
-
-            /////////////////////////////////////
-
             Console.WriteLine();
             Console.WriteLine("PHONE");
             var addedPhone = AddMatches(data, r => r.PHONE, 5, (r1, r2) =>
@@ -174,23 +125,6 @@ namespace LucasPlayground
                 ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
-
-            List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<long>(addedPhone);
-
-            using (StreamWriter sw = File.CreateText("C:/users/ben/desktop/phone.csv"))
-            {
-                foreach (Tuple<double, int, int> tuple in tuples)
-                {
-                    if (tuple.Item1 >= .5)
-                    {
-                        sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
-                        sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
-                        sw.WriteLine();
-                        //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-                    }
-                    //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-                }
-            }
 
             Console.WriteLine();
             Console.WriteLine("ADDRESS + DOB");
@@ -205,25 +139,6 @@ namespace LucasPlayground
                 ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
-
-
-            //List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<string>(addedNamePhone);
-
-            //using (StreamWriter sw = File.CreateText("C:/users/ben/desktop/address+dob_matches.csv"))
-            //{
-            //    foreach (Tuple<double, int, int> tuple in tuples)
-            //    {
-            //        if (tuple.Item1 > .45)
-            //        {
-            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
-            //            sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
-            //            sw.WriteLine();
-            //            //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-            //        }
-            //        //sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-            //    }
-            //}
-
 
             Console.WriteLine();
             Console.WriteLine("SOFT MATCH");
