@@ -1,4 +1,5 @@
 ﻿using challenge;
+using challenge.Ben;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -122,6 +123,7 @@ namespace LucasPlayground
             {
                 return (r.LAST != "" ? (r.ADDRESS1 != "" ? r.LAST + r.FIRST + r.ADDRESS1 : "NOADDRESS") : "NONAME");
             }, 4, (r1, r2) =>
+                FuzzyPhoneMatch(r1.PHONE, r2.PHONE) || 
                 FuzzySSNMatch(r1.SSN, r2.SSN) ||
                 FuzzyDateEquals(r1.DOB, r2.DOB),
             ref matches);
@@ -152,7 +154,8 @@ namespace LucasPlayground
                     //(r1.LAST != "" && r1.LAST == r2.LAST) || 
                     //(r1.FIRST != "" && r1.FIRST == r2.FIRST) ||
                     FuzzyStringMatch(r1.FIRST, r2.FIRST) ||
-                    FuzzySSNMatch(r1.SSN, r2.SSN),
+                    FuzzySSNMatch(r1.SSN, r2.SSN) ||
+                    (FuzzyStringMatch(r1.LAST, r2.LAST) && (r1.SSN == 0 || r2.SSN == 0)),
                 ref matches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
@@ -194,6 +197,15 @@ namespace LucasPlayground
 
             Console.WriteLine(remainingRows.Count());
             Console.ReadLine();
+
+
+
+            var tc = TransitiveClosure.Compute(matches, data);
+            var bigComponents = tc.ClosedRowSets.Where(s => s.Count() >= 3).Select(s => s.Select(id => data.Where(d => d.EnterpriseID == id).First()).ToArray());
+            Console.WriteLine("\n" + bigComponents.Count());
+            Console.WriteLine(tc.ClosedRowSets.Max(s => s.Count()));
+            Console.WriteLine(bigComponents.Sum(s => s.Count()));
+
         }
 
 
@@ -302,6 +314,7 @@ namespace LucasPlayground
                     if (!transpositionDetected && i + 1 < sa.Length && sa[i] == sb[i + 1] && sb[i] == sa[i + 1])
                     {
                         transpositionDetected = true;
+                        i++;
                     }
                     else
                     {
@@ -454,7 +467,7 @@ namespace LucasPlayground
                 }
             }
 
-            Console.WriteLine(counter);
+            Console.WriteLine($"Thrown out: {counter}");
             return addedThisTime;
         }
 
