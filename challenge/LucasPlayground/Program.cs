@@ -169,6 +169,16 @@ namespace LucasPlayground
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
 
+            //******************  HAND REMOVE   ******************//
+            Console.WriteLine();
+            Console.WriteLine("HAND REMOVED");
+            var removedHandMatched = RemoveHandErrors(data, ref matches);
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            Console.WriteLine("Remaining: " + remainingRows.Length);
+
+            Console.WriteLine(remainingRows.Count());
+
+
             //******************  SOFT MATCH2   ******************//
             Console.WriteLine();
             Console.WriteLine("SOFT MATCH2");
@@ -194,61 +204,88 @@ namespace LucasPlayground
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
-            //******************  HAND REMOVE   ******************//
-            Console.WriteLine();
-            Console.WriteLine("HAND REMOVED");
-            var removedHandMatched = RemoveHandErrors(data, ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-            Console.WriteLine(remainingRows.Count());
-
             PrintAnalysis(matches, data);
 
-            Console.WriteLine("M/F matches");
-            int countMF = 0, countMFBad = 0;
-            List<List<row>> bad = new List<List<row>>();
-            var tc = TransitiveClosure.Compute(matches, data);
-            foreach (var match in tc.ClosedRowSets)
-            {
-                List<row> rows = new List<row>();
-                bool hasM = false;
-                bool hasF = false;
-                foreach (var id in match)
-                {
-                    row row = data.Where(r => r.EnterpriseID == id).First();
-                    rows.Add(row);
-                    if (row.GENDER == "M")
-                    {
-                        hasM = true;
-                    }
-                    else if (row.GENDER == "F")
-                    {
-                        hasF = true;
-                    }
-                }
-                if (hasM && hasF)
-                {
-                    countMF++;
-                    for (int i = 1; i < rows.Count; i++)
-                    {
-                        if (!(FuzzySSNMatch(rows[i - 1].SSN, rows[i].SSN) || FuzzyStringMatch(rows[i - 1].FIRST, rows[i].LAST)) || !FuzzyStringMatch(rows[i - 1].LAST, rows[i].LAST))
-                        {
-                            bad.Add(rows);
-                            if (_printActuals)
-                            {
-                                PrintRows(rows);
-                            }
-                            countMFBad++;
-                            break;
-                        }
-                    }
-                }
-            }
-            Console.WriteLine($"M/F count: {countMF} / {countMFBad}");
+            //Console.WriteLine("M/F matches");
+            //int countMF = 0, countMFBad = 0;
+            //List<List<row>> bad = new List<List<row>>();
+            //var tc = TransitiveClosure.Compute(matches, data);
+            //foreach (var match in tc.ClosedRowSets)
+            //{
+            //    List<row> rows = new List<row>();
+            //    bool hasM = false;
+            //    bool hasF = false;
+            //    foreach (var id in match)
+            //    {
+            //        row row = data.Where(r => r.EnterpriseID == id).First();
+            //        rows.Add(row);
+            //        if (row.GENDER == "M")
+            //        {
+            //            hasM = true;
+            //        }
+            //        else if (row.GENDER == "F")
+            //        {
+            //            hasF = true;
+            //        }
+            //    }
+            //    if (hasM && hasF)
+            //    {
+            //        countMF++;
+            //        for (int i = 1; i < rows.Count; i++)
+            //        {
+            //            if (!(FuzzySSNMatch(rows[i - 1].SSN, rows[i].SSN) || FuzzyStringMatch(rows[i - 1].FIRST, rows[i].LAST)) || !FuzzyStringMatch(rows[i - 1].LAST, rows[i].LAST))
+            //            {
+            //                bad.Add(rows);
+            //                if (_printActuals)
+            //                {
+            //                    PrintRows(rows);
+            //                }
+            //                countMFBad++;
+            //                break;
+            //            }
+            //        }
+            //    }
+            //}
+            //Console.WriteLine($"M/F count: {countMF} / {countMFBad}");
+
+            SaveResults(matches, data);
 
             Console.ReadLine();
         }
+
+        private static void SaveResults(Dictionary<int, List<int>> matches, row[] data)
+        {
+            string path = "";
+            if (Environment.UserName.ToLower().Contains("sabalka"))
+            {
+                path = @"C:/github/MitchMatch/challenge/";
+            }
+            else if (Environment.UserName.ToLower().Contains("brush") ||
+                Environment.UserName.ToLower().Contains("ben"))
+            {
+                path = @"C:/users/ben/desktop/";
+            }
+            path += "answers.csv";
+
+            File.Delete(path);
+            //File.Create("C:/github/MitchMatch/challenge/answers.csv");
+            List<string> allLines = new List<string>();
+            var tc = TransitiveClosure.Compute(matches, data);
+            foreach (var match in tc.ClosedRowSets)
+            {
+                int[] matchOrdered = match.OrderBy(id => id).ToArray();
+                for (int i = 0; i < matchOrdered.Length - 1; i++)
+                {
+                    for (int j = 0; j < matchOrdered.Length - 1; j++)
+                    {
+                        allLines.Add($"{matchOrdered[i]}, {matchOrdered[j]}, 1");
+                    }
+                }
+            }
+            File.AppendAllLines(path, allLines);
+            Console.WriteLine($"{allLines.Count} lines written to {path} .");
+        }
+
 
 
         private static void PrintAnalysis(Dictionary<int, List<int>> matches, row[] allTruePositiveData)
@@ -830,27 +867,67 @@ namespace LucasPlayground
             }
         }
 
-        private static List<List<row>> RemoveHandErrors(row[] remainingRows, ref Dictionary<int, List<int>> matches)
+        private static List<List<row>> RemoveHandErrors(row[] data, ref Dictionary<int, List<int>> matches)
         {
-            List<int[]> pairs = new List<int[]>
+            List<int[]> groups = new List<int[]>
             {
-                //new int[] {15688015, 15555730},
+                new int[] { 15976198, 15988294, 15477018, 15922527 },
+                //new int[] { 15943042, 15624558, 15836726, 15861073 },
+                new int[] { 15736643, 15696925, 15884622, 15795257 },
+                new int[] { 15755689, 15943418, 15455018, 15784375 },
+                new int[] { 15567009, 15807734, 15799555, 15429342 },
             };
 
             List<List<row>> removedThisTime = new List<List<row>>();
 
-            foreach (int[] pair in pairs)
+            foreach (int[] row in groups)
             {
-                row a = remainingRows.Where(row => row.EnterpriseID == pair[0]).FirstOrDefault();
-                row b = remainingRows.Where(row => row.EnterpriseID == pair[1]).FirstOrDefault();
+                row a = data.Where(r => r.EnterpriseID == row[0]).FirstOrDefault();
+                row b = data.Where(r => r.EnterpriseID == row[1]).FirstOrDefault();
+                row c = data.Where(r => r.EnterpriseID == row[2]).FirstOrDefault();
+                row d = data.Where(r => r.EnterpriseID == row[3]).FirstOrDefault();
 
                 Remove(a, b, ref matches);
-                removedThisTime.Add(new List<row> { a, b });
-                if (_printActuals)
-                {
-                    PrintPair(a, b);
-                }
+                Remove(a, c, ref matches);
+                Remove(a, d, ref matches);
+                Remove(b, c, ref matches);
+                Remove(b, d, ref matches);
+                Remove(c, d, ref matches);
             }
+
+
+            List<int[]> pairs = new List<int[]>
+            {
+                new int[] { 15976198, 15988294 },
+                new int[] { 15477018, 15922527 },
+
+                new int[] { 15943042, 15624558, 15836726, 15861073 },
+
+                new int[] { 15736643, 15696925 },
+                new int[] { 15736643, 15884622 },
+                new int[] { 15696925, 15884622 },//
+                new int[] { 15795257, 15467089 },
+                new int[] { 15795257, 15459635 },
+
+                new int[] { 15755689, 15943418 },
+                new int[] { 15755689, 15455018 },
+                new int[] { 15943418, 15455018 },//
+                new int[] { 15784375, 15468600 },
+                new int[] { 15784375, 15692153 },
+
+
+                new int[] { 15567009, 15807734 },
+                new int[] { 15799555, 15429342 },
+            };
+
+            foreach (int[] pair in pairs)
+            {
+                row a = data.Where(row => row.EnterpriseID == pair[0]).FirstOrDefault();
+                row b = data.Where(row => row.EnterpriseID == pair[1]).FirstOrDefault();
+
+                challenge.Program.Add(a, b, ref matches);
+            }
+
 
             return removedThisTime;
         }
