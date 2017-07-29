@@ -11,23 +11,6 @@ namespace challenge.Ben
 {
     public class EditDistance
     {
-        private static ManualResetEvent _event = new ManualResetEvent(false); 
-        public static void ThreadPoolCallback(dynamic threadContext)
-        {
-            _event.Set(); 
-        }
-
-        public static void SearchForBetterMatches(row[] dataset, TransitiveClosure tc)
-        {
-            CountdownEvent countDownEvent = new CountdownEvent(1); 
-            for (;;)
-            {
-                ThreadPool.QueueUserWorkItem(ThreadPoolCallback, new { DataSet = dataset, CountDown = countDownEvent }); 
-
-                countDownEvent.Wait()
-            }
-        }
-
         public static List<row> FindClosestMatchesForRowInEntireDataSet(row input, row[] dataset, TransitiveClosure tc)
         {
             List<row> bestMatches = new List<row>();

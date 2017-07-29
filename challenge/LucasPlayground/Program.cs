@@ -222,28 +222,9 @@ namespace LucasPlayground
             List<Tuple<row, row>> likelyParentChildPairs = pcMatching.FindParentChildrenInExistingMatches();
 
             var tc = TransitiveClosure.Compute(matches, data);
-            List<BetterMatch> betterMatches = ParentChildMatching.RandomlyLookForBetterRecordsForPairs(data, likelyParentChildPairs, 1, tc);
 
-            int fileCounter = 0;
-            foreach (BetterMatch betterMatch in betterMatches)
-            {
-                using (StreamWriter sw = File.CreateText($"c:/users/brush/desktop/betterMatches/{fileCounter}.txt"))
-                {
-                    sw.WriteLine(betterMatch.TheRow.ToString());
-                    sw.WriteLine(betterMatch.TheOriginalMatch.ToString());
-                    sw.WriteLine(betterMatch.OriginalMatchDistance.ToString()); 
-                    sw.WriteLine(betterMatch.ABetterMatch.ToString());
-                    sw.WriteLine(betterMatch.BetterMatchDistance.ToString()); 
-                }
-
-                fileCounter++; 
-            }
-
-            //double distance1 = challenge.Ben.EditDistance.ComputeDistanceForRecordPair(betterMatches[0].TheRow, betterMatches[0].ABetterMatch);
-            //double distance2 = challenge.Ben.EditDistance.ComputeDistanceForRecordPair(betterMatches[0].TheRow, betterMatches[0].TheOriginalMatch); 
-
-            Console.WriteLine($"Found {betterMatches.Count} better matches.");
-            Console.ReadLine();
+            Matcher m = new Matcher(data, tc, "C:/users/ben/desktop/betterMatches");
+            m.DoIt(); 
 
             Console.WriteLine("M/F matches");
             int countMF = 0, countMFBad = 0;
