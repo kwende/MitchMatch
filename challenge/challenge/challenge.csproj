@@ -46,7 +46,9 @@
     <Compile Include="Ben\EditDistance.cs" />
     <Compile Include="Ben\ErrorScrubber.cs" />
     <Compile Include="Ben\OffByNSocialSecurityNumbers.cs" />
+    <Compile Include="Ben\ParentChildMatching.cs" />
     <Compile Include="Ben\TransitiveClosure.cs" />
+    <Compile Include="BetterMatch.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

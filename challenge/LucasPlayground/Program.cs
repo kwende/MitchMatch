@@ -24,10 +24,13 @@ namespace LucasPlayground
             {
                 lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
             }
-            else if (Environment.UserName.ToLower().Contains("brush") ||
-                Environment.UserName.ToLower().Contains("ben"))
+            else if (Environment.UserName.ToLower().Contains("ben"))
             {
                 lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
+            }
+            else if (Environment.UserName.ToLower().Contains("brush"))
+            {
+                lines = File.ReadLines(@"C:/users/brush/desktop/FInalDataset.csv");
             }
 
             return lines;
@@ -35,6 +38,8 @@ namespace LucasPlayground
 
         static void Main(string[] args)
         {
+            ParentChildMatching pcMatching = new ParentChildMatching();
+
             Random random = new Random();
 
             var lines = GetLines();
@@ -58,7 +63,8 @@ namespace LucasPlayground
             //******************       MRN       ******************//
             Console.WriteLine();
             Console.WriteLine("MRN");
-            AddMRNMatches(data, ref matches);
+            var matched = AddMRNMatches(data, ref matches);
+            pcMatching.AddMatchClusters(matched);
             //AddMRNMatchesBen(data, ref matches); 
 
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
@@ -75,7 +81,7 @@ namespace LucasPlayground
                     FuzzyDateEquals(r1.DOB, r2.DOB) ||
                     challenge.Program.FuzzyAddressMatch(r1, r2),
                 ref matches);
-
+            pcMatching.AddMatchClusters(addedSSN);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -94,7 +100,7 @@ namespace LucasPlayground
                     challenge.Program.FuzzyAddressMatch(r1, r2),
                 ref matches);
 
-
+            pcMatching.AddMatchClusters(addedNamePhone);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -112,6 +118,7 @@ namespace LucasPlayground
                     FuzzyPhoneMatch(r1.PHONE, r2.PHONE) ||
                     challenge.Program.FuzzyAddressMatch(r1, r2),
                 ref matches);
+            pcMatching.AddMatchClusters(addedNameDOB);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -127,7 +134,7 @@ namespace LucasPlayground
                 FuzzySSNMatch(r1.SSN, r2.SSN) ||
                 FuzzyDateEquals(r1.DOB, r2.DOB),
             ref matches);
-
+            pcMatching.AddMatchClusters(addedNameAddress);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -140,6 +147,7 @@ namespace LucasPlayground
                     FuzzySSNMatch(r1.SSN, r2.SSN) ||
                     challenge.Program.DateSoftMatch(r1.DOB, r2.DOB),
                 ref matches);
+            pcMatching.AddMatchClusters(addedPhone);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -157,6 +165,7 @@ namespace LucasPlayground
                     FuzzySSNMatch(r1.SSN, r2.SSN) ||
                     (FuzzyStringMatch(r1.LAST, r2.LAST) && (r1.SSN == 0 || r2.SSN == 0)),
                 ref matches);
+            pcMatching.AddMatchClusters(addedAddressDOB);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -165,6 +174,7 @@ namespace LucasPlayground
             Console.WriteLine();
             Console.WriteLine("SOFT MATCH");
             var addedSoftMatches = AddSoftMatches(remainingRows, ref matches);
+            pcMatching.AddMatchClusters(addedSoftMatches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -173,6 +183,7 @@ namespace LucasPlayground
             Console.WriteLine();
             Console.WriteLine("SOFT MATCH2");
             var addedSoftMatches2 = AddSoftMatches2(remainingRows, ref matches);
+            pcMatching.AddMatchClusters(addedSoftMatches);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -181,6 +192,7 @@ namespace LucasPlayground
             Console.WriteLine();
             Console.WriteLine("HAND MATCHED");
             var addedHandMatched = AddHandMatches(data, ref matches);
+            pcMatching.AddMatchClusters(addedHandMatched);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -191,6 +203,7 @@ namespace LucasPlayground
             Console.WriteLine();
             Console.WriteLine("FINAL SOFTMATCH");
             var addedSoftMatchesFinal = AddSoftMatchesFinal(data, remainingRows, ref matches);
+            pcMatching.AddMatchClusters(addedSoftMatchesFinal);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -198,6 +211,7 @@ namespace LucasPlayground
             Console.WriteLine();
             Console.WriteLine("HAND REMOVED");
             var removedHandMatched = RemoveHandErrors(data, ref matches);
+            pcMatching.AddMatchClusters(removedHandMatched);
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -205,10 +219,36 @@ namespace LucasPlayground
 
             PrintAnalysis(matches, data);
 
+            List<Tuple<row, row>> likelyParentChildPairs = pcMatching.FindParentChildrenInExistingMatches();
+
+            var tc = TransitiveClosure.Compute(matches, data);
+            List<BetterMatch> betterMatches = ParentChildMatching.RandomlyLookForBetterRecordsForPairs(data, likelyParentChildPairs, 1, tc);
+
+            int fileCounter = 0;
+            foreach (BetterMatch betterMatch in betterMatches)
+            {
+                using (StreamWriter sw = File.CreateText($"c:/users/brush/desktop/betterMatches/{fileCounter}.txt"))
+                {
+                    sw.WriteLine(betterMatch.TheRow.ToString());
+                    sw.WriteLine(betterMatch.TheOriginalMatch.ToString());
+                    sw.WriteLine(betterMatch.OriginalMatchDistance.ToString()); 
+                    sw.WriteLine(betterMatch.ABetterMatch.ToString());
+                    sw.WriteLine(betterMatch.BetterMatchDistance.ToString()); 
+                }
+
+                fileCounter++; 
+            }
+
+            //double distance1 = challenge.Ben.EditDistance.ComputeDistanceForRecordPair(betterMatches[0].TheRow, betterMatches[0].ABetterMatch);
+            //double distance2 = challenge.Ben.EditDistance.ComputeDistanceForRecordPair(betterMatches[0].TheRow, betterMatches[0].TheOriginalMatch); 
+
+            Console.WriteLine($"Found {betterMatches.Count} better matches.");
+            Console.ReadLine();
+
             Console.WriteLine("M/F matches");
             int countMF = 0, countMFBad = 0;
             List<List<row>> bad = new List<List<row>>();
-            var tc = TransitiveClosure.Compute(matches, data);
+
             foreach (var match in tc.ClosedRowSets)
             {
                 List<row> rows = new List<row>();
@@ -246,6 +286,8 @@ namespace LucasPlayground
                 }
             }
             Console.WriteLine($"M/F count: {countMF} / {countMFBad}");
+
+
 
             Console.ReadLine();
         }
@@ -484,8 +526,9 @@ namespace LucasPlayground
         #endregion
 
         #region Matching
-        public static void AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
+        public static List<List<row>> AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
         {
+            List<List<row>> pairs = new List<List<row>>();
             var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
             //Pair off and make a soft check on field to verify sameness
             for (int i = 0; i < fourMillion.Count(); i += 2)
@@ -493,7 +536,10 @@ namespace LucasPlayground
                 var r = fourMillion[i];
                 var s = fourMillion[i + 1];
                 challenge.Program.Add(r, s, ref matches);
+                pairs.Add(new List<row>(new row[] { r, s }));
             }
+
+            return pairs;
         }
 
         public static void AddMRNMatchesBen(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)

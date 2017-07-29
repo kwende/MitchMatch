@@ -4,12 +4,76 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace challenge.Ben
 {
     public class EditDistance
     {
+        private static ManualResetEvent _event = new ManualResetEvent(false); 
+        public static void ThreadPoolCallback(dynamic threadContext)
+        {
+            _event.Set(); 
+        }
+
+        public static void SearchForBetterMatches(row[] dataset, TransitiveClosure tc)
+        {
+            CountdownEvent countDownEvent = new CountdownEvent(1); 
+            for (;;)
+            {
+                ThreadPool.QueueUserWorkItem(ThreadPoolCallback, new { DataSet = dataset, CountDown = countDownEvent }); 
+
+                countDownEvent.Wait()
+            }
+        }
+
+        public static List<row> FindClosestMatchesForRowInEntireDataSet(row input, row[] dataset, TransitiveClosure tc)
+        {
+            List<row> bestMatches = new List<row>();
+            row[] closedSetForInput = tc.FindClosedSetForRow(input);
+
+            // get the closest match value for this particular row 
+            // to someone in his closed set. 
+            double bestMatchMetric = 1.0;
+            foreach (row row in closedSetForInput)
+            {
+                if (row.EnterpriseID != input.EnterpriseID)
+                {
+                    double distance = ComputeDistanceForRecordPair(input, row);
+                    if (distance < bestMatchMetric)
+                    {
+                        bestMatchMetric = distance;
+                    }
+                }
+            }
+
+            // now look everywhere. 
+            foreach (row row in dataset)
+            {
+                // don't match aginst self, and don't match against
+                // what's already in the closed set. 
+                if (row.EnterpriseID != input.EnterpriseID &&
+                    !closedSetForInput.Any(n => n.EnterpriseID == row.EnterpriseID))
+                {
+                    double distance = ComputeDistanceForRecordPair(input, row);
+
+                    if (distance == bestMatchMetric)
+                    {
+                        bestMatches.Add(row);
+                    }
+                    else if (distance < bestMatchMetric)
+                    {
+                        bestMatches.Clear();
+                        bestMatches.Add(row);
+                        bestMatchMetric = distance;
+                    }
+                }
+            }
+
+            return bestMatches;
+        }
+
         public static void WriteWorstToDisk<T>(List<IGrouping<T, row>> groups, row[] data, string outputFile, double threshold)
         {
             List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<T>(groups);
@@ -43,11 +107,48 @@ namespace challenge.Ben
 
         public static double ComputeDistanceForRecordPair(row row1, row row2)
         {
-            double distance1 = ComputeNormalized(row1.LAST, row2.LAST);
-            double distance2 = ComputeNormalized(row1.FIRST, row2.FIRST);
-            double distance3 = ComputeNormalized(row1.SSN.ToString(), row2.SSN.ToString());
-            double distance4 = ComputeNormalized(row1.DOB.ToShortDateString(), row2.DOB.ToShortDateString()); 
-            return (distance1 + distance2 + distance3 + distance4) / 4.0; 
+            List<double> distances = new List<double>();
+            distances.Add(ComputeNormalized(row1.FIRST, row2.FIRST));
+
+            double lastNameDistance = ComputeNormalized(row1.LAST, row2.LAST);
+            if (row1.GENDER.ToLower() == row2.GENDER.ToLower() && row1.GENDER.ToLower() == "f")
+            {
+                // a name change for a woman isn't as worrisome. 
+                lastNameDistance *= .75;
+            }
+
+            distances.Add(lastNameDistance);
+            if (row1.SSN != 0 && row2.SSN != 0)
+            {
+                distances.Add(ComputeNormalized(row1.SSN.ToString(), row2.SSN.ToString()));
+            }
+            else
+            {
+                distances.Add(.5);
+            }
+
+            distances.Add(ComputeNormalized(row1.DOB.ToShortDateString(), row2.DOB.ToShortDateString()));
+            distances.Add(ComputeNormalized(row1.ZIP.ToString(), row2.ZIP.ToString()));
+
+            if (row1.ADDRESS1 != "" && row1.ADDRESS2 != "")
+            {
+                distances.Add(ComputeNormalized(row1.ADDRESS1, row2.ADDRESS1));
+            }
+            else
+            {
+                distances.Add(.5);
+            }
+
+            if (row1.GENDER != "" && row2.GENDER != "")
+            {
+                distances.Add(ComputeNormalized(row1.GENDER, row2.GENDER));
+            }
+            else
+            {
+                distances.Add(.5);
+            }
+
+            return distances.Average();
         }
 
         public static double ComputeNormalized(string first, string second)
@@ -55,7 +156,7 @@ namespace challenge.Ben
             int editDistance = Compute(first, second);
             int maxLength = first.Length > second.Length ? first.Length : second.Length;
 
-            return editDistance / (maxLength * 1.0);  
+            return editDistance / (maxLength * 1.0);
         }
 
         public static int Compute(string first, string second)
