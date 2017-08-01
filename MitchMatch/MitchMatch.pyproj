@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>18701daf-2b05-480b-bafa-6cb3a6224977</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>SocialsByEditDistance.py</StartupFile>
+    <StartupFile>LogisticRegressionOnMrn.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -29,6 +29,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="helpers\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LogisticRegressionOnMrn.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MitchMatch.py" />

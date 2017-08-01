@@ -648,7 +648,7 @@ namespace challenge
 
         public override string ToString()
         {
-            return string.Format("{0,-15}, {1, -15}, {2,-20}, {3, -3}, {14, -25}, {4,-1}, {5},  {6},  {7}, {9,25}, {10,5}, {11,10}, {12,2}, {13,5}, {17, -10}, {18}",
+            return string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}",
                 FIRST,
                 MIDDLE,
                 LAST,
@@ -660,14 +660,14 @@ namespace challenge
                 PHONE2,//
                 ADDRESS1,
                 ADDRESS2,
-                CITY,
-                STATE,
+                CITY.Replace("\"",""),
+                STATE.Replace("\"", ""),
                 ZIP,
-                ALIAS,
                 MOTHERS_MAIDEN_NAME,//
                 EMAIL,//
                 MRN,
-                EnterpriseID);
+                EnterpriseID,
+                ALIAS);
         }
     }
 }

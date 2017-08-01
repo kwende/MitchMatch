@@ -27,8 +27,9 @@ namespace LucasPlayground
             else if (Environment.UserName.ToLower().Contains("brush") ||
                 Environment.UserName.ToLower().Contains("ben"))
             {
-                lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
+                lines = File.ReadLines(@"C:/users/brush/desktop/FInalDataset.csv");
             }
+
 
             return lines;
         }
@@ -58,12 +59,29 @@ namespace LucasPlayground
             //******************       MRN       ******************//
             Console.WriteLine();
             Console.WriteLine("MRN");
-            AddMRNMatches(data, ref matches);
+            List<List<row>> added = AddMRNMatches(data, ref matches);
             //AddMRNMatchesBen(data, ref matches); 
+
+            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/mrns.csv"))
+            //{
+            //    foreach (List<row> rows in added)
+            //    {
+            //        sw.WriteLine(rows[0].ToString());
+            //        sw.WriteLine(rows[1].ToString());
+            //        sw.WriteLine(); 
+            //    }
+            //}
 
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
+            using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/remainin.csv"))
+            {
+                foreach (row row in remainingRows)
+                {
+                    sw.WriteLine(row.ToString()); 
+                }
+            }
 
             //******************       SSN       ******************//
             Console.WriteLine();
@@ -521,8 +539,9 @@ namespace LucasPlayground
         #endregion
 
         #region Matching
-        public static void AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
+        public static List<List<row>> AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
         {
+            List<List<row>> groupsAdded = new List<List<row>>();
             var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
             //Pair off and make a soft check on field to verify sameness
             for (int i = 0; i < fourMillion.Count(); i += 2)
@@ -530,7 +549,9 @@ namespace LucasPlayground
                 var r = fourMillion[i];
                 var s = fourMillion[i + 1];
                 challenge.Program.Add(r, s, ref matches);
+                groupsAdded.Add(new List<row>(new row[] { r, s }));
             }
+            return groupsAdded;
         }
 
         public static void AddMRNMatchesBen(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
