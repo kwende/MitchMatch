@@ -91,7 +91,7 @@ def Train(inputFile, savedOutput):
             m = m + 1
         for badVector in badVectors:
             vectors[m] = badVector
-            y.append(2)
+            y.append(0)
             m = m + 1
 
         print("Learning...")
