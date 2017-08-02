@@ -3,31 +3,51 @@ import csv
 from nltk import edit_distance
 import numpy as np
 import pickle
+import sqlite3
 
 VectorLength = 9
 
 #http://www.dummies.com/programming/big-data/data-science/using-logistic-regression-in-python-for-data-science/
-def computeDeltaVector(allRows, i1, i2):
-    firstRow = [r.strip() for r in allRows[i1]]
-    secondRow = [r.strip() for r in allRows[i2]]
+def computeDeltaVector(allRows, i1, i2, isDb):
+    firstRow = [str(r).strip() for r in allRows[i1]]
+    secondRow = [str(r).strip() for r in allRows[i2]]
 
-    firstName = handleRow(firstRow, secondRow, 0, '')
-    #middleName = handleRow(firstRow, secondRow, 1, '')
-    lastName = handleRow(firstRow, secondRow, 2, '')
-    #suffix = handleRow(firstRow, secondRow, 3, '')
-    #gender = handleRow(firstRow, secondRow, 4, '')
-    social = handleRow(firstRow, secondRow, 5, '0')
-    dob = handleRow(firstRow, secondRow, 6, '')
-    phone = handleRow(firstRow, secondRow, 7, '')
-    #phone2 = handleRow(firstRow, secondRow, 8, '')
-    address1 = handleRow(firstRow, secondRow, 9, '')
-    #address2 = handleRow(firstRow, secondRow, 10, '')
-    city = handleRow(firstRow, secondRow, 11, '')
-    state = handleRow(firstRow, secondRow, 12, '')
-    zip = handleRow(firstRow, secondRow, 13, '-1')
-    #mothersMaidenName = handleRow(firstRow, secondRow, 14, '')
-    #email = handleRow(firstRow, secondRow, 15, '')
-    #alias = handleRow(firstRow, secondRow, 18, '')
+    if isDb:
+        firstName = handleRow(firstRow, secondRow, 1, '')
+        #middleName = handleRow(firstRow, secondRow, 1, '')
+        lastName = handleRow(firstRow, secondRow, 2, '')
+        #suffix = handleRow(firstRow, secondRow, 3, '')
+        #gender = handleRow(firstRow, secondRow, 4, '')
+        social = handleRow(firstRow, secondRow, 6, '0')
+        dob = handleRow(firstRow, secondRow, 7, '')
+        phone = handleRow(firstRow, secondRow, 8, '')
+        #phone2 = handleRow(firstRow, secondRow, 8, '')
+        address1 = handleRow(firstRow, secondRow, 10, '')
+        #address2 = handleRow(firstRow, secondRow, 10, '')
+        city = handleRow(firstRow, secondRow, 12, '')
+        state = handleRow(firstRow, secondRow, 13, '')
+        zip = handleRow(firstRow, secondRow, 14, '-1')
+        #mothersMaidenName = handleRow(firstRow, secondRow, 14, '')
+        #email = handleRow(firstRow, secondRow, 15, '')
+        #alias = handleRow(firstRow, secondRow, 18, '')
+    else:
+        firstName = handleRow(firstRow, secondRow, 0, '')
+        #middleName = handleRow(firstRow, secondRow, 1, '')
+        lastName = handleRow(firstRow, secondRow, 2, '')
+        #suffix = handleRow(firstRow, secondRow, 3, '')
+        #gender = handleRow(firstRow, secondRow, 4, '')
+        social = handleRow(firstRow, secondRow, 5, '0')
+        dob = handleRow(firstRow, secondRow, 6, '')
+        phone = handleRow(firstRow, secondRow, 7, '')
+        #phone2 = handleRow(firstRow, secondRow, 8, '')
+        address1 = handleRow(firstRow, secondRow, 9, '')
+        #address2 = handleRow(firstRow, secondRow, 10, '')
+        city = handleRow(firstRow, secondRow, 11, '')
+        state = handleRow(firstRow, secondRow, 12, '')
+        zip = handleRow(firstRow, secondRow, 13, '-1')
+        #mothersMaidenName = handleRow(firstRow, secondRow, 14, '')
+        #email = handleRow(firstRow, secondRow, 15, '')
+        #alias = handleRow(firstRow, secondRow, 18, '')
 
     #goodVector = [firstName, middleName, lastName, suffix, gender, social, dob, phone, phone2, 
     #        address1, address2, city, state, zip, mothersMaidenName, email, alias]
@@ -98,6 +118,57 @@ def Train(inputFile, savedOutput):
         with open(savedOutput, "wb") as fout:
             pickle.dump(logit, fout)
 
+def InsertRecordsIntoDatabase(inputFile, dbFile):
+    with open(inputFile) as csvFile:
+        csvReader = csv.reader(csvFile)
+
+        count = 0
+        possibles = []
+        allRows = [r for r in csvReader]
+
+        conn = sqlite3.connect(dbFile)
+        cursor = conn.cursor()
+
+        cursor.executemany("insert into records values (null,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", allRows)
+
+        conn.commit()
+
+    return
+
+def MatchFromDb(dbFile, trainedFile):
+
+    with open(trainedFile, "rb") as fout:
+        logit = pickle.load(fout)
+
+    conn = sqlite3.connect(dbFile)
+    cursor = conn.cursor()
+
+    cursor.execute("select * from records")
+    allRecords = cursor.fetchall()
+
+    for a in range(0, len(allRecords)):
+        print(str(a / len(allRecords)) + "%")
+        print(allRecords[a])
+        print("===============")
+        for b in range(0, len(allRecords)):
+            if a != b:
+                deltaVector = computeDeltaVector(allRecords, a, b, True)
+                
+                npDeltaVector = np.array(deltaVector)
+                p = logit.predict_proba(npDeltaVector.reshape(1, -1))
+                c = logit.predict(npDeltaVector.reshape(1, -1))
+
+                if c == 1:
+                    aRecordId = int(allRecords[a][0])
+                    bRecordId = int(allRecords[b][0])
+                    cursor.execute("insert into matches values (null,?,?,?,?)", (aRecordId, bRecordId, p[0][1], 1))
+                    print(p[0][1])
+                    print(allRecords[b])
+                    print("")
+
+        conn.commit()
+    return
+
 
 def Match(inputFile, trainedFile):
 
@@ -119,6 +190,8 @@ def Match(inputFile, trainedFile):
                 break
             indexToUse = indexToUse + 1
 
+
+        indexToUse = 0
         print(allRows[indexToUse])
         print("========================")
         for i in range(0, len(allRows)):
@@ -136,7 +209,8 @@ def Match(inputFile, trainedFile):
 
 def main():
     #Train("c:/users/brush/desktop/logit/mrns.csv", "c:/users/brush/desktop/logit/learnedModel.pickle")
-    Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
+    #Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
+    MatchFromDb("MitchMatch.db","c:/users/brush/desktop/logit/learnedModel.pickle")
     return
 
 
