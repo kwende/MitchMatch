@@ -111,12 +111,19 @@ def Match(inputFile, trainedFile):
         count = 0
         possibles = []
         allRows = [r for r in csvReader]
-        comparisonRow = 300
-        print(allRows[comparisonRow])
+        
+        indexToUse = 0
+        i = 0
+        for r in allRows:
+            if r[17] == '15643255':
+                break
+            indexToUse = indexToUse + 1
+
+        print(allRows[indexToUse])
         print("========================")
         for i in range(0, len(allRows)):
-            if i != comparisonRow:
-                deltaVector = computeDeltaVector(allRows, comparisonRow, i)
+            if i != indexToUse:
+                deltaVector = computeDeltaVector(allRows, indexToUse, i)
                 npDeltaVector = np.array(deltaVector)
                 p = logit.predict_proba(npDeltaVector.reshape(1, -1))
                 c = logit.predict(npDeltaVector.reshape(1, -1))
