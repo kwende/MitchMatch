@@ -15,7 +15,7 @@ def computeDeltaVector(allRows, i1, i2, isDb):
     if isDb:
         firstName = handleRow(firstRow, secondRow, 1, '')
         #middleName = handleRow(firstRow, secondRow, 1, '')
-        lastName = handleRow(firstRow, secondRow, 2, '')
+        lastName = handleRow(firstRow, secondRow, 3, '')
         #suffix = handleRow(firstRow, secondRow, 3, '')
         #gender = handleRow(firstRow, secondRow, 4, '')
         social = handleRow(firstRow, secondRow, 6, '0')
@@ -196,13 +196,9 @@ def Match(inputFile, trainedFile):
     return
 
 def main():
-    #Train("c:/users/brush/desktop/logit/mrns.csv",
-    #"c:/users/brush/desktop/logit/learnedModel.pickle")
-    #Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
+    #Train("c:/users/brush/desktop/logit/mrns.csv","c:/users/brush/desktop/logit/learnedModel.pickle")
+    #Match("c:/users/brush/desktop/logit/remaining.csv","C:/users/brush/desktop/logit/learnedModel.pickle")
     MatchFromDb("MitchMatch.db","c:/users/brush/desktop/logit/learnedModel.pickle")
     return
-
-
-
 
 main()
