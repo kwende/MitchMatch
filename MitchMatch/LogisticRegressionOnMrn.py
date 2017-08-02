@@ -49,8 +49,10 @@ def computeDeltaVector(allRows, i1, i2, isDb):
         #email = handleRow(firstRow, secondRow, 15, '')
         #alias = handleRow(firstRow, secondRow, 18, '')
 
-    #goodVector = [firstName, middleName, lastName, suffix, gender, social, dob, phone, phone2, 
-    #        address1, address2, city, state, zip, mothersMaidenName, email, alias]
+    #goodVector = [firstName, middleName, lastName, suffix, gender, social,
+    #dob, phone, phone2,
+    #        address1, address2, city, state, zip, mothersMaidenName, email,
+    #        alias]
 
     vector = [firstName, lastName, social, dob, phone, address1, city, state, zip]
     return vector
@@ -91,7 +93,7 @@ def Train(inputFile, savedOutput):
         print("Scanning...")
         for i in range(0, numPairs):
             if i % 10 == 0:
-                print(str((i / numPairs)*100) + "% done")
+                print(str((i / numPairs) * 100) + "% done")
             #if len(allRows[i * 3]) == 19 and len(allRows[i * 3 + 1]) == 19:
             goodVector = computeDeltaVector(allRows, i * 3, i * 3 + 1)
             goodVectors.append(goodVector)
@@ -148,23 +150,17 @@ def MatchFromDb(dbFile, trainedFile):
 
     for a in range(0, len(allRecords)):
         print(str(a / len(allRecords)) + "%")
-        print(allRecords[a])
-        print("===============")
-        for b in range(0, len(allRecords)):
-            if a != b:
-                deltaVector = computeDeltaVector(allRecords, a, b, True)
+        for b in range(a + 1, len(allRecords)):
+            deltaVector = computeDeltaVector(allRecords, a, b, True)
                 
-                npDeltaVector = np.array(deltaVector)
-                p = logit.predict_proba(npDeltaVector.reshape(1, -1))
-                c = logit.predict(npDeltaVector.reshape(1, -1))
+            npDeltaVector = np.array(deltaVector)
+            p = logit.predict_proba(npDeltaVector.reshape(1, -1))
+            c = logit.predict(npDeltaVector.reshape(1, -1))
 
-                if c == 1:
-                    aRecordId = int(allRecords[a][0])
-                    bRecordId = int(allRecords[b][0])
-                    cursor.execute("insert into matches values (null,?,?,?,?)", (aRecordId, bRecordId, p[0][1], 1))
-                    print(p[0][1])
-                    print(allRecords[b])
-                    print("")
+            if c == 1:
+                aRecordId = int(allRecords[a][0])
+                bRecordId = int(allRecords[b][0])
+                cursor.execute("insert into matches values (null,?,?,?,?)", (aRecordId, bRecordId, p[0][1], 1))
 
         conn.commit()
     return
@@ -184,19 +180,11 @@ def Match(inputFile, trainedFile):
         allRows = [r for r in csvReader]
         
         indexToUse = 0
-        i = 0
-        for r in allRows:
-            if r[17] == '15643255':
-                break
-            indexToUse = indexToUse + 1
-
-
-        indexToUse = 0
         print(allRows[indexToUse])
         print("========================")
         for i in range(0, len(allRows)):
             if i != indexToUse:
-                deltaVector = computeDeltaVector(allRows, indexToUse, i)
+                deltaVector = computeDeltaVector(allRows, indexToUse, i, False)
                 npDeltaVector = np.array(deltaVector)
                 p = logit.predict_proba(npDeltaVector.reshape(1, -1))
                 c = logit.predict(npDeltaVector.reshape(1, -1))
@@ -208,7 +196,8 @@ def Match(inputFile, trainedFile):
     return
 
 def main():
-    #Train("c:/users/brush/desktop/logit/mrns.csv", "c:/users/brush/desktop/logit/learnedModel.pickle")
+    #Train("c:/users/brush/desktop/logit/mrns.csv",
+    #"c:/users/brush/desktop/logit/learnedModel.pickle")
     #Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
     MatchFromDb("MitchMatch.db","c:/users/brush/desktop/logit/learnedModel.pickle")
     return
