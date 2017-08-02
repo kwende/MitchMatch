@@ -72,6 +72,7 @@ namespace challenge
             var fuzzyMatch2Results = BipartiteMatch(remainingRows2, remainingRows2, FuzzyMatchAllowFirst);
             AddMatchDictionary(fuzzyMatch2Results, matches);
 
+
             Add(15811621, 15750288, ref matches);//
             Add(15802888, 15456558, ref matches);//
             Add(15510682, 15598625, ref matches);//
@@ -88,6 +89,8 @@ namespace challenge
             Add(15476869, 15541825, ref matches);//
             Add(15460667, 15923220, ref matches);//
             Add(15688015, 15555730, ref matches);//
+
+            MRNFalsePositiveAnalysis(matches);
 
             var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
 
@@ -156,6 +159,37 @@ namespace challenge
             Console.WriteLine(matches.Count() + " matched entries");
 
             Console.ReadLine();
+        }
+
+        public static void MRNFalsePositiveAnalysis(Dictionary<int, List<int>> matches)
+        {
+            List<Tuple<row, row>> tuples = new List<Tuple<row, row>>();
+
+            int c = 0;
+            foreach(var pair in matches)
+            {
+                Console.Write($"\r{c++}/{matches.Count()}");
+                var r1 = _rowByEnterpriseId[pair.Key];
+                foreach(var r2Id in pair.Value)
+                {
+                    var r2 = _rowByEnterpriseId[r2Id];
+
+                    if (r1.MRN != -1 && r2.MRN != -1 && r1.MRN < r2.MRN && System.Math.Abs(r1.MRN - r2.MRN ) > 90000)
+                    {
+                        tuples.Add(new Tuple<row, row>(r1, r2));
+                    }
+                }
+            }
+            Console.WriteLine("\nPossible False Positive, due to large MRN spread");
+
+            tuples = tuples.OrderBy(p => System.Math.Abs(p.Item1.MRN - p.Item2.MRN)).ToList();
+
+            foreach(var pair in tuples)
+            {
+                RowLibrary.Print(pair.Item1);
+                RowLibrary.Print(pair.Item2);
+                Console.WriteLine(pair.Item2.MRN - pair.Item1.MRN + "\n");
+            }
         }
 
         static bool M(row r, row s, Func<row, string> f)
