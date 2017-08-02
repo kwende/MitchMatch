@@ -111,27 +111,25 @@ def Match(inputFile, trainedFile):
         count = 0
         possibles = []
         allRows = [r for r in csvReader]
-        comparisonRow = 1
+        comparisonRow = 300
         print(allRows[comparisonRow])
-        for i in range(comparisonRow+1, len(allRows)):
-            rowA = allRows[comparisonRow]
-            rowB = allRows[i]
-            deltaVector = computeDeltaVector(allRows, comparisonRow, i)
-            npDeltaVector = np.array(deltaVector)
-            p = logit.predict_proba(npDeltaVector.reshape(1, -1))
-            c = logit.predict(npDeltaVector.reshape(1, -1))
+        print("========================")
+        for i in range(0, len(allRows)):
+            if i != comparisonRow:
+                deltaVector = computeDeltaVector(allRows, comparisonRow, i)
+                npDeltaVector = np.array(deltaVector)
+                p = logit.predict_proba(npDeltaVector.reshape(1, -1))
+                c = logit.predict(npDeltaVector.reshape(1, -1))
 
-            if(c == 1):
-               print(p)
-               print(rowB)
-               print("")
-
-        print("Found " + str(count) + " matches"); 
+                if(c == 1):
+                   print(p[0][1])
+                   print(allRows[i])
+                   print("")
     return
 
 def main():
-    Train("c:/users/brush/desktop/logit/mrns.csv", "c:/users/brush/desktop/logit/learnedModel.pickle")
-    #Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
+    #Train("c:/users/brush/desktop/logit/mrns.csv", "c:/users/brush/desktop/logit/learnedModel.pickle")
+    Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
     return
 
 
