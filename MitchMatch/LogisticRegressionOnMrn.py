@@ -198,7 +198,7 @@ def Match(inputFile, trainedFile):
 def main():
     #Train("c:/users/brush/desktop/logit/mrns.csv","c:/users/brush/desktop/logit/learnedModel.pickle")
     #Match("c:/users/brush/desktop/logit/remaining.csv","C:/users/brush/desktop/logit/learnedModel.pickle")
-    MatchFromDb("MitchMatch.db","c:/users/brush/desktop/logit/learnedModel.pickle")
+    #MatchFromDb("MitchMatch.db","c:/users/brush/desktop/logit/learnedModel.pickle")
     return
 
 main()
