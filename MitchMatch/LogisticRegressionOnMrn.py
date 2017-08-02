@@ -4,7 +4,7 @@ from nltk import edit_distance
 import numpy as np
 import pickle
 
-VectorLength = 10
+VectorLength = 9
 
 #http://www.dummies.com/programming/big-data/data-science/using-logistic-regression-in-python-for-data-science/
 def computeDeltaVector(allRows, i1, i2):
@@ -15,7 +15,7 @@ def computeDeltaVector(allRows, i1, i2):
     #middleName = handleRow(firstRow, secondRow, 1, '')
     lastName = handleRow(firstRow, secondRow, 2, '')
     #suffix = handleRow(firstRow, secondRow, 3, '')
-    gender = handleRow(firstRow, secondRow, 4, '')
+    #gender = handleRow(firstRow, secondRow, 4, '')
     social = handleRow(firstRow, secondRow, 5, '0')
     dob = handleRow(firstRow, secondRow, 6, '')
     phone = handleRow(firstRow, secondRow, 7, '')
@@ -32,7 +32,7 @@ def computeDeltaVector(allRows, i1, i2):
     #goodVector = [firstName, middleName, lastName, suffix, gender, social, dob, phone, phone2, 
     #        address1, address2, city, state, zip, mothersMaidenName, email, alias]
 
-    vector = [firstName, lastName, gender, social, dob, phone, address1, city, state, zip]
+    vector = [firstName, lastName, social, dob, phone, address1, city, state, zip]
     return vector
 
 def handleRow(firstRow, secondRow, index, blankString):
@@ -42,17 +42,14 @@ def handleRow(firstRow, secondRow, index, blankString):
     col1 = firstRow[index].lower()
     col2 = secondRow[index].lower()
 
-    if col1 == blankString and col2 == blankString:
-        distance = -2
-    elif col1 == blankString or col2 == blankString:
-        distance = -1
+    distance = edit_distance(col1, col2)
+    maxEditDistance = 0 
+    if len(col1) > len(col2):
+        maxEditDistance = len(col1)
     else:
-        distance = edit_distance(col1, col2)
-        maxEditDistance = 0 
-        if len(col1) > len(col2):
-           maxEditDistance = len(col1)
-        else:
-            maxEditDistance = len(col2)
+        maxEditDistance = len(col2)
+
+    if maxEditDistance > 0:
         distance = distance / maxEditDistance
 
     return distance
@@ -75,13 +72,13 @@ def Train(inputFile, savedOutput):
         for i in range(0, numPairs):
             if i % 100 == 0:
                 print(str(i) + " of " + str(numPairs))
-            if len(allRows[i * 3]) == 19 and len(allRows[i * 3 + 1]) == 19:
-                goodVector = computeDeltaVector(allRows, i * 3, i * 3 + 1)
-                goodVectors.append(goodVector)
-                for j in range(0, numPairs, 10):
-                    if i != j:
-                        badVector = computeDeltaVector(allRows, i * 3, (j) * 3)
-                        badVectors.append(badVector)
+            #if len(allRows[i * 3]) == 19 and len(allRows[i * 3 + 1]) == 19:
+            goodVector = computeDeltaVector(allRows, i * 3, i * 3 + 1)
+            goodVectors.append(goodVector)
+            for j in range(0, numPairs, 100):
+                if i != j:
+                    badVector = computeDeltaVector(allRows, i * 3, (j) * 3)
+                    badVectors.append(badVector)
 
         vectors = np.zeros(shape=(len(goodVectors) + len(badVectors), VectorLength))
         m = 0
@@ -114,23 +111,27 @@ def Match(inputFile, trainedFile):
         count = 0
         possibles = []
         allRows = [r for r in csvReader]
-        for i in range(1, len(allRows)):
-            rowA = allRows[0]
+        comparisonRow = 1
+        print(allRows[comparisonRow])
+        for i in range(comparisonRow+1, len(allRows)):
+            rowA = allRows[comparisonRow]
             rowB = allRows[i]
-            deltaVector = computeDeltaVector(allRows, 0, i)
+            deltaVector = computeDeltaVector(allRows, comparisonRow, i)
             npDeltaVector = np.array(deltaVector)
-            #p = logit.predict_proba(npDeltaVector)
+            p = logit.predict_proba(npDeltaVector.reshape(1, -1))
             c = logit.predict(npDeltaVector.reshape(1, -1))
 
             if(c == 1):
-               count = count + 1
+               print(p)
+               print(rowB)
+               print("")
 
         print("Found " + str(count) + " matches"); 
     return
 
 def main():
-    Train("c:/users/brush/desktop/logit/mrns.csv", "c:/users/brush/desktop/logit/learnedModel.pickle")
-    #Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
+    #Train("c:/users/brush/desktop/logit/mrns.csv", "c:/users/brush/desktop/logit/learnedModel.pickle")
+    Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
     return
 
 
