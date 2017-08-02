@@ -70,12 +70,12 @@ def Train(inputFile, savedOutput):
 
         print("Scanning...")
         for i in range(0, numPairs):
-            if i % 100 == 0:
-                print(str(i) + " of " + str(numPairs))
+            if i % 10 == 0:
+                print(str((i / numPairs)*100) + "% done")
             #if len(allRows[i * 3]) == 19 and len(allRows[i * 3 + 1]) == 19:
             goodVector = computeDeltaVector(allRows, i * 3, i * 3 + 1)
             goodVectors.append(goodVector)
-            for j in range(0, numPairs, 100):
+            for j in range(0, numPairs, 5):
                 if i != j:
                     badVector = computeDeltaVector(allRows, i * 3, (j) * 3)
                     badVectors.append(badVector)
@@ -130,8 +130,8 @@ def Match(inputFile, trainedFile):
     return
 
 def main():
-    #Train("c:/users/brush/desktop/logit/mrns.csv", "c:/users/brush/desktop/logit/learnedModel.pickle")
-    Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
+    Train("c:/users/brush/desktop/logit/mrns.csv", "c:/users/brush/desktop/logit/learnedModel.pickle")
+    #Match("c:/users/brush/desktop/logit/remaining.csv", "C:/users/brush/desktop/logit/learnedModel.pickle")
     return
 
 
