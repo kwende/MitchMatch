@@ -7,6 +7,20 @@ import sqlite3
 
 VectorLength = 9
 
+def computeDeltaVectorDb(record1, record2):
+    firstName = handleRow(record1, record2, 1, '')
+    lastName = handleRow(record1, record2, 3, '')
+    social = handleRow(record1, record2, 6, '0')
+    dob = handleRow(record1, record2, 7, '')
+    phone = handleRow(record1, record2, 8, '')
+    address1 = handleRow(record1, record2, 10, '')
+    city = handleRow(record1, record2, 12, '')
+    state = handleRow(record1, record2, 13, '')
+    zip = handleRow(record1, record2, 14, '-1')
+
+    vector = [firstName, lastName, social, dob, phone, address1, city, state, zip]
+    return vector
+
 #http://www.dummies.com/programming/big-data/data-science/using-logistic-regression-in-python-for-data-science/
 def computeDeltaVector(allRows, i1, i2, isDb):
     firstRow = [str(r).strip() for r in allRows[i1]]
@@ -61,8 +75,8 @@ def handleRow(firstRow, secondRow, index, blankString):
 
     distance = 0
 
-    col1 = firstRow[index].lower()
-    col2 = secondRow[index].lower()
+    col1 = str(firstRow[index]).lower()
+    col2 = str(secondRow[index]).lower()
 
     distance = edit_distance(col1, col2)
     maxEditDistance = 0 
@@ -195,10 +209,51 @@ def Match(inputFile, trainedFile):
                    print("")
     return
 
+def MatchSets(dbFile, trainedFile, setsFile):
+    enterpriseIdColumn = 18
+
+    logit = None
+    with open(trainedFile, "rb") as fout:
+        logit = pickle.load(fout)
+
+    conn = sqlite3.connect(dbFile)
+    cursor = conn.cursor()
+
+    allRecords = list(cursor.execute('select * from records'))
+    enterpriseIds = [r[enterpriseIdColumn] for r in allRecords]
+
+    with open(setsFile) as sets:
+        allSetLines = sets.readlines()
+        i = 0
+        for setLine in allSetLines:
+            bits = [int(b.replace('\n','')) for b in setLine.split(',')]
+
+            if i % 500 == 0:
+                print(str((i / len(allSetLines))*100) + "%")
+
+            i = i + 1
+
+            # is this a non-MRN match
+            if bits[0] in enterpriseIds:
+                for a in range(0, len(bits)):
+                    aRecord = [r for r in allRecords if r[enterpriseIdColumn] == bits[a]][0]
+                    for b in range(a + 1, len(bits)):
+                        bRecord = [r for r in allRecords if r[enterpriseIdColumn] == bits[b]][0]
+                        deltaVector = computeDeltaVectorDb(aRecord,bRecord)
+                        npDeltaVector = np.array(deltaVector)
+                        p = logit.predict_proba(npDeltaVector.reshape(1, -1))
+                        c = logit.predict(npDeltaVector.reshape(1, -1))
+
+                        cursor.execute("insert into matches values (null,?,?,?,1)", (aRecord[0], bRecord[0], p[0][1]))
+
+    conn.commit()
+    return
+
 def main():
     #Train("c:/users/brush/desktop/logit/mrns.csv","c:/users/brush/desktop/logit/learnedModel.pickle")
     #Match("c:/users/brush/desktop/logit/remaining.csv","C:/users/brush/desktop/logit/learnedModel.pickle")
     #MatchFromDb("MitchMatch.db","c:/users/brush/desktop/logit/learnedModel.pickle")
+    MatchSets("MitchMatch.db", "c:/users/brush/desktop/logit/learnedModel.pickle", "closedsets.txt")
     return
 
 main()

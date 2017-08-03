@@ -79,7 +79,7 @@ namespace LucasPlayground
             {
                 foreach (row row in remainingRows)
                 {
-                    sw.WriteLine(row.ToString()); 
+                    sw.WriteLine(row.ToString());
                 }
             }
 
@@ -265,6 +265,16 @@ namespace LucasPlayground
             //    }
             //}
             //Console.WriteLine($"M/F count: {countMF} / {countMFBad}");
+
+            //TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
+
+            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/closedsets.txt"))
+            //{
+            //    foreach (List<int> closedSet in tc.ClosedRowSets)
+            //    {
+            //        sw.WriteLine(string.Join(",", closedSet)); 
+            //    }
+            //}
 
             SaveResults(matches, data);
 
