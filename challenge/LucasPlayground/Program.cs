@@ -318,6 +318,12 @@ namespace LucasPlayground
 
         private static void PrintAnalysis(Dictionary<int, List<int>> matches, row[] allTruePositiveData)
         {
+            Dictionary<int, row> rowByEnterpriseId = new Dictionary<int, row>();
+            foreach (var r in allTruePositiveData)
+            {
+                rowByEnterpriseId[r.EnterpriseID] = r;
+            }
+            challenge.Program.MRNFalsePositiveAnalysis(matches, rowByEnterpriseId);
 
             var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
 
