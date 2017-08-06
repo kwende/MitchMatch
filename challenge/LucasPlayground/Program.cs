@@ -29,6 +29,11 @@ namespace LucasPlayground
             {
                 lines = File.ReadLines(@"C:/users/brush/desktop/FInalDataset.csv");
             }
+            else if (Environment.UserName.ToLower().Contains("jbrownkramer") ||
+    Environment.UserName.ToLower().Contains("josh"))
+            {
+                lines = File.ReadLines(@"C:\Users\jbrownkramer\Desktop\Data\data.csv");
+            }
 
 
             return lines;
@@ -41,6 +46,12 @@ namespace LucasPlayground
             var lines = GetLines();
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
+
+            var rowByEnterpriseId = new Dictionary<int, row>();
+            foreach (var r in data)
+            {
+                rowByEnterpriseId[r.EnterpriseID] = r;
+            }
 
             Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
             row[] remainingRows = data;
@@ -222,7 +233,7 @@ namespace LucasPlayground
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
-            PrintAnalysis(matches, data);
+            PrintAnalysis(matches, data, rowByEnterpriseId);
 
             //Console.WriteLine("M/F matches");
             //int countMF = 0, countMFBad = 0;
@@ -306,7 +317,7 @@ namespace LucasPlayground
 
 
 
-        private static void PrintAnalysis(Dictionary<int, List<int>> matches, row[] allTruePositiveData)
+        private static void PrintAnalysis(Dictionary<int, List<int>> matches, row[] allTruePositiveData, Dictionary<int,row> rowByEnterpriseId)
         {
 
             var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
@@ -343,6 +354,8 @@ namespace LucasPlayground
                     RowLibrary.Print(r);
                 }
             }
+
+            challenge.Program.MRNFalsePositiveAnalysis(matches, rowByEnterpriseId);
 
             Console.WriteLine("\nUnmatched");
             var toHandVerify = challenge.Program.UnMatched(allTruePositiveData, matches);

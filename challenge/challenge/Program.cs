@@ -90,7 +90,7 @@ namespace challenge
             Add(15460667, 15923220, ref matches);//
             Add(15688015, 15555730, ref matches);//
 
-            MRNFalsePositiveAnalysis(matches);
+            MRNFalsePositiveAnalysis(matches, _rowByEnterpriseId);
 
             var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
 
@@ -161,7 +161,7 @@ namespace challenge
             Console.ReadLine();
         }
 
-        public static void MRNFalsePositiveAnalysis(Dictionary<int, List<int>> matches)
+        public static void MRNFalsePositiveAnalysis(Dictionary<int, List<int>> matches, Dictionary<int,row> rowByEnterpriseId)
         {
             List<Tuple<row, row>> tuples = new List<Tuple<row, row>>();
 
@@ -169,10 +169,10 @@ namespace challenge
             foreach(var pair in matches)
             {
                 Console.Write($"\r{c++}/{matches.Count()}");
-                var r1 = _rowByEnterpriseId[pair.Key];
+                var r1 = rowByEnterpriseId[pair.Key];
                 foreach(var r2Id in pair.Value)
                 {
-                    var r2 = _rowByEnterpriseId[r2Id];
+                    var r2 = rowByEnterpriseId[r2Id];
 
                     if (r1.MRN != -1 && r2.MRN != -1 && r1.MRN < r2.MRN && System.Math.Abs(r1.MRN - r2.MRN ) > 90000)
                     {
