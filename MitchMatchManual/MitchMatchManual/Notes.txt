@@ -1,0 +1,7 @@
+To import all records
+
+import os
+os.environ["DJANGO_SETTINGS_MODULE"] = "MitchMatchManual.settings"
+import django
+django.setup()
+from app.dbhelper.importer import *

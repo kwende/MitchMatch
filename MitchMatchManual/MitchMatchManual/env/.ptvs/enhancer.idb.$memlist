@@ -1,0 +1,13 @@
+Enhance
+HORIZONTAL
+Tk
+Label
+im
+Toplevel
+ImageEnhance
+ImageTk
+Frame
+Scale
+sys
+Image
+root
