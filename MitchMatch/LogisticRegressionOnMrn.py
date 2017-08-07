@@ -1,9 +1,11 @@
 from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
 import csv
 from nltk import edit_distance
 import numpy as np
 import pickle
 import sqlite3
+import time
 
 VectorLength = 9
 
@@ -90,6 +92,27 @@ def handleRow(firstRow, secondRow, index, blankString):
 
     return distance
 
+def TrainMLP(pickleFile, outputFile):
+
+    trainingData = None
+
+    print("loading training data...")
+    with open(pickleFile, "rb") as fin:
+        trainingData = pickle.load(fin)
+
+    print("training...")
+    start = time.time()
+    clf = MLPClassifier(alpha=1e-5, random_state=1,solver='lbfgs',
+                    hidden_layer_sizes=(5, 20, 10, 15, 5), max_iter=1000)
+    clf.fit(trainingData["vectors"], trainingData["y"])
+    end = time.time()
+
+    print("Training took " + str(end-start) + " seconds. saving...")
+    with open(outputFile, "wb") as fout:
+        pickle.dump(clf, fout)
+
+    return
+
 def Train(inputFile, savedOutput):
     with open(inputFile) as csvFile:
         csvReader = csv.reader(csvFile)
@@ -109,11 +132,11 @@ def Train(inputFile, savedOutput):
             if i % 10 == 0:
                 print(str((i / numPairs) * 100) + "% done")
             #if len(allRows[i * 3]) == 19 and len(allRows[i * 3 + 1]) == 19:
-            goodVector = computeDeltaVector(allRows, i * 3, i * 3 + 1)
+            goodVector = computeDeltaVector(allRows, i * 3, i * 3 + 1, True)
             goodVectors.append(goodVector)
-            for j in range(0, numPairs, 5):
+            for j in range(0, numPairs ):
                 if i != j:
-                    badVector = computeDeltaVector(allRows, i * 3, (j) * 3)
+                    badVector = computeDeltaVector(allRows, i * 3, (j) * 3, True)
                     badVectors.append(badVector)
 
         vectors = np.zeros(shape=(len(goodVectors) + len(badVectors), VectorLength))
@@ -126,6 +149,10 @@ def Train(inputFile, savedOutput):
             vectors[m] = badVector
             y.append(0)
             m = m + 1
+
+        #with open("c:/users/brush/desktop/serialized.pickle", "wb") as fout:
+        #    toSave = {"vectors" : vectors, "y" : y}
+        #    pickle.dump(toSave, fout)
 
         print("Learning...")
         logit = LogisticRegression()
@@ -149,6 +176,46 @@ def InsertRecordsIntoDatabase(inputFile, dbFile):
 
         conn.commit()
 
+    return
+
+def MatchSetsMLP(dbFile, trainedFile, setsFile):
+    enterpriseIdColumn = 18
+
+    mlp = None
+    with open(trainedFile, "rb") as fout:
+        mlp = pickle.load(fout)
+
+    conn = sqlite3.connect(dbFile)
+    cursor = conn.cursor()
+
+    allRecords = list(cursor.execute('select * from records'))
+    enterpriseIds = [r[enterpriseIdColumn] for r in allRecords]
+
+    with open(setsFile) as sets:
+        allSetLines = sets.readlines()
+        i = 0
+        for setLine in allSetLines:
+            bits = [int(b.replace('\n','')) for b in setLine.split(',')]
+
+            if i % 500 == 0:
+                print(str((i / len(allSetLines))*100) + "%")
+
+            i = i + 1
+
+            # is this a non-MRN match
+            if bits[0] in enterpriseIds:
+                for a in range(0, len(bits)):
+                    aRecord = [r for r in allRecords if r[enterpriseIdColumn] == bits[a]][0]
+                    for b in range(a + 1, len(bits)):
+                        bRecord = [r for r in allRecords if r[enterpriseIdColumn] == bits[b]][0]
+                        deltaVector = computeDeltaVectorDb(aRecord,bRecord)
+                        npDeltaVector = np.array(deltaVector)
+                        p = mlp.predict_proba(npDeltaVector.reshape(1, -1))
+                        c = mlp.predict(npDeltaVector.reshape(1, -1))
+
+                        cursor.execute("insert into matches values (null,?,?,?,4)", (aRecord[0], bRecord[0], p[0][1]))
+
+    conn.commit()
     return
 
 def MatchFromDb(dbFile, trainedFile):
@@ -250,10 +317,12 @@ def MatchSets(dbFile, trainedFile, setsFile):
     return
 
 def main():
+    TrainMLP("c:/users/brush/desktop/serialized.pickle", "c:/users/brush/desktop/learned.pickle")
     #Train("c:/users/brush/desktop/logit/mrns.csv","c:/users/brush/desktop/logit/learnedModel.pickle")
     #Match("c:/users/brush/desktop/logit/remaining.csv","C:/users/brush/desktop/logit/learnedModel.pickle")
     #MatchFromDb("MitchMatch.db","c:/users/brush/desktop/logit/learnedModel.pickle")
-    MatchSets("MitchMatch.db", "c:/users/brush/desktop/logit/learnedModel.pickle", "closedsets.txt")
+    #MatchSets("MitchMatch.db", "c:/users/brush/desktop/logit/learnedModel.pickle", "closedsets.txt")
+    #MatchSetsMLP("MitchMatch.db", "c:/users/brush/desktop/learned.pickle", "closedsets.txt")
     return
 
 main()
