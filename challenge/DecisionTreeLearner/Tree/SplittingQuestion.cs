@@ -8,8 +8,13 @@ namespace DecisionTreeLearner.Tree
 {
     public class SplittingQuestion
     {
-        public int FieldIndex { get; set; }
-        public int AllowableDistance { get; set; }
+        // descriptors
+        public FieldEnum Field { get; set; }
+        public MatchTypeEnum MatchType { get; set; }
 
+        // parameters
+        public int MaximumEditDistance { get; set; }
+        public bool OneFieldValueIsEmpty { get; set; }
+        public bool BothFieldValuesAreEmpty { get; set; }
     }
 }

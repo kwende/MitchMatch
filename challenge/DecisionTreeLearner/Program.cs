@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DecisionTreeLearner.Tree;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,8 @@ namespace DecisionTreeLearner
     {
         static void Main(string[] args)
         {
+            DecisionTree tree = new DecisionTree();
+            tree.Train(); 
         }
     }
 }
