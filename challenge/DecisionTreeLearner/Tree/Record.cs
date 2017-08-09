@@ -28,7 +28,53 @@ namespace DecisionTreeLearner.Tree
 
         public static Record FromString(string csvString)
         {
-            string[] bits = 
+            //FIRST,
+            //    MIDDLE,
+            //    LAST,
+            //    SUFFIX,
+            //    GENDER,
+            //    SSN,
+            //    DOB.ToString("dd/MM/yyyy"),
+            //    PHONE,
+            //    PHONE2,//
+            //    ADDRESS1,
+            //    ADDRESS2,
+            //    CITY.Replace("\"", ""),
+            //    STATE.Replace("\"", ""),
+            //    ZIP,
+            //    MOTHERS_MAIDEN_NAME,//
+            //    EMAIL,//
+            //    MRN,
+            //    EnterpriseID,
+            //    ALIAS);
+
+            Record record = new Record(); 
+            string[] bits = csvString.Split(',');
+
+            if(bits.Length != 19)
+            {
+                throw new Exception();
+            }
+
+            record.FirstName = bits[0];
+            record.MiddleName = bits[1]; 
+            record.LastName = bits[2];
+            record.Suffix = bits[3];
+            record.Gender = bits[4];
+            record.SSN = bits[5];
+            record.DOB = bits[6];
+            record.Phone1 = bits[7];
+            record.Phone2 = bits[8];
+            record.Address1 = bits[9];
+            record.Address2 = bits[10];
+            record.City = bits[11];
+            record.State = bits[12];
+            record.Zip = bits[13];
+            record.MothersMaidenName = bits[14];
+            record.Email = bits[15];
+            record.Alias = bits[18];
+
+            return record; 
         }
     }
 }
