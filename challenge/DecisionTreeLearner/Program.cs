@@ -38,23 +38,30 @@ namespace DecisionTreeLearner
                     Record2 = allRecords[c + 1],
                 });
 
+                Random rand = new Random(); 
                 for (int d = 0; d < allRecords.Count; d += 2)
                 {
                     if (c != d)
                     {
-                        trainingData.Add(new RecordPair
+                        if(rand.Next() % 2 == 0)
                         {
-                            IsMatch = false,
-                            Record1 = allRecords[c],
-                            Record2 = allRecords[d]
-                        });
+                            trainingData.Add(new RecordPair
+                            {
+                                IsMatch = false,
+                                Record1 = allRecords[c],
+                                Record2 = allRecords[d]
+                            });
+                        }
+                        else
+                        {
+                            trainingData.Add(new RecordPair
+                            {
+                                IsMatch = false,
+                                Record1 = allRecords[c + 1],
+                                Record2 = allRecords[d]
+                            });
 
-                        trainingData.Add(new RecordPair
-                        {
-                            IsMatch = false,
-                            Record1 = allRecords[c + 1],
-                            Record2 = allRecords[d]
-                        });
+                        }
                     }
                 }
             }
@@ -64,9 +71,10 @@ namespace DecisionTreeLearner
 
         static void Main(string[] args)
         {
-            DecisionTree tree = new DecisionTree();
-
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+
+            DecisionTree tree = new DecisionTree();
+            tree.Train(trainingData); 
         }
     }
 }
