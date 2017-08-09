@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DecisionTreeLearner.Tree
 {
+    [Serializable]
     public class DecisionTree
     {
         public DecisionTreeNode Root { get; set; }

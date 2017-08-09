@@ -277,8 +277,36 @@ namespace DecisionTreeLearner.Tree
                 parentNode.RightBranch = new DecisionTreeNode();
 
                 RecurseAndPartition(parentNode.LeftBranch, splittingQuestions, bestLeftBucket, level + 1, subsamplingPercentage, minGainToBreak);
+                bestLeftBucket = null;
                 RecurseAndPartition(parentNode.RightBranch, splittingQuestions, bestRightBucket, level + 1, subsamplingPercentage, minGainToBreak);
+                bestRightBucket = null;
             }
+        }
+
+        private static bool RecurseAndCheckIsMatch(DecisionTreeNode parentNode, RecordPair pair)
+        {
+            if (parentNode.IsLeaf)
+            {
+                return parentNode.IsMatch;
+            }
+            else
+            {
+                bool goesLeft = ComputeSplitDirection(parentNode.Question, pair);
+
+                if (goesLeft)
+                {
+                    return RecurseAndCheckIsMatch(parentNode.LeftBranch, pair); 
+                }
+                else
+                {
+                    return RecurseAndCheckIsMatch(parentNode.RightBranch, pair); 
+                }
+            }
+        }
+
+        public static bool IsMatch(RecordPair pair, DecisionTree tree)
+        {
+            return RecurseAndCheckIsMatch(tree.Root, pair); 
         }
 
         public DecisionTree Train(List<RecordPair> trainingData)

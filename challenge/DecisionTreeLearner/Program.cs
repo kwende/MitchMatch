@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DecisionTreeLearner
@@ -71,7 +72,7 @@ namespace DecisionTreeLearner
             return trainingData;
         }
 
-        static void Main(string[] args)
+        static void Train()
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -88,6 +89,50 @@ namespace DecisionTreeLearner
             sw.Stop();
 
             Console.WriteLine($"Whole operation took {sw.ElapsedMilliseconds / 1000.0 / 60.0} minutes");
+        }
+
+        static void TestOnTrainingData()
+        {
+            List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+            int consoleLeft = Console.CursorLeft;
+            int consoleTop = Console.CursorTop;
+
+            int gotRight = 0;
+            BinaryFormatter bf = new BinaryFormatter();
+            using (FileStream fin = File.OpenRead("tree.dat"))
+            {
+                DecisionTree tree = (DecisionTree)bf.Deserialize(fin);
+
+                int numberExamined = 0;
+                Parallel.ForEach(trainingData, pair =>
+                {
+                    bool actual = pair.IsMatch;
+                    bool guess = DecisionTreeBuilder.IsMatch(pair, tree);
+
+                    if (guess == actual)
+                    {
+                        Interlocked.Increment(ref gotRight); 
+                    }
+
+                    lock (bf)
+                    {
+                        if (numberExamined % 1000000 == 0)
+                        {
+                            Console.SetCursorPosition(consoleLeft, consoleTop);
+                            Console.WriteLine($"{(numberExamined / (trainingData.Count * 1.0)) * 100}% done");
+                        }
+                        numberExamined++; 
+                    }
+
+                });
+            }
+
+            Console.WriteLine($"{(gotRight / (trainingData.Count * 1.0)) * 100}% accuracy");
+        }
+
+        static void Main(string[] args)
+        {
+            TestOnTrainingData();
         }
     }
 }
