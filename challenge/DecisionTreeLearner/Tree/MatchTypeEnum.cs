@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DecisionTreeLearner.Tree
 {
+    [Serializable]
     public enum MatchTypeEnum
     {
         EditDistance = 0,

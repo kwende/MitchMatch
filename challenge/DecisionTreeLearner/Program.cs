@@ -1,6 +1,7 @@
 ﻿using DecisionTreeLearner.Tree;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -26,9 +27,10 @@ namespace DecisionTreeLearner
 
             for (int c = 0; c < allRecords.Count; c += 2)
             {
-                if(c%100==0)
+                if (c % 500 == 0)
                 {
-                    Console.WriteLine(((c / (allRecords.Count * 1.0)) * 100) + "%"); 
+                    Console.Clear();
+                    Console.WriteLine(((c / (allRecords.Count * 1.0)) * 100) + "%");
                 }
 
                 trainingData.Add(new RecordPair
@@ -38,12 +40,12 @@ namespace DecisionTreeLearner
                     Record2 = allRecords[c + 1],
                 });
 
-                Random rand = new Random(); 
+                Random rand = new Random();
                 for (int d = 0; d < allRecords.Count; d += 2)
                 {
                     if (c != d)
                     {
-                        if(rand.Next() % 2 == 0)
+                        if (rand.Next() % 2 == 0)
                         {
                             trainingData.Add(new RecordPair
                             {
@@ -71,10 +73,21 @@ namespace DecisionTreeLearner
 
         static void Main(string[] args)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
 
-            DecisionTree tree = new DecisionTree();
-            tree.Train(trainingData); 
+            DecisionTreeBuilder treeBuilder = new DecisionTreeBuilder();
+            DecisionTree tree = treeBuilder.Train(trainingData);
+
+            BinaryFormatter bf = new BinaryFormatter();
+            using (FileStream fout = File.Create("C:/users/brush/desktop/tree.dat"))
+            {
+                bf.Serialize(fout, tree);
+            }
+            sw.Stop();
+
+            Console.WriteLine($"Whole operation took {sw.ElapsedMilliseconds / 1000.0 / 60.0} minutes");
         }
     }
 }

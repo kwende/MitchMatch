@@ -43,9 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NLP\EditDistance.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tree\DecisionTree.cs" />
+    <Compile Include="Tree\DecisionTreeBuilder.cs" />
+    <Compile Include="Tree\DecisionTreeNode.cs" />
     <Compile Include="Tree\FieldEnum.cs" />
     <Compile Include="Tree\MatchTypeEnum.cs" />
     <Compile Include="Tree\Record.cs" />
