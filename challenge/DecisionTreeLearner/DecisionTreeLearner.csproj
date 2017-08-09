@@ -48,10 +48,15 @@
     <Compile Include="Tree\DecisionTree.cs" />
     <Compile Include="Tree\FieldEnum.cs" />
     <Compile Include="Tree\MatchTypeEnum.cs" />
+    <Compile Include="Tree\Record.cs" />
+    <Compile Include="Tree\RecordPair.cs" />
     <Compile Include="Tree\SplittingQuestion.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="mrns.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

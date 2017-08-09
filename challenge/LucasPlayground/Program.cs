@@ -62,26 +62,26 @@ namespace LucasPlayground
             List<List<row>> added = AddMRNMatches(data, ref matches);
             //AddMRNMatchesBen(data, ref matches); 
 
-            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/mrns.csv"))
-            //{
-            //    foreach (List<row> rows in added)
-            //    {
-            //        sw.WriteLine(rows[0].ToString());
-            //        sw.WriteLine(rows[1].ToString());
-            //        sw.WriteLine(); 
-            //    }
-            //}
+            using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/mrns.csv"))
+            {
+                foreach (List<row> rows in added)
+                {
+                    sw.WriteLine(rows[0].ToString());
+                    sw.WriteLine(rows[1].ToString());
+                    sw.WriteLine();
+                }
+            }
 
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
-            using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/remainin.csv"))
-            {
-                foreach (row row in remainingRows)
-                {
-                    sw.WriteLine(row.ToString());
-                }
-            }
+            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/remainin.csv"))
+            //{
+            //    foreach (row row in remainingRows)
+            //    {
+            //        sw.WriteLine(row.ToString());
+            //    }
+            //}
 
             //******************       SSN       ******************//
             Console.WriteLine();
