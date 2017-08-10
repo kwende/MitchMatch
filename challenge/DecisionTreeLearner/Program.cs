@@ -47,7 +47,7 @@ namespace DecisionTreeLearner
 
             editDistance = NLP.EditDistance.Compute(str1, str2);
 
-            Debug.Assert(editDistance == 10); 
+            Debug.Assert(editDistance == 10);
         }
 
         static List<RecordPair> BuildTrainingData(string inputFilePath)
@@ -115,6 +115,43 @@ namespace DecisionTreeLearner
             Stopwatch sw = new Stopwatch();
             sw.Start();
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+
+            //long workingSet = Process.GetCurrentProcess().WorkingSet64;
+            //Console.WriteLine(workingSet / 1024.0 / 1024.0);
+            //Console.ReadLine();
+
+            //RecordPair[] copy = new RecordPair[trainingData.Count];
+            //for (int c = 0; c < trainingData.Count; c++)
+            //{
+            //    copy[c] = trainingData[c]; 
+            //}
+
+
+            //workingSet = Process.GetCurrentProcess().WorkingSet64;
+            //Console.WriteLine(workingSet / 1024.0 / 1024.0);
+            //Console.ReadLine();
+
+            //List<int> copy2 = new List<int>(); 
+            //foreach(RecordPair pair in trainingData)
+            //{
+            //    copy2.Add(1); 
+            //}
+
+            //workingSet = Process.GetCurrentProcess().WorkingSet64;
+            //Console.WriteLine(workingSet / 1024.0 / 1024.0);
+            //Console.ReadLine();
+
+            //int[] copy3 = new int[trainingData.Count]; 
+            //for(int c=0;c<trainingData.Count;c++)
+            //{
+            //    copy3[c] = c; 
+            //}
+
+
+            //workingSet = Process.GetCurrentProcess().WorkingSet64;
+            //Console.WriteLine(workingSet / 1024.0 / 1024.0);
+            //Console.ReadLine();
+
             int numberPerTree = trainingData.Count / numberOfTrees;
 
             for (int c = 0; c < numberOfTrees; c++)
@@ -181,7 +218,7 @@ namespace DecisionTreeLearner
 
             BinaryFormatter bf = new BinaryFormatter();
 
-            DecisionTree[] forest = LoadForest("C:/users/brush/desktop/forest"); 
+            DecisionTree[] forest = LoadForest("C:/users/brush/desktop/forest");
 
             int numberExamined = 0;
             Parallel.ForEach(trainingData, pair =>
@@ -244,8 +281,8 @@ namespace DecisionTreeLearner
         {
             //EditDistanceTests();
 
-            //Train(10, "C:/users/brush/desktop/forest", 1, 0, 3);
-            TestOnTrainingData();
+            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            //TestOnTrainingData();
         }
     }
 }
