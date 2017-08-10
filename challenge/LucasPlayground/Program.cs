@@ -17,6 +17,483 @@ namespace LucasPlayground
         private static string[] _badAddresses = new string[0];
         private static DateTime[] _badDOBs = new DateTime[0];
 
+        static void Main(string[] args)
+        {
+            // Load Data
+            var lines = GetLines();
+            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
+            var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
+
+
+            // Clean Data
+            _badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
+            _badDOBs = new DateTime[] { new DateTime(1900, 1, 1) };
+            _badPhones = data.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
+            _badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ') && g.Count() > 2).Select(g => g.Key).ToArray();
+
+            CleanData(ref data);
+
+
+            // Process Data
+            Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
+            row[] remainingRows = data;
+            Console.WriteLine("Remaining: " + remainingRows.Length);
+
+            Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
+
+
+            //******************  SOLID MATCHES   ******************//
+            AddMRNMatches(data, ref matches);
+
+            AddMatches("SSN + LAST", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true,
+                Last = true,
+            }), 0, (r1, r2) =>
+                1);
+            AddMatches("SSN + DOB", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true,
+                DOB = true,
+            }), 0, (r1, r2) =>
+                1);
+            AddMatches("SSN + PHONE", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true,
+                Phone = true,
+            }), 0, (r1, r2) =>
+                    1);
+            AddMatches("SSN + ADDRESS", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true,
+                Address = true,
+            }), 0, (r1, r2) =>
+                1);
+
+            AddMatches("NAME + DOB strong", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                DOB = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                Phone = true,
+                Address = true,
+            }));
+            AddMatches("NAME + PHONE (no sr/jr)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Phone = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                DOB = true,
+            }));
+
+            AddMatches("NAME + ADDRESS (no sr/jr)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Address = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                DOB = true,
+            }));
+
+            AddMatches("DOB + PHONE (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                First = true,
+                DOB = true,
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
+            }));
+            AddMatches("DOB + ADDRESS (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                DOB = true,
+                Address = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
+            }));
+
+            AddMatches("PHONE + ADDRESS (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true,
+                Address = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
+            }));
+
+
+            AddMatches("SSN + soft match", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Name = true,
+                Phone = true,
+                DOB = true,
+                Address = true,
+            }));
+
+            //******************  PROBABLY SOLID MATCHES   ******************//
+
+            AddMatches("NAME + PHONE (sr/jr)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Address = true,
+            }));
+            AddMatches("NAME + ADDRESS (sr/jr)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Address = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Phone = true,
+            }));
+            AddMatches("DOB + PHONE (twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                First = true,
+                DOB = true,
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Last = true,
+                Address = true,
+            }));
+            AddMatches("DOB + ADDRESS (twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Address = true,
+                DOB = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Last = true,
+                Phone = true,
+            }));
+            AddMatches("PHONE + ADDRESS (twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true,
+                Address = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Last = true,
+            }));
+
+
+            AddMatches("Name + 2 soft", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                DOB = true,
+                Phone = true,
+                Address = true,
+            }));
+            AddMatches("DOB + 2 soft", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                DOB = true,
+            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
+                Phone = true,
+                Address = true,
+            }));
+            AddMatches("Phone + 2 soft", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true,
+            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
+                DOB = true,
+                Address = true,
+            }));
+            AddMatches("Address + 2 soft", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Address = true,
+            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
+                DOB = true,
+                Phone = true,
+            }));
+
+
+            //******************  WEAKER MATCHES   ******************//
+
+            List<int> weakerMatchedIDs = new List<int>();
+            var weak =
+            AddMatches("PHONE + soft SSN", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+            }));
+            weakerMatchedIDs.AddRange(weak);
+
+            weak =
+            AddMatches("NAME + DOB weaker", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                DOB = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSNSoft = true,
+            }));
+            weakerMatchedIDs.AddRange(weak);
+
+            weak =
+            AddMatches("NAME + PHONE weaker", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSNSoft = true,
+            }));
+            weakerMatchedIDs.AddRange(weak);
+
+            weak =
+            AddMatches("NAME + ADDRESS weaker", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Address = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSNSoft = true,
+            }));
+            weakerMatchedIDs.AddRange(weak);
+
+            weak =
+            AddMatches("PHONE + soft NAME", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Name = true,
+            }));
+            weakerMatchedIDs.AddRange(weak);
+
+            weak =
+            AddMatches("PHONE + soft FIRST/DOB", data, ref matches, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                First = true,
+                DOB = true,
+            }));
+            weakerMatchedIDs.AddRange(weak);
+
+            //******************  FUZZY MATCHES   ******************//
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            var addedHarderSoftMatches1 = AddSoftMatches("HARDER SOFT MATCH1", remainingRows, remainingRows, ref matches, 3, (ri, rj) => HarderAgreementCount(ri, rj));
+            PrintRemainingRowCount(data, matches);
+
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            var addedHarderSoftMatches2 = AddSoftMatches("HARDER SOFT MATCH2", remainingRows, remainingRows, ref matches, 2, (ri, rj) => HarderAgreementCount(ri, rj));
+            PrintRemainingRowCount(data, matches);
+
+            var removedHandMatched = RemoveHandErrors(data, ref matches);
+
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            var addedEasierSoftMatches1 = AddSoftMatches("EASIER SOFT MATCH1", remainingRows, remainingRows, ref matches, 2, (ri, rj) => EasierAgreementCount(ri, rj));
+            PrintRemainingRowCount(data, matches);
+
+            var addedHandMatched = AddHandMatches(data, ref matches);
+
+            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
+            var addedEasierSoftMatches2 = AddSoftMatches("EASIER SOFT MATCH2", remainingRows, data, ref matches, 2, (ri, rj) => EasierAgreementCount(ri, rj));
+            PrintRemainingRowCount(data, matches);
+
+
+            weakerMatchedIDs.AddRange(addedHarderSoftMatches1.SelectMany(group => group.Select(row => row.EnterpriseID)));
+            weakerMatchedIDs.AddRange(addedHarderSoftMatches2.SelectMany(group => group.Select(row => row.EnterpriseID)));
+            weakerMatchedIDs.AddRange(addedEasierSoftMatches1.SelectMany(group => group.Select(row => row.EnterpriseID)));
+            weakerMatchedIDs.AddRange(addedEasierSoftMatches2.SelectMany(group => group.Select(row => row.EnterpriseID)));
+
+            weakerMatchedIDs = weakerMatchedIDs.Distinct().ToList();
+
+            //TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
+            //bool[] alreadyTakenCareOf = new bool[weakerMatchedIDs.Count];
+            //List<List<int>> possibleBadSets = new List<List<int>>();
+            //for (int i = 0; i < weakerMatchedIDs.Count; i++)
+            //{
+            //    if (!alreadyTakenCareOf[i])
+            //    {
+            //        row row = data.Where(r => r.EnterpriseID == weakerMatchedIDs[i]).First();
+            //        row[] group = tc.FindClosedSetForRow(row);
+            //        List<int> toAdd = new List<int>();
+            //        foreach (row r in group)
+            //        {
+            //            toAdd.Add(r.EnterpriseID);
+            //            if (weakerMatchedIDs.IndexOf(r.EnterpriseID) >= 0)
+            //            {
+            //                alreadyTakenCareOf[weakerMatchedIDs.IndexOf(r.EnterpriseID)] = true;
+            //            }
+            //        }
+            //        possibleBadSets.Add(toAdd);
+            //    }
+            //}
+            //using (StreamWriter sw = File.CreateText("C:/users/lsabalka/desktop/closedsets.txt"))
+            //{
+            //    foreach (List<int> closedSet in possibleBadSets)
+            //    {
+            //        sw.WriteLine(string.Join(",", closedSet));
+            //    }
+            //}
+
+
+            PrintAnalysis(matches, data);
+
+            //WeakMatches(matches, data);
+
+
+            //CompareToJosh(data, matches);
+
+
+
+            //TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
+
+            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/closedsets.txt"))
+            //{
+            //    foreach (List<int> closedSet in tc.ClosedRowSets)
+            //    {
+            //        sw.WriteLine(string.Join(",", closedSet)); 
+            //    }
+            //}
+
+            //SaveResults(matches, data);
+
+            Console.ReadLine();
+        }
+
+
+        //private static void WeakMatches(row[] data, Dictionary<int, List<int>> matches)
+        //{
+        //    Dictionary<int, List<row>> rowDictionary = MatchesToRowDictionary(data, matches);
+
+        //    List<List<row>> possibleErrors = new List<List<row>>();
+        //    foreach(var set in rowDictionary)
+        //    {
+        //        List<row> rows = set.Value;
+        //        bool strongMatch = false;
+        //        int fieldAgreement = 0;
+        //        for (int i = 0; i < rows.Count - 1; i++)
+        //        {
+        //            for (int j = i + 1; j < rows.Count; j++)
+        //            {
+        //                if()
+
+        //                if (FuzzyStringMatch(rows[i].LAST, rows[j].LAST))
+        //                {
+        //                    fieldAgreement++;
+
+        //                    if (FuzzySSNMatch(rows[i].SSN, rows[j].SSN))
+        //                        fieldAgreement++;
+
+        //                    if (challenge.Program.FuzzyAddressMatch(rows[i], rows[j]))
+        //                        fieldAgreement++;
+
+        //                    if (FuzzyDateEquals(rows[i].DOB, rows[j].DOB))
+        //                        fieldAgreement++;
+        //                }
+        //            }
+        //        }
+        //    }
+
+
+        //}
+
+
+        //private static Dictionary<int, List<row>> MatchesToRowDictionary(row[] data, Dictionary<int, List<int>> matches)
+        //{
+        //    Dictionary<int, List<row>> rowDictionary = new Dictionary<int, List<row>>();
+
+        //    TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
+
+        //    foreach (List<int> set in tc.ClosedRowSets)
+        //    {
+        //        List<row> rows = new List<row>();
+        //        foreach (int id in set)
+        //        {
+        //            rows.Add(data.First(row => row.EnterpriseID == id));
+        //        }
+        //        foreach (int id in set)
+        //        {
+        //            rowDictionary.Add(id, rows);
+        //        }
+        //    }
+        //    return rowDictionary;
+        //}
+
+        //private static void CompareToJosh(row[] data, Dictionary<int, List<int>> matches)
+        //{
+        //    Dictionary<int, List<int>> joshMatches = challenge.Program.Doit(null);
+
+        //    Dictionary<int, List<row>> rowDictionary = MatchesToRowDictionary(data, matches);
+        //    Dictionary<int, List<row>> joshRowDictionary = MatchesToRowDictionary(data, joshMatches);
+
+        //    int discrepancyCount = 0;
+        //    foreach (var set in rowDictionary)
+        //    {
+        //        bool print = false;
+        //        List<row> printJosh = new List<row>();
+        //        if (joshRowDictionary.ContainsKey(set.Key))
+        //        {
+        //            List<row> joshSet = joshRowDictionary[set.Key];
+        //            foreach (row row in set.Value)
+        //            {
+        //                if (!joshSet.Contains(row))
+        //                {
+        //                    printJosh = joshSet;
+        //                    print = true;
+        //                    break;
+        //                }
+        //            }
+        //            foreach (row row in joshSet)
+        //            {
+        //                if (!set.Value.Contains(row))
+        //                {
+        //                    printJosh = joshSet;
+        //                    print = true;
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            print = true;
+        //        }
+
+        //        if (print)
+        //        {
+        //            discrepancyCount++;
+        //            Console.WriteLine("Lucas/Ben:");
+        //            PrintRows(set.Value);
+        //            Console.WriteLine("Josh:");
+        //            PrintRows(printJosh);
+        //            Console.WriteLine();
+        //        }
+        //    }
+        //    Console.WriteLine($"Discrepancy count: {discrepancyCount}");
+
+        //}
+
+
         static IEnumerable<string> GetLines()
         {
             IEnumerable<string> lines = null;
@@ -34,251 +511,23 @@ namespace LucasPlayground
             return lines;
         }
 
-        static void Main(string[] args)
+        private static void CleanData(ref row[] data)
         {
-            Random random = new Random();
-
-            var lines = GetLines();
-            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
-            var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
-
-            Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
-            row[] remainingRows = data;
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-            Dictionary<int, List<int>> matches = new Dictionary<int, List<int>>();
-
-            _badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
-            _badDOBs = new DateTime[] { new DateTime(1900, 1, 1) };
-            _badPhones = data.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
-            _badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ') && g.Count() > 2).Select(g => g.Key).ToArray();
-
-            CleanData(ref data);
-
-
-            //******************       MRN       ******************//
-            Console.WriteLine();
-            Console.WriteLine("MRN");
-            List<List<row>> added = AddMRNMatches(data, ref matches);
-            //AddMRNMatchesBen(data, ref matches); 
-
-            using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/mrns.csv"))
+            foreach (row row in data)
             {
-                foreach (List<row> rows in added)
+                if (_badSSNs.Contains(row.SSN))
                 {
-                    sw.WriteLine(rows[0].ToString());
-                    sw.WriteLine(rows[1].ToString());
-                    sw.WriteLine();
+                    row.SSN = 0;
+                }
+                if (_badPhones.Contains(row.PHONE))
+                {
+                    row.PHONE = 0;
+                }
+                if (_badAddresses.Contains(row.ADDRESS1))
+                {
+                    row.ADDRESS1 = "";
                 }
             }
-
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/remainin.csv"))
-            //{
-            //    foreach (row row in remainingRows)
-            //    {
-            //        sw.WriteLine(row.ToString());
-            //    }
-            //}
-
-            //******************       SSN       ******************//
-            Console.WriteLine();
-            Console.WriteLine("SSN");
-            var addedSSN = AddMatches(data, r => r.SSN, 4, (r1, r2) =>
-                    FuzzyStringMatch(r1.FIRST, r2.FIRST) ||
-                    FuzzyStringMatch(r1.LAST, r2.LAST) ||
-                    FuzzyPhoneMatch(r1.PHONE, r2.PHONE) ||
-                    FuzzyDateEquals(r1.DOB, r2.DOB) ||
-                    challenge.Program.FuzzyAddressMatch(r1, r2),
-                ref matches);
-
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-
-            //******************  NAME + PHONE  ******************//
-            Console.WriteLine();
-            Console.WriteLine("NAME + PHONE");
-            var addedNamePhone = AddMatches(data, r =>
-                {
-                    return (r.LAST != "" ? (r.PHONE > 0 ? r.LAST + r.FIRST + r.PHONE : "NOPHONE") : "NONAME");
-                }, 4, (r1, r2) =>
-                    !IsSSNValid(r1.SSN) ||
-                    !IsSSNValid(r2.SSN) ||
-                    FuzzySSNMatch(r1.SSN, r2.SSN) ||
-                    FuzzyDateEquals(r1.DOB, r2.DOB) ||
-                    challenge.Program.FuzzyAddressMatch(r1, r2),
-                ref matches);
-
-
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-
-            //******************   NAME + DOB   ******************//
-            Console.WriteLine();
-            Console.WriteLine("NAME + DOB");
-            var addedNameDOB = AddMatches(data, r =>
-                {
-                    return (r.LAST != "" ? (r.DOB != default(DateTime) ? r.LAST + r.FIRST + r.DOB.ToString("d") : "NODOB") : "NONAME");
-                }, 4, (r1, r2) =>
-                    !IsSSNValid(r1.SSN) ||
-                    !IsSSNValid(r2.SSN) ||
-                    FuzzySSNMatch(r1.SSN, r2.SSN) ||
-                    FuzzyPhoneMatch(r1.PHONE, r2.PHONE) ||
-                    challenge.Program.FuzzyAddressMatch(r1, r2),
-                ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-
-            //****************** NAME + ADDRESS ******************//
-            Console.WriteLine();
-            Console.WriteLine("NAME + ADDRESS");
-            var addedNameAddress = AddMatches(data, r =>
-            {
-                return (r.LAST != "" ? (r.ADDRESS1 != "" ? r.LAST + r.FIRST + r.ADDRESS1 : "NOADDRESS") : "NONAME");
-            }, 4, (r1, r2) =>
-                FuzzyPhoneMatch(r1.PHONE, r2.PHONE) ||
-                FuzzySSNMatch(r1.SSN, r2.SSN) ||
-                FuzzyDateEquals(r1.DOB, r2.DOB),
-            ref matches);
-
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-
-            //******************     PHONE      ******************//
-            Console.WriteLine();
-            Console.WriteLine("PHONE");
-            var addedPhone = AddMatches(data, r => r.PHONE, 5, (r1, r2) =>
-                    FuzzyStringMatch(r1.FIRST, r2.FIRST) ||
-                    FuzzySSNMatch(r1.SSN, r2.SSN) ||
-                    challenge.Program.DateSoftMatch(r1.DOB, r2.DOB),
-                ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-
-            //****************** ADDRESS + DOB  ******************//
-            Console.WriteLine();
-            Console.WriteLine("ADDRESS + DOB");
-            var addedAddressDOB = AddMatches(data, r =>
-                {
-                    return (r.ADDRESS1 != "" ? (r.DOB != default(DateTime) ? r.DOB.ToString("d") + r.ADDRESS1 : "NODOB") : "NOADDRESS");
-                }, 4, (r1, r2) =>
-                    //(r1.LAST != "" && r1.LAST == r2.LAST) || 
-                    //(r1.FIRST != "" && r1.FIRST == r2.FIRST) ||
-                    FuzzyStringMatch(r1.FIRST, r2.FIRST) ||
-                    FuzzySSNMatch(r1.SSN, r2.SSN) ||
-                    (FuzzyStringMatch(r1.LAST, r2.LAST) && (r1.SSN == 0 || r2.SSN == 0)),
-                ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-
-            //******************   SOFT MATCH   ******************//
-            Console.WriteLine();
-            Console.WriteLine("SOFT MATCH");
-            var addedSoftMatches = AddSoftMatches(remainingRows, ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-
-            //******************  HAND REMOVE   ******************//
-            Console.WriteLine();
-            Console.WriteLine("HAND REMOVED");
-            var removedHandMatched = RemoveHandErrors(data, ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-            Console.WriteLine(remainingRows.Count());
-
-
-            //******************  SOFT MATCH2   ******************//
-            Console.WriteLine();
-            Console.WriteLine("SOFT MATCH2");
-            var addedSoftMatches2 = AddSoftMatches2(remainingRows, ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-
-            //******************   HAND MATCH   ******************//
-            Console.WriteLine();
-            Console.WriteLine("HAND MATCHED");
-            var addedHandMatched = AddHandMatches(data, ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-            Console.WriteLine(remainingRows.Count());
-
-
-            //****************** FINAL SOFTMATCH ******************//
-            Console.WriteLine();
-            Console.WriteLine("FINAL SOFTMATCH");
-            var addedSoftMatchesFinal = AddSoftMatchesFinal(data, remainingRows, ref matches);
-            remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
-            Console.WriteLine("Remaining: " + remainingRows.Length);
-
-            PrintAnalysis(matches, data);
-
-            //Console.WriteLine("M/F matches");
-            //int countMF = 0, countMFBad = 0;
-            //List<List<row>> bad = new List<List<row>>();
-            //var tc = TransitiveClosure.Compute(matches, data);
-            //foreach (var match in tc.ClosedRowSets)
-            //{
-            //    List<row> rows = new List<row>();
-            //    bool hasM = false;
-            //    bool hasF = false;
-            //    foreach (var id in match)
-            //    {
-            //        row row = data.Where(r => r.EnterpriseID == id).First();
-            //        rows.Add(row);
-            //        if (row.GENDER == "M")
-            //        {
-            //            hasM = true;
-            //        }
-            //        else if (row.GENDER == "F")
-            //        {
-            //            hasF = true;
-            //        }
-            //    }
-            //    if (hasM && hasF)
-            //    {
-            //        countMF++;
-            //        for (int i = 1; i < rows.Count; i++)
-            //        {
-            //            if (!(FuzzySSNMatch(rows[i - 1].SSN, rows[i].SSN) || FuzzyStringMatch(rows[i - 1].FIRST, rows[i].LAST)) || !FuzzyStringMatch(rows[i - 1].LAST, rows[i].LAST))
-            //            {
-            //                bad.Add(rows);
-            //                if (_printActuals)
-            //                {
-            //                    PrintRows(rows);
-            //                }
-            //                countMFBad++;
-            //                break;
-            //            }
-            //        }
-            //    }
-            //}
-            //Console.WriteLine($"M/F count: {countMF} / {countMFBad}");
-
-            //TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
-
-            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/closedsets.txt"))
-            //{
-            //    foreach (List<int> closedSet in tc.ClosedRowSets)
-            //    {
-            //        sw.WriteLine(string.Join(",", closedSet)); 
-            //    }
-            //}
-
-            SaveResults(matches, data);
-
-            Console.ReadLine();
         }
 
         private static void SaveResults(Dictionary<int, List<int>> matches, row[] data)
@@ -314,10 +563,14 @@ namespace LucasPlayground
             Console.WriteLine($"{allLines.Count} lines written to {path} .");
         }
 
-
-
         private static void PrintAnalysis(Dictionary<int, List<int>> matches, row[] allTruePositiveData)
         {
+            Dictionary<int, row> rowByEnterpriseId = new Dictionary<int, row>();
+            foreach (var r in allTruePositiveData)
+            {
+                rowByEnterpriseId[r.EnterpriseID] = r;
+            }
+            challenge.Program.MRNFalsePositiveAnalysis(matches, rowByEnterpriseId);
 
             var tc = TransitiveClosure.Compute(matches, allTruePositiveData);
 
@@ -344,7 +597,7 @@ namespace LucasPlayground
                 }
             }
 
-            Console.WriteLine("Possible false negatives, likely matches triple");
+            Console.WriteLine("Possible false negatives, likely matches triple:");
             var noSSNnoMRN = allTruePositiveData.Where(r => r.MRN == -1 && r.SSN == -1);
             foreach (var r in noSSNnoMRN)
             {
@@ -389,34 +642,16 @@ namespace LucasPlayground
             Console.WriteLine(matches.Count() + " matched entries");
         }
 
-        private static void CleanData(ref row[] data)
-        {
-            foreach (row row in data)
-            {
-                if (_badSSNs.Contains(row.SSN))
-                {
-                    row.SSN = 0;
-                }
-                if (_badPhones.Contains(row.PHONE))
-                {
-                    row.PHONE = 0;
-                }
-                if (_badAddresses.Contains(row.ADDRESS1))
-                {
-                    row.ADDRESS1 = "";
-                }
-            }
-        }
-
 
         #region Printing
         private static bool _printLargeGroupValues = false;
         private static bool _printErrors = false;
         private static bool _printActuals = false;
+        private static bool _printModifieds = false;
         private static int _printCount = 0;
         private static void PrintCheckCount()
         {
-            if (++_printCount % 50 == 0)
+            if ((++_printCount + 25) % 50 == 0)
             {
                 Console.WriteLine("continue printing? ");
                 string answer = Console.ReadLine();
@@ -424,6 +659,7 @@ namespace LucasPlayground
                 {
                     _printErrors = false;
                     _printActuals = false;
+                    _printModifieds = false;
                 }
             }
         }
@@ -444,12 +680,121 @@ namespace LucasPlayground
             Console.WriteLine();
             PrintCheckCount();
         }
+
+        public static void PrintRemainingRowCount(IEnumerable<row> data, Dictionary<int, List<int>> matches)
+        {
+            int remaining = 0;
+            foreach (var row in data)
+            {
+                if (!matches.ContainsKey(row.EnterpriseID))
+                {
+                    remaining++;
+                }
+            }
+            Console.WriteLine($"Remaining: {remaining}");
+        }
+        #endregion
+
+        #region Hard Matching
+        public class FieldInclusions
+        {
+            public bool First;
+            public bool Last;
+            public bool SSN;
+            public bool DOB;
+            public bool Phone;
+            public bool Address;
+
+            public bool Name;
+            public bool SSNSoft;
+            public bool AddressSoft;
+        }
+
+        public static string HardSelector(row row, FieldInclusions toInclude)
+        {
+            string toReturn = "";
+            if (toInclude.First || toInclude.Name)
+            {
+                if (row.FIRST == "")
+                {
+                    return "BADFORMAT";
+                }
+                toReturn += row.FIRST;
+            }
+            if (toInclude.Last || toInclude.Name)
+            {
+                if (row.LAST == "")
+                {
+                    return "BADFORMAT";
+                }
+                toReturn += row.LAST;
+            }
+            if (toInclude.SSN)
+            {
+                if (row.SSN == 0)
+                {
+                    return "BADFORMAT";
+                }
+                toReturn += row.SSN;
+            }
+            if (toInclude.DOB)
+            {
+                toReturn += row.DOB;
+            }
+            if (toInclude.Phone)
+            {
+                if (row.PHONE == 0)
+                {
+                    return "BADFORMAT";
+                }
+                toReturn += row.PHONE;
+            }
+            if (toInclude.Address)
+            {
+                if (row.ADDRESS1 == "")
+                {
+                    return "BADFORMAT";
+                }
+                toReturn += row.ADDRESS1;
+            }
+            return toReturn;
+        }
         #endregion
 
         #region Soft Matching
+
+        public static int SoftMatchCount(row a, row b, FieldInclusions toInclude)
+        {
+            int toReturn = 0;
+            if (toInclude.SSN && FuzzySSNMatch(a.SSN, b.SSN))
+                toReturn++;
+            if ((toInclude.Name || toInclude.First) && FuzzyStringMatch(a.FIRST, b.FIRST))
+                toReturn++;
+            if ((toInclude.Name || toInclude.Last) && FuzzyStringMatch(a.LAST, b.LAST))
+                toReturn++;
+            if (toInclude.DOB && FuzzyDateEquals(a.DOB, b.DOB))
+                toReturn++;
+            if (toInclude.Phone && FuzzyPhoneMatch(a.PHONE, b.PHONE))
+                toReturn++;
+            if (toInclude.Address && FuzzyAddressMatchEditDistance(a, b))
+                toReturn++;
+            if (toInclude.SSNSoft && FuzzySSNNoConflict(a.SSN, b.SSN))
+                toReturn++;
+            if (toInclude.AddressSoft && challenge.Program.FuzzyAddressMatch(a, b))
+                toReturn++;
+            return toReturn;
+        }
         public static bool IsSSNValid(int a)
         {
             return a > 0 && !_badSSNs.Contains(a);
+        }
+
+        public static bool FuzzySSNNoConflict(int a, int b)
+        {
+            return !IsSSNValid(a) ||
+                    !IsSSNValid(b) ||
+                    FuzzySSNMatch(a, b);
+
         }
 
         public static bool FuzzySSNMatch(int a, int b)
@@ -535,7 +880,24 @@ namespace LucasPlayground
             {
                 return false;
             }
-            return challenge.Program.OneDifference(a.ToString(), a.ToString());
+            return challenge.Program.OneDifference(a.ToString(), b.ToString());
+        }
+
+        public static bool FuzzyAddressMatchEditDistance(row a, row b)
+        {
+            if (a.ADDRESS1 == "" || b.ADDRESS1 == "")
+                return false;
+            if (a.ADDRESS1 == b.ADDRESS1)
+                return true;
+
+            int editDistance = challenge.Ben.EditDistance.Compute(a.ADDRESS1, b.ADDRESS1);
+
+            return editDistance <= 1;
+        }
+
+        public static bool FuzzyNameMatch(string af, string al, string bf, string bl)
+        {
+            return FuzzyStringMatch(af, bf) && FuzzyStringMatch(al, bl);
         }
 
         public static bool FuzzyStringMatch(string a, string b)
@@ -546,11 +908,56 @@ namespace LucasPlayground
             }
             return challenge.Program.OneDifference(a, b);
         }
+
+        public static int HarderAgreementCount(row ri, row rj)
+        {
+            int fieldAgreement = 0;
+
+            if (FuzzyStringMatch(ri.LAST, rj.LAST))
+            {
+                fieldAgreement++;
+
+                if (FuzzySSNMatch(ri.SSN, rj.SSN))
+                    fieldAgreement++;
+
+                if (FuzzyAddressMatchEditDistance(ri, rj))
+                    fieldAgreement++;
+
+                if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                    fieldAgreement++;
+            }
+            return fieldAgreement;
+        }
+
+        public static int EasierAgreementCount(row ri, row rj)
+        {
+            int fieldAgreement = 0;
+
+            if (challenge.Program.KDifferences(ri.LAST, rj.LAST, 2))
+                fieldAgreement++;
+
+            if (NonemptyEquality(ri.FIRST, rj.FIRST))
+                fieldAgreement++;
+
+            if (FuzzySSNMatch(ri.SSN, rj.SSN))
+                fieldAgreement++;
+
+            if (challenge.Program.FuzzyAddressMatch(ri, rj))
+                fieldAgreement++;
+
+            if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                fieldAgreement++;
+
+            return fieldAgreement;
+        }
         #endregion
 
         #region Matching
-        public static List<List<row>> AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
+        public static void AddMRNMatches(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
         {
+            Console.WriteLine();
+            Console.WriteLine("MRN");
+
             List<List<row>> groupsAdded = new List<List<row>>();
             var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
             //Pair off and make a soft check on field to verify sameness
@@ -561,7 +968,8 @@ namespace LucasPlayground
                 challenge.Program.Add(r, s, ref matches);
                 groupsAdded.Add(new List<row>(new row[] { r, s }));
             }
-            return groupsAdded;
+
+            PrintRemainingRowCount(data, matches);
         }
 
         public static void AddMRNMatchesBen(IEnumerable<row> data, ref Dictionary<int, List<int>> matches)
@@ -587,30 +995,22 @@ namespace LucasPlayground
             }
         }
 
-        public static row[] FilterToRows<T>(IEnumerable<row> data, Func<row, T> selector, T desiredValue) where T : IComparable
+        static List<int> AddMatches<T>(string label, IEnumerable<row> data, ref Dictionary<int, List<int>> matches, Func<row, T> groupingValue, int softEqualsCount, Func<row, row, int> softEquals)
         {
-            List<row> toReturn = new List<row>();
-            foreach (row row in data)
-            {
-                T actualValue = selector(row);
-                if (actualValue.Equals(desiredValue))
-                {
-                    toReturn.Add(row);
-                }
-            }
-            return toReturn.ToArray();
-        }
+            List<int> toReturn = new List<int>();
 
-        static List<IGrouping<T, row>> AddMatches<T>(IEnumerable<row> data, Func<row, T> groupingValue, int sizeToThrowAway, Func<row, row, bool> softEquals, ref Dictionary<int, List<int>> matches)
-        {
-            List<IGrouping<T, row>> addedThisTime = new List<IGrouping<T, row>>();
+            Console.WriteLine();
+            Console.WriteLine(label);
+
 
             var grouped = data.GroupBy(groupingValue);
-            Console.WriteLine("Too large: " + grouped.Where(g => g.Count() >= sizeToThrowAway).Count());
-            int counter = 0;
+
+            int thrownOutCounter = 0;
+            int addedCounter = 0;
+            int modifiedCounter = 0;
             foreach (var group in grouped)
             {
-                if (group.Count() >= sizeToThrowAway) //These are all garbage
+                if (group.Count() >= 5) //These are all garbage
                 {
                     if (_printLargeGroupValues)
                     {
@@ -623,72 +1023,100 @@ namespace LucasPlayground
                     continue;
                 }
 
-                var representative = group.First();
-                if (group.Any(r => !softEquals(r, representative)))
+
+                if (group.Any(r => softEquals(r, group.First()) < softEqualsCount))
                 {
                     if (_printErrors)
                     {
                         PrintRows(group);
                     }
-                    counter++;
+                    thrownOutCounter++;
                 }
                 else
                 {
-                    bool addGroup = false;
+                    var matchesCopy = matches;
+                    bool addedGroup = group.Any(row => !matchesCopy.ContainsKey(row.EnterpriseID));
+                    bool isGroupModified = false;
+
+                    int beforeCount = 0;
                     foreach (var r in group)
                     {
-                        if (!matches.ContainsKey(r.EnterpriseID))
+                        if (matches.ContainsKey(r.EnterpriseID) && (beforeCount == 0 || beforeCount > matches[r.EnterpriseID].Count))
                         {
-                            matches[r.EnterpriseID] = new List<int>();
-                            addGroup = true;
+                            beforeCount = matches[r.EnterpriseID].Count;
                         }
-                        matches[r.EnterpriseID] = matches[r.EnterpriseID].Union(group.Select(r2 => r2.EnterpriseID)).ToList();
                     }
-                    if (addGroup)
+
+                    foreach (var r in group)
                     {
-                        addedThisTime.Add(group);
+                        foreach (var s in group)
+                        {
+                            if (r != s)
+                                challenge.Program.Add(r, s, ref matches);
+                        }
+                    }
+                    if (beforeCount != 0 && beforeCount != matches[group.First().EnterpriseID].Count)
+                    {
+                        isGroupModified = true;
+                    }
+
+
+
+                    if (addedGroup)
+                    {
+                        toReturn.AddRange(group.Select(row => row.EnterpriseID));
+                        addedCounter++;
                         if (_printActuals)
                         {
                             PrintRows(group);
                         }
                     }
+                    if (isGroupModified)
+                    {
+                        toReturn.AddRange(group.Select(row => row.EnterpriseID));
+                        modifiedCounter++;
+                        if (_printModifieds)
+                        {
+                            var printme = matches[group.First().EnterpriseID].Select(id => data.First(row => row.EnterpriseID == id)).ToList();
+                            printme.Add(group.First());
+                            PrintRows(printme);
+                        }
+                    }
                 }
-            }
 
-            Console.WriteLine($"Thrown out: {counter}");
-            return addedThisTime;
+            }
+            Console.WriteLine($"Group thrown out: {thrownOutCounter}");
+            Console.WriteLine($"Match added: {addedCounter}");
+            Console.WriteLine($"Match modified: {modifiedCounter}");
+
+            PrintRemainingRowCount(data, matches);
+
+            return toReturn;
         }
 
-        public static List<List<row>> AddSoftMatches(row[] remainingRows, ref Dictionary<int, List<int>> matches)
+        public static List<List<row>> AddSoftMatches(string label, row[] compareFrom, row[] compareTo, ref Dictionary<int, List<int>> matches, int fieldsRequired, Func<row, row, int> agreementCount)
         {
+
+            Console.WriteLine();
+            Console.WriteLine(label);
+
             List<List<row>> addedThisTime = new List<List<row>>();
-            //For what's left, brute force soft match on at least 2 of name, DOB, address
 
-            for (int i = 0; i < remainingRows.Count(); i++)
+            for (int i = 0; i < compareFrom.Count(); i++)
             {
-                for (int j = 0; j < remainingRows.Count(); j++)
+                row ri = compareFrom[i];
+                for (int j = 0; j < compareTo.Count(); j++)
                 {
-                    if (i == j)
-                        continue;
+                    row rj = compareTo[j];
 
-                    int fieldAgreement = 0;
-
-                    var ri = remainingRows[i];
-                    var rj = remainingRows[j];
-                    if (FuzzyStringMatch(ri.LAST, rj.LAST))
+                    if (ri.EnterpriseID == rj.EnterpriseID)
                     {
-                        fieldAgreement++;
-
-                        if (FuzzySSNMatch(ri.SSN, rj.SSN))
-                            fieldAgreement++;
-
-                        if (challenge.Program.FuzzyAddressMatch(ri, rj))
-                            fieldAgreement++;
-
-                        if (FuzzyDateEquals(ri.DOB, rj.DOB))
-                            fieldAgreement++;
+                        continue;
                     }
-                    if (fieldAgreement >= 2)
+
+                    int fieldAgreement = agreementCount(ri, rj);
+
+                    if (fieldAgreement >= fieldsRequired)
                     {
                         if (!matches.ContainsKey(ri.EnterpriseID))
                         {
@@ -711,70 +1139,15 @@ namespace LucasPlayground
                     }
                 }
             }
+
             return addedThisTime;
         }
 
-        public static List<List<row>> AddSoftMatches2(row[] remainingRows, ref Dictionary<int, List<int>> matches)
+        private static List<List<row>> AddHandMatches(row[] data, ref Dictionary<int, List<int>> matches)
         {
-            List<List<row>> addedThisTime = new List<List<row>>();
+            Console.WriteLine();
+            Console.WriteLine("HAND MATCHED");
 
-            for (int i = 0; i < remainingRows.Count(); i++)
-            {
-                for (int j = 0; j < remainingRows.Count(); j++)
-                {
-                    if (i == j)
-                        continue;
-
-                    int fieldAgreement = 0;
-
-                    var ri = remainingRows[i];
-                    var rj = remainingRows[j];
-
-                    if (FuzzySSNMatch(ri.SSN, rj.SSN))
-                        fieldAgreement++;
-
-                    if (challenge.Program.KDifferences(ri.LAST, rj.LAST, 2))
-                        fieldAgreement++;
-
-                    if (challenge.Program.FuzzyAddressMatch(ri, rj))
-                        fieldAgreement++;
-
-                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
-                        fieldAgreement++;
-
-
-                    if (NonemptyEquality(ri.FIRST, rj.FIRST))
-                        fieldAgreement++;
-
-
-                    if (fieldAgreement >= 2)
-                    {
-                        if (!matches.ContainsKey(ri.EnterpriseID))
-                        {
-                            challenge.Program.Add(ri, rj, ref matches);
-                            addedThisTime.Add(new List<row> { ri, rj });
-                            if (_printActuals)
-                            {
-                                PrintPair(ri, rj);
-                            }
-                        }
-                        else if (!matches.ContainsKey(rj.EnterpriseID))
-                        {
-                            challenge.Program.Add(ri, rj, ref matches);
-                            addedThisTime.Add(new List<row> { ri, rj });
-                            if (_printActuals)
-                            {
-                                PrintPair(ri, rj);
-                            }
-                        }
-                    }
-                }
-            }
-            return addedThisTime;
-        }
-
-        private static List<List<row>> AddHandMatches(row[] remainingRows, ref Dictionary<int, List<int>> matches)
-        {
             List<int[]> pairs = new List<int[]>
             {
                 new int[] {15811621, 15750288},
@@ -793,14 +1166,15 @@ namespace LucasPlayground
                 new int[] {15476869, 15541825},
                 new int[] {15460667, 15923220},
                 new int[] {15688015, 15555730},
+                new int[] {15713945, 15974259},
             };
 
             List<List<row>> addedThisTime = new List<List<row>>();
 
             foreach (int[] pair in pairs)
             {
-                row a = remainingRows.Where(row => row.EnterpriseID == pair[0]).FirstOrDefault();
-                row b = remainingRows.Where(row => row.EnterpriseID == pair[1]).FirstOrDefault();
+                row a = data.Where(row => row.EnterpriseID == pair[0]).FirstOrDefault();
+                row b = data.Where(row => row.EnterpriseID == pair[1]).FirstOrDefault();
 
                 challenge.Program.Add(a, b, ref matches);
                 addedThisTime.Add(new List<row> { a, b });
@@ -810,68 +1184,8 @@ namespace LucasPlayground
                 }
             }
 
-            return addedThisTime;
-        }
+            PrintRemainingRowCount(data, matches);
 
-        public static List<List<row>> AddSoftMatchesFinal(row[] data, row[] remainingRows, ref Dictionary<int, List<int>> matches)
-        {
-            List<List<row>> addedThisTime = new List<List<row>>();
-
-            for (int i = 0; i < remainingRows.Count(); i++)
-            {
-                for (int j = 0; j < data.Count(); j++)
-                {
-                    var ri = remainingRows[i];
-                    var rj = data[j];
-                    if (ri.EnterpriseID == rj.EnterpriseID)
-                    {
-                        continue;
-                    }
-
-                    int fieldAgreement = 0;
-
-                    if (FuzzySSNMatch(ri.SSN, rj.SSN))
-                        fieldAgreement++;
-
-                    if (challenge.Program.KDifferences(ri.LAST, rj.LAST, 2))
-                        fieldAgreement++;
-
-                    if (challenge.Program.FuzzyAddressMatch(ri, rj))
-                        fieldAgreement++;
-
-                    if (FuzzyDateEquals(ri.DOB, rj.DOB))
-                        fieldAgreement++;
-
-
-                    if (NonemptyEquality(ri.FIRST, rj.FIRST))
-                        fieldAgreement++;
-
-                    if (fieldAgreement >= 1)
-                    {
-                        if (fieldAgreement >= 2)
-                        {
-                            if (!matches.ContainsKey(ri.EnterpriseID))
-                            {
-                                challenge.Program.Add(ri, rj, ref matches);
-                                addedThisTime.Add(new List<row> { ri, rj });
-                                if (_printActuals)
-                                {
-                                    PrintPair(ri, rj);
-                                }
-                            }
-                            else if (!matches.ContainsKey(rj.EnterpriseID))
-                            {
-                                challenge.Program.Add(ri, rj, ref matches);
-                                addedThisTime.Add(new List<row> { ri, rj });
-                                if (_printActuals)
-                                {
-                                    PrintPair(ri, rj);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
             return addedThisTime;
         }
 
@@ -900,6 +1214,9 @@ namespace LucasPlayground
 
         private static List<List<row>> RemoveHandErrors(row[] data, ref Dictionary<int, List<int>> matches)
         {
+            Console.WriteLine();
+            Console.WriteLine("HAND REMOVED");
+
             List<int[]> groups = new List<int[]>
             {
                 new int[] { 15976198, 15988294, 15477018, 15922527 },
@@ -959,6 +1276,7 @@ namespace LucasPlayground
                 challenge.Program.Add(a, b, ref matches);
             }
 
+            PrintRemainingRowCount(data, matches);
 
             return removedThisTime;
         }
