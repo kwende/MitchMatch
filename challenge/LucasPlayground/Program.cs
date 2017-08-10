@@ -244,7 +244,7 @@ namespace LucasPlayground
             }));
             weakerMatchedIDs.AddRange(weak);
 
-            weak = 
+            weak =
             AddMatches("NAME + DOB weaker", data, ref matches, r => HardSelector(r, new FieldInclusions
             {
                 Name = true,
@@ -327,34 +327,34 @@ namespace LucasPlayground
 
             weakerMatchedIDs = weakerMatchedIDs.Distinct().ToList();
 
-            TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
-            bool[] alreadyTakenCareOf = new bool[weakerMatchedIDs.Count];
-            List<List<int>> possibleBadSets = new List<List<int>>();
-            for(int i = 0; i < weakerMatchedIDs.Count; i++)
-            {
-                if(!alreadyTakenCareOf[i])
-                {
-                    row row = data.Where(r => r.EnterpriseID == weakerMatchedIDs[i]).First();
-                    row[] group = tc.FindClosedSetForRow(row);
-                    List<int> toAdd = new List<int>();
-                    foreach(row r in group)
-                    {
-                        toAdd.Add(r.EnterpriseID);
-                        if(weakerMatchedIDs.IndexOf(r.EnterpriseID) >= 0)
-                        {
-                            alreadyTakenCareOf[weakerMatchedIDs.IndexOf(r.EnterpriseID)] = true;
-                        }
-                    }
-                    possibleBadSets.Add(toAdd);
-                }
-            }
-            using (StreamWriter sw = File.CreateText("C:/users/lsabalka/desktop/closedsets.txt"))
-            {
-                foreach (List<int> closedSet in possibleBadSets)
-                {
-                    sw.WriteLine(string.Join(",", closedSet));
-                }
-            }
+            //TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
+            //bool[] alreadyTakenCareOf = new bool[weakerMatchedIDs.Count];
+            //List<List<int>> possibleBadSets = new List<List<int>>();
+            //for (int i = 0; i < weakerMatchedIDs.Count; i++)
+            //{
+            //    if (!alreadyTakenCareOf[i])
+            //    {
+            //        row row = data.Where(r => r.EnterpriseID == weakerMatchedIDs[i]).First();
+            //        row[] group = tc.FindClosedSetForRow(row);
+            //        List<int> toAdd = new List<int>();
+            //        foreach (row r in group)
+            //        {
+            //            toAdd.Add(r.EnterpriseID);
+            //            if (weakerMatchedIDs.IndexOf(r.EnterpriseID) >= 0)
+            //            {
+            //                alreadyTakenCareOf[weakerMatchedIDs.IndexOf(r.EnterpriseID)] = true;
+            //            }
+            //        }
+            //        possibleBadSets.Add(toAdd);
+            //    }
+            //}
+            //using (StreamWriter sw = File.CreateText("C:/users/lsabalka/desktop/closedsets.txt"))
+            //{
+            //    foreach (List<int> closedSet in possibleBadSets)
+            //    {
+            //        sw.WriteLine(string.Join(",", closedSet));
+            //    }
+            //}
 
 
             PrintAnalysis(matches, data);
@@ -1102,11 +1102,11 @@ namespace LucasPlayground
 
             List<List<row>> addedThisTime = new List<List<row>>();
 
-            for (int i = 0; i < compareFrom.Count() - 1; i++)
+            for (int i = 0; i < compareFrom.Count(); i++)
             {
-                for (int j = i + 1; j < compareTo.Count(); j++)
+                row ri = compareFrom[i];
+                for (int j = 0; j < compareTo.Count(); j++)
                 {
-                    row ri = compareFrom[i];
                     row rj = compareTo[j];
 
                     if (ri.EnterpriseID == rj.EnterpriseID)
@@ -1166,6 +1166,7 @@ namespace LucasPlayground
                 new int[] {15476869, 15541825},
                 new int[] {15460667, 15923220},
                 new int[] {15688015, 15555730},
+                new int[] {15713945, 15974259},
             };
 
             List<List<row>> addedThisTime = new List<List<row>>();
