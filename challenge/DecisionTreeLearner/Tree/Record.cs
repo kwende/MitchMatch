@@ -27,6 +27,28 @@ namespace DecisionTreeLearner.Tree
         public string Alias { get; set; }
         public string[] Parts { get; set; }
 
+        public override string ToString()
+        {
+            return string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}",
+                FirstName,
+                MiddleName,
+                LastName,
+                Suffix,
+                Gender,
+                SSN,
+                DOB,
+                Phone1,
+                Phone2,//
+                Address1,
+                Address2,
+                City.Replace("\"", ""),
+                State.Replace("\"", ""),
+                Zip,
+                MothersMaidenName,//
+                Email,//
+                Alias);
+        }
+
         public static Record FromString(string csvString)
         {
             Record record = new Record();

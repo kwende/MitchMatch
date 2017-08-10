@@ -13,6 +13,43 @@ namespace DecisionTreeLearner
 {
     class Program
     {
+        static void EditDistanceTests()
+        {
+            string str1 = "Hello World";
+            string str2 = "ello World";
+
+            int editDistance = NLP.EditDistance.Compute(str1, str2);
+            Debug.Assert(editDistance == 1);
+
+            str1 = "hello world";
+            str2 = "Hello World";
+
+            editDistance = NLP.EditDistance.Compute(str1, str2);
+
+            Debug.Assert(editDistance == 2);
+
+            str1 = "abcdefg";
+            str2 = "hijklmn";
+
+            editDistance = NLP.EditDistance.Compute(str1, str2);
+
+            Debug.Assert(editDistance == 7);
+
+            str1 = "";
+            str2 = "";
+
+            editDistance = NLP.EditDistance.Compute(str1, str2);
+
+            Debug.Assert(editDistance == 0);
+
+            str1 = "";
+            str2 = "googliebah";
+
+            editDistance = NLP.EditDistance.Compute(str1, str2);
+
+            Debug.Assert(editDistance == 10); 
+        }
+
         static List<RecordPair> BuildTrainingData(string inputFilePath)
         {
             List<RecordPair> trainingData = new List<RecordPair>();
@@ -72,23 +109,59 @@ namespace DecisionTreeLearner
             return trainingData;
         }
 
-        static void Train()
+        static void Train(int numberOfTrees, string outputDirectory, double subsamplingPercentage,
+            double minGain, int maximumEditDistance)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+            int numberPerTree = trainingData.Count / numberOfTrees;
 
-            DecisionTreeBuilder treeBuilder = new DecisionTreeBuilder();
-            DecisionTree tree = treeBuilder.Train(trainingData);
-
-            BinaryFormatter bf = new BinaryFormatter();
-            using (FileStream fout = File.Create("C:/users/brush/desktop/tree.dat"))
+            for (int c = 0; c < numberOfTrees; c++)
             {
-                bf.Serialize(fout, tree);
+                List<RecordPair> trainingDataSubset = new List<RecordPair>();
+                int startIndex = c * numberPerTree;
+                int length = numberPerTree;
+                if (c == numberOfTrees - 1)
+                {
+                    length += trainingData.Count % numberPerTree;
+                }
+
+                for (int d = startIndex; d < (startIndex + length); d++)
+                {
+                    trainingDataSubset.Add(trainingData[d]);
+                }
+
+                DecisionTreeBuilder treeBuilder = new DecisionTreeBuilder();
+                DecisionTree tree = treeBuilder.Train(trainingDataSubset,
+                    subsamplingPercentage, minGain, maximumEditDistance);
+
+                BinaryFormatter bf = new BinaryFormatter();
+                using (FileStream fout = File.Create(Path.Combine(outputDirectory, $"tree{c}.dat")))
+                {
+                    bf.Serialize(fout, tree);
+                }
             }
+
             sw.Stop();
 
             Console.WriteLine($"Whole operation took {sw.ElapsedMilliseconds / 1000.0 / 60.0} minutes");
+        }
+
+        static DecisionTree[] LoadForest(string forestDirectory)
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            string[] treePaths = Directory.GetFiles(forestDirectory, "*.dat");
+            DecisionTree[] forest = new DecisionTree[treePaths.Length];
+            for (int c = 0; c < treePaths.Length; c++)
+            {
+                string treePath = treePaths[c];
+                using (FileStream fin = File.OpenRead(treePath))
+                {
+                    forest[c] = (DecisionTree)bf.Deserialize(fin);
+                }
+            }
+            return forest;
         }
 
         static void TestOnTrainingData()
@@ -98,40 +171,80 @@ namespace DecisionTreeLearner
             int consoleTop = Console.CursorTop;
 
             int gotRight = 0;
+            int truePositive = 0;
+            int trueNegative = 0;
+            int falseNegative = 0;
+            int falsePositive = 0;
+            int numberOfMatches = 0;
+            int numberOfNonMatches = 0;
+
+
             BinaryFormatter bf = new BinaryFormatter();
-            using (FileStream fin = File.OpenRead("tree.dat"))
+
+            DecisionTree[] forest = LoadForest("C:/users/brush/desktop/forest"); 
+
+            int numberExamined = 0;
+            Parallel.ForEach(trainingData, pair =>
             {
-                DecisionTree tree = (DecisionTree)bf.Deserialize(fin);
+                bool actual = pair.IsMatch;
 
-                int numberExamined = 0;
-                Parallel.ForEach(trainingData, pair =>
+                if (actual)
                 {
-                    bool actual = pair.IsMatch;
-                    bool guess = DecisionTreeBuilder.IsMatch(pair, tree);
+                    Interlocked.Increment(ref numberOfMatches);
+                }
+                else
+                {
+                    Interlocked.Increment(ref numberOfNonMatches);
+                }
 
-                    if (guess == actual)
+                bool guess = DecisionTreeBuilder.IsMatch(pair, forest);
+
+                if (guess == actual)
+                {
+                    Interlocked.Increment(ref gotRight);
+
+                    if (guess)
                     {
-                        Interlocked.Increment(ref gotRight); 
+                        Interlocked.Increment(ref truePositive);
                     }
-
-                    lock (bf)
+                    else
                     {
-                        if (numberExamined % 1000000 == 0)
-                        {
-                            Console.SetCursorPosition(consoleLeft, consoleTop);
-                            Console.WriteLine($"{(numberExamined / (trainingData.Count * 1.0)) * 100}% done");
-                        }
-                        numberExamined++; 
+                        Interlocked.Increment(ref trueNegative);
                     }
+                }
+                else
+                {
+                    if (guess)
+                    {
+                        Interlocked.Increment(ref falsePositive);
+                    }
+                    else
+                    {
+                        Interlocked.Increment(ref falseNegative);
+                    }
+                }
 
-                });
-            }
+                lock (bf)
+                {
+                    if (numberExamined % 1000000 == 0)
+                    {
+                        Console.SetCursorPosition(consoleLeft, consoleTop);
+                        Console.WriteLine($"{(numberExamined / (trainingData.Count * 1.0)) * 100}% done");
+                    }
+                    numberExamined++;
+                }
 
-            Console.WriteLine($"{(gotRight / (trainingData.Count * 1.0)) * 100}% accuracy");
+            });
+
+            Console.WriteLine($"Sensitivity: {(truePositive / ((truePositive + falseNegative) * 1.0)) * 100}%");
+            Console.WriteLine($"PPV: {(truePositive / ((truePositive + falsePositive) * 1.0)) * 100}%");
         }
 
         static void Main(string[] args)
         {
+            //EditDistanceTests();
+
+            //Train(10, "C:/users/brush/desktop/forest", 1, 0, 3);
             TestOnTrainingData();
         }
     }

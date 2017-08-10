@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -161,10 +162,10 @@ namespace DecisionTreeLearner.Tree
         }
 
         private void RecurseAndPartition(DecisionTreeNode parentNode, SplittingQuestion[] splittingQuestions,
-            List<RecordPair> pairs, int level, double subsamplingPercentage, double minGainToBreak)
+            List<RecordPair> allPairs, int level, double subsamplingPercentage, double minGainToBreak)
         {
-            Console.WriteLine($"Level {level}. {splittingQuestions.Length} splitting questions on {pairs.Count} record pairs.");
-            double currentEntropy = ComputeShannonEntropy(pairs);
+            Console.WriteLine($"Level {level}. {splittingQuestions.Length} splitting questions on {allPairs.Count} record pairs.");
+            double currentEntropy = ComputeShannonEntropy(allPairs);
 
             // find the best splitting question. 
             double highestGain = 0.0;
@@ -189,9 +190,9 @@ namespace DecisionTreeLearner.Tree
                 int matchesInLeft = 0, noMatchesInLeft = 0,
                     matchesInRight = 0, noMatchesInRight = 0;
 
-                foreach (RecordPair pair in pairs)
+                foreach (RecordPair pair in allPairs)
                 {
-                    if (rand.NextDouble() < subsamplingPercentage)
+                    if (rand.NextDouble() <= subsamplingPercentage)
                     {
                         bool goLeft = ComputeSplitDirection(splittingQuestion, pair);
 
@@ -239,8 +240,8 @@ namespace DecisionTreeLearner.Tree
             if (highestGain <= minGainToBreak)
             {
                 parentNode.IsLeaf = true;
-                int matchCount = pairs.Count(n => n.IsMatch);
-                int noMatchCount = pairs.Count(n => !n.IsMatch);
+                int matchCount = allPairs.Count(n => n.IsMatch);
+                int noMatchCount = allPairs.Count(n => !n.IsMatch);
 
                 if (matchCount > noMatchCount)
                 {
@@ -257,8 +258,9 @@ namespace DecisionTreeLearner.Tree
             {
                 Console.WriteLine($"Best question at this level is {bestQuestion}");
 
+                Console.Write("Copying data..."); 
                 List<RecordPair> bestLeftBucket = new List<RecordPair>(), bestRightBucket = new List<RecordPair>();
-                foreach (RecordPair pair in pairs)
+                foreach (RecordPair pair in allPairs)
                 {
                     bool goLeft = ComputeSplitDirection(bestQuestion, pair);
 
@@ -271,14 +273,17 @@ namespace DecisionTreeLearner.Tree
                         bestRightBucket.Add(pair);
                     }
                 }
+                Console.WriteLine("...done"); 
 
                 parentNode.Question = bestQuestion;
                 parentNode.LeftBranch = new DecisionTreeNode();
                 parentNode.RightBranch = new DecisionTreeNode();
 
-                RecurseAndPartition(parentNode.LeftBranch, splittingQuestions, bestLeftBucket, level + 1, subsamplingPercentage, minGainToBreak);
+                RecurseAndPartition(parentNode.LeftBranch, splittingQuestions, bestLeftBucket, 
+                    level + 1, subsamplingPercentage, minGainToBreak);
                 bestLeftBucket = null;
-                RecurseAndPartition(parentNode.RightBranch, splittingQuestions, bestRightBucket, level + 1, subsamplingPercentage, minGainToBreak);
+                RecurseAndPartition(parentNode.RightBranch, splittingQuestions, bestRightBucket, 
+                    level + 1, subsamplingPercentage, minGainToBreak);
                 bestRightBucket = null;
             }
         }
@@ -295,21 +300,29 @@ namespace DecisionTreeLearner.Tree
 
                 if (goesLeft)
                 {
-                    return RecurseAndCheckIsMatch(parentNode.LeftBranch, pair); 
+                    return RecurseAndCheckIsMatch(parentNode.LeftBranch, pair);
                 }
                 else
                 {
-                    return RecurseAndCheckIsMatch(parentNode.RightBranch, pair); 
+                    return RecurseAndCheckIsMatch(parentNode.RightBranch, pair);
                 }
             }
         }
 
-        public static bool IsMatch(RecordPair pair, DecisionTree tree)
+        public static bool IsMatch(RecordPair pair, DecisionTree[] forest)
         {
-            return RecurseAndCheckIsMatch(tree.Root, pair); 
+            int positives = 0; 
+            foreach(DecisionTree tree in forest)
+            {
+                if (RecurseAndCheckIsMatch(tree.Root, pair))
+                    positives++; 
+            }
+
+            return (positives / (forest.Length) * 1.0) > .5; 
         }
 
-        public DecisionTree Train(List<RecordPair> trainingData)
+        public DecisionTree Train(List<RecordPair> trainingData, double subsamplingPercentage, 
+            double minGain, int maximumEditDistance)
         {
             FieldEnum[] fieldsOnWhichToTrain = new FieldEnum[]
             {
@@ -334,8 +347,8 @@ namespace DecisionTreeLearner.Tree
             DecisionTree tree = new DecisionTree();
             tree.Root = new DecisionTreeNode();
 
-            SplittingQuestion[] splittingQuestions = GenerateSplittingQuestions(fieldsOnWhichToTrain, 3);
-            RecurseAndPartition(tree.Root, splittingQuestions, trainingData, 0, .1, 0);
+            SplittingQuestion[] splittingQuestions = GenerateSplittingQuestions(fieldsOnWhichToTrain, maximumEditDistance);
+            RecurseAndPartition(tree.Root, splittingQuestions, trainingData, 0, subsamplingPercentage, minGain);
 
             return tree;
         }
