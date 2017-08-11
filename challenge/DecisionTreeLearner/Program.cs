@@ -13,6 +13,55 @@ namespace DecisionTreeLearner
 {
     class Program
     {
+        static void TestTree2()
+        {
+            List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+
+            RecordPair match = trainingData.Where(m => m.Record1.Address1 == "1590 EAST NEW YORK" && m.IsMatch == true).First();
+            RecordPair noMatch = trainingData.Where(m => m.Record1.Address1 == "11130 174TH STREET" && m.Record2.Address1 == "SEE 3009793" && m.IsMatch == false).First();
+
+            FieldEnum[] fieldsOnWhichToTrain = new FieldEnum[]
+            {
+                    FieldEnum.SSN,
+            };
+            SplittingQuestion[] splittingQuestions = DecisionTreeBuilder.GenerateSplittingQuestions(fieldsOnWhichToTrain, 3);
+
+            DecisionTreeBuilder builder = new DecisionTreeBuilder();
+            builder.Train(new List<RecordPair>() { match, noMatch }, splittingQuestions, 1, 0, 3);
+        }
+
+        static void TestTree()
+        {
+            RecordPair matchingPair = new RecordPair();
+
+            matchingPair.Record1 = Record.FromString("KRISTEN,,TQHKERSLEY,,F,866071061,12 / 12 / 1921,2673982600,973 - 376 - 2715 ^^ 267 - 398 - 2600,430 GRAND CONC,25,BRONX,NY,10451,,,4874700,15531659,KRISTEN TQHKERSLEY");
+            matchingPair.Record2 = Record.FromString("KRISTEN,,TANKERSLEY,,F,0,12 / 12 / 1921,2673982600,267 - 398 - 2600,1025 BOYNTON AVENUE,2D,BRONX,NY,10472,,,4874701,15893245,KIRSTEN TQHKERSLEY");
+
+            RecordPair notMatching = new RecordPair();
+            notMatching.Record1 = Record.FromString("SHAEE,,ZEITNER,,F,838540142,13 / 09 / 1997,5183581057,518 - 358 - 1057,622 E 229TH STREET,1,BRONX,NY,10466,,SZEITNER @AMGGT.COM,4873699,15738928,XIMENA ZEITNER");
+            notMatching.Record2 = Record.FromString("JIMENA,,ZEITNER,,F,838540142,13 / 09 / 1997,5183581057,518 - 358 - 1057,622 EAST 229TH STREET,1,BRONX,NY,10466,,,4873703,15821627,JIMENA ZEITNER");
+
+            bool directionMatching = DecisionTreeBuilder.ComputeSplitDirection(new SplittingQuestion
+            {
+                Field = FieldEnum.SSN,
+                MatchType = MatchTypeEnum.EmptyMatch,
+                OneFieldValueIsEmpty = true,
+            }, matchingPair);
+
+            Debug.Assert(directionMatching == true);
+
+            bool directionNotMatching = DecisionTreeBuilder.ComputeSplitDirection(new SplittingQuestion
+            {
+                Field = FieldEnum.SSN,
+                MatchType = MatchTypeEnum.EmptyMatch,
+                OneFieldValueIsEmpty = true,
+            }, notMatching);
+
+            Debug.Assert(directionMatching == false);
+
+            return;
+        }
+
         static void EditDistanceTests()
         {
             string str1 = "Hello World";
@@ -115,43 +164,6 @@ namespace DecisionTreeLearner
             Stopwatch sw = new Stopwatch();
             sw.Start();
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
-
-            //long workingSet = Process.GetCurrentProcess().WorkingSet64;
-            //Console.WriteLine(workingSet / 1024.0 / 1024.0);
-            //Console.ReadLine();
-
-            //RecordPair[] copy = new RecordPair[trainingData.Count];
-            //for (int c = 0; c < trainingData.Count; c++)
-            //{
-            //    copy[c] = trainingData[c]; 
-            //}
-
-
-            //workingSet = Process.GetCurrentProcess().WorkingSet64;
-            //Console.WriteLine(workingSet / 1024.0 / 1024.0);
-            //Console.ReadLine();
-
-            //List<int> copy2 = new List<int>(); 
-            //foreach(RecordPair pair in trainingData)
-            //{
-            //    copy2.Add(1); 
-            //}
-
-            //workingSet = Process.GetCurrentProcess().WorkingSet64;
-            //Console.WriteLine(workingSet / 1024.0 / 1024.0);
-            //Console.ReadLine();
-
-            //int[] copy3 = new int[trainingData.Count]; 
-            //for(int c=0;c<trainingData.Count;c++)
-            //{
-            //    copy3[c] = c; 
-            //}
-
-
-            //workingSet = Process.GetCurrentProcess().WorkingSet64;
-            //Console.WriteLine(workingSet / 1024.0 / 1024.0);
-            //Console.ReadLine();
-
             int numberPerTree = trainingData.Count / numberOfTrees;
 
             for (int c = 0; c < numberOfTrees; c++)
@@ -169,8 +181,28 @@ namespace DecisionTreeLearner
                     trainingDataSubset.Add(trainingData[d]);
                 }
 
+                FieldEnum[] fieldsOnWhichToTrain = new FieldEnum[]
+                {
+                    FieldEnum.Address1,
+                    FieldEnum.Address2,
+                    FieldEnum.City,
+                    FieldEnum.DOB,
+                    FieldEnum.Email,
+                    FieldEnum.FirstName,
+                    FieldEnum.Gender,
+                    FieldEnum.LastName,
+                    FieldEnum.MiddleName,
+                    FieldEnum.Phone1,
+                    FieldEnum.Phone2,
+                    FieldEnum.SSN,
+                    FieldEnum.State,
+                    FieldEnum.Zip
+                };
+                SplittingQuestion[] splittingQuestions = DecisionTreeBuilder.GenerateSplittingQuestions(fieldsOnWhichToTrain, maximumEditDistance);
+
+
                 DecisionTreeBuilder treeBuilder = new DecisionTreeBuilder();
-                DecisionTree tree = treeBuilder.Train(trainingDataSubset,
+                DecisionTree tree = treeBuilder.Train(trainingDataSubset, splittingQuestions,
                     subsamplingPercentage, minGain, maximumEditDistance);
 
                 BinaryFormatter bf = new BinaryFormatter();
@@ -258,6 +290,12 @@ namespace DecisionTreeLearner
                     else
                     {
                         Interlocked.Increment(ref falseNegative);
+
+                        //lock (forest)
+                        //{
+                        //    File.AppendAllText("c:/users/brush/desktop/falseNegatives.csv",
+                        //                 pair.ToString() + "\n");
+                        //}
                     }
                 }
 
@@ -280,7 +318,8 @@ namespace DecisionTreeLearner
         static void Main(string[] args)
         {
             //EditDistanceTests();
-
+            //TestTree();
+            //TestTree2();
             Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
         }

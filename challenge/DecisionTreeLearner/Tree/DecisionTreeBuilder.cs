@@ -48,11 +48,22 @@ namespace DecisionTreeLearner.Tree
             double entropy = 0.0;
             double totalLengthAsDouble = numberInMatchColumn + numberInNoMatchColumn;
 
-            double ratio = numberInMatchColumn / totalLengthAsDouble;
-            entropy = -(ratio * System.Math.Log(ratio, 2));
+            if(totalLengthAsDouble > 0)
+            {
+                double ratio = 0.0; 
 
-            ratio = numberInNoMatchColumn / totalLengthAsDouble;
-            entropy += -(ratio * System.Math.Log(ratio, 2));
+                if(numberInMatchColumn > 0)
+                {
+                    ratio = numberInMatchColumn / totalLengthAsDouble;
+                    entropy = -(ratio * System.Math.Log(ratio, 2));
+                }
+
+                if(numberInNoMatchColumn > 0)
+                {
+                    ratio = numberInNoMatchColumn / totalLengthAsDouble;
+                    entropy += -(ratio * System.Math.Log(ratio, 2));
+                }
+            }
 
             return entropy;
         }
@@ -78,7 +89,7 @@ namespace DecisionTreeLearner.Tree
             return gain;
         }
 
-        private static SplittingQuestion[] GenerateSplittingQuestions(FieldEnum[] fields, int maximumEditDistance)
+        public static SplittingQuestion[] GenerateSplittingQuestions(FieldEnum[] fields, int maximumEditDistance)
         {
             List<SplittingQuestion> splittingQuestions = new List<SplittingQuestion>();
 
@@ -114,7 +125,7 @@ namespace DecisionTreeLearner.Tree
             return splittingQuestions.ToArray();
         }
 
-        private static bool ComputeSplitDirection(SplittingQuestion question, RecordPair pair)
+        public static bool ComputeSplitDirection(SplittingQuestion question, RecordPair pair)
         {
             bool matches = false;
 
@@ -137,18 +148,40 @@ namespace DecisionTreeLearner.Tree
                     {
                         if (question.OneFieldValueIsEmpty)
                         {
-                            if (string.IsNullOrEmpty(column1))
+                            if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1)
                             {
-                                matches = !string.IsNullOrEmpty(column2);
+                                if (string.IsNullOrEmpty(column1) || column1 == "0")
+                                {
+                                    matches = !(string.IsNullOrEmpty(column2) || column2=="0");
+                                }
+                                else
+                                {
+                                    matches = (string.IsNullOrEmpty(column2) || column2 == "0");
+                                }
                             }
                             else
                             {
-                                matches = string.IsNullOrEmpty(column2);
+                                if (string.IsNullOrEmpty(column1))
+                                {
+                                    matches = !string.IsNullOrEmpty(column2);
+                                }
+                                else
+                                {
+                                    matches = string.IsNullOrEmpty(column2);
+                                }
                             }
                         }
                         else if (question.BothFieldValuesAreEmpty)
                         {
-                            matches = string.IsNullOrEmpty(column1) && string.IsNullOrEmpty(column2);
+                            if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1)
+                            {
+                                matches = (string.IsNullOrEmpty(column1) || column1 == "0") &&
+                                    (string.IsNullOrEmpty(column2) || column2 == "0"); 
+                            }
+                            else
+                            {
+                                matches = string.IsNullOrEmpty(column1) && string.IsNullOrEmpty(column2);
+                            }
                         }
                         else
                         {
@@ -174,6 +207,74 @@ namespace DecisionTreeLearner.Tree
             int numberDone = 0;
             int displayLeft = Console.CursorLeft;
             int displayTop = Console.CursorTop;
+
+            #region DEBUGLOOP
+            //foreach(SplittingQuestion splittingQuestion in splittingQuestions)
+            //{
+            //    List<RecordPair> leftBucket = new List<RecordPair>();
+            //    List<RecordPair> rightBucket = new List<RecordPair>();
+
+            //    Random rand = new Random();
+
+            //    int matchesInLeft = 0, noMatchesInLeft = 0,
+            //        matchesInRight = 0, noMatchesInRight = 0;
+
+            //    foreach (RecordPair pair in allPairs)
+            //    {
+            //        if (rand.NextDouble() <= subsamplingPercentage)
+            //        {
+            //            bool goLeft = ComputeSplitDirection(splittingQuestion, pair);
+
+            //            if (goLeft)
+            //            {
+            //                if (pair.IsMatch)
+            //                {
+            //                    matchesInLeft++;
+            //                }
+            //                else
+            //                {
+            //                    noMatchesInLeft++;
+            //                }
+            //            }
+            //            else
+            //            {
+            //                if (pair.IsMatch)
+            //                {
+            //                    matchesInRight++;
+            //                }
+            //                else
+            //                {
+            //                    noMatchesInRight++;
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    double leftEntropy = ComputeShannonEntropy(matchesInLeft, noMatchesInLeft);
+            //    double rightEntropy = ComputeShannonEntropy(matchesInRight, noMatchesInRight);
+
+            //    double gain = ComputeGain(currentEntropy, leftEntropy, (noMatchesInLeft + matchesInLeft),
+            //        rightEntropy, (matchesInRight + noMatchesInRight));
+
+            //    lock (splittingQuestions)
+            //    {
+            //        if (gain > highestGain)
+            //        {
+            //            highestGain = gain;
+            //            bestQuestion = splittingQuestion;
+            //        }
+            //    }
+
+            //    lock (splittingQuestions)
+            //    {
+            //        numberDone++;
+            //        Console.SetCursorPosition(displayLeft, displayTop);
+            //        Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
+            //    }
+            //}
+            #endregion
+
+            #region PARALLELLOOP
             Parallel.ForEach(splittingQuestions, splittingQuestion =>
             {
                 List<RecordPair> leftBucket = new List<RecordPair>();
@@ -237,6 +338,7 @@ namespace DecisionTreeLearner.Tree
                     Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
                 }
             });
+            #endregion
 
             if (highestGain <= minGainToBreak)
             {
@@ -253,6 +355,18 @@ namespace DecisionTreeLearner.Tree
                     parentNode.IsMatch = false;
                 }
 
+                if (matchCount > 0 && noMatchCount > 0)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    foreach (RecordPair pair in allPairs)
+                    {
+                        sb.AppendLine(pair.ToString());
+                    }
+
+                    File.AppendAllText($"C:/users/brush/desktop/nohomo/{Guid.NewGuid().ToString().Replace("-", "")}.csv",
+                        sb.ToString());
+                }
+
                 Console.WriteLine("Gain limit met. Anything reaching this leaf will " + (parentNode.IsMatch ? " match." : " not match"));
             }
             else
@@ -261,25 +375,25 @@ namespace DecisionTreeLearner.Tree
 
                 Console.Write("Copying data...");
                 List<RecordPair> bestLeftBucket = new List<RecordPair>(), bestRightBucket = new List<RecordPair>();
-                Parallel.ForEach(allPairs, pair => 
+                Parallel.ForEach(allPairs, pair =>
                 {
                     bool goLeft = ComputeSplitDirection(bestQuestion, pair);
 
                     if (goLeft)
                     {
-                        lock(bestLeftBucket)
+                        lock (bestLeftBucket)
                         {
                             bestLeftBucket.Add(pair);
                         }
                     }
                     else
                     {
-                        lock(bestRightBucket)
+                        lock (bestRightBucket)
                         {
                             bestRightBucket.Add(pair);
                         }
                     }
-                }); 
+                });
 
                 parentNode.Question = bestQuestion;
                 parentNode.LeftBranch = new DecisionTreeNode();
@@ -325,33 +439,14 @@ namespace DecisionTreeLearner.Tree
             return (positives / (forest.Length) * 1.0) > .5;
         }
 
-        public DecisionTree Train(List<RecordPair> trainingData, double subsamplingPercentage,
+        public DecisionTree Train(List<RecordPair> trainingData, SplittingQuestion[] splittingQuestions, double subsamplingPercentage,
             double minGain, int maximumEditDistance)
         {
-            FieldEnum[] fieldsOnWhichToTrain = new FieldEnum[]
-            {
-                FieldEnum.Address1,
-                FieldEnum.Address2,
-                FieldEnum.City,
-                FieldEnum.DOB,
-                FieldEnum.Email,
-                FieldEnum.FirstName,
-                FieldEnum.Gender,
-                FieldEnum.LastName,
-                FieldEnum.MiddleName,
-                FieldEnum.Phone1,
-                FieldEnum.Phone2,
-                FieldEnum.SSN,
-                FieldEnum.State,
-                FieldEnum.Zip
-            };
-
             Console.WriteLine("Learning...");
 
             DecisionTree tree = new DecisionTree();
             tree.Root = new DecisionTreeNode();
 
-            SplittingQuestion[] splittingQuestions = GenerateSplittingQuestions(fieldsOnWhichToTrain, maximumEditDistance);
             RecurseAndPartition(tree.Root, splittingQuestions, trainingData.ToArray(), 0, subsamplingPercentage, minGain);
 
             return tree;
