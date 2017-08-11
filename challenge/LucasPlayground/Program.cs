@@ -24,7 +24,6 @@ namespace LucasPlayground
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
 
-
             // Clean Data
             _badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
             _badDOBs = new DateTime[] { new DateTime(1900, 1, 1) };
@@ -32,6 +31,8 @@ namespace LucasPlayground
             _badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ') && g.Count() > 2).Select(g => g.Key).ToArray();
 
             CleanData(ref data);
+
+            DisplayPossibleMatches(data);
 
 
             // Process Data
@@ -381,6 +382,36 @@ namespace LucasPlayground
             Console.ReadLine();
         }
 
+        static void DisplayPossibleMatches(IEnumerable<row> data)
+        {
+            while(true)
+            {
+                string line = Console.ReadLine();
+                int eid;
+                if (int.TryParse(line, out eid))
+                {
+                    var row = data.Where(r => r.EnterpriseID == eid).FirstOrDefault();
+                    if (row == null)
+                    {
+                        Console.WriteLine("Could not find that enterprise ID");
+                        continue;
+                    }
+                    RowLibrary.Print(row);
+                    var softmatches = data.Where(d => EasiestAgreementCount(d, row) >= 2);
+                    foreach(var match in softmatches)
+                    {
+                        if (row == match)
+                            continue;
+                        RowLibrary.Print(match);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Please enter an integer");
+                    continue;
+                }
+            }
+        }
 
         //private static void WeakMatches(row[] data, Dictionary<int, List<int>> matches)
         //{
@@ -505,6 +536,11 @@ namespace LucasPlayground
                 Environment.UserName.ToLower().Contains("ben"))
             {
                 lines = File.ReadLines(@"C:/users/brush/desktop/FInalDataset.csv");
+            }
+            else if (Environment.UserName.ToLower().Contains("jbrownkramer") ||
+                Environment.UserName.ToLower().Contains("josh"))
+            {
+                lines = File.ReadLines(@"C:\Users\jbrownkramer\Desktop\Data\data.csv");
             }
 
 
@@ -802,6 +838,16 @@ namespace LucasPlayground
             return IsSSNValid(a) && IsSSNValid(b) && challenge.Program.OneDifference(a.ToString(), b.ToString());
         }
 
+        public static bool FuzzyPhoneMatch(int a, int b)
+        {
+            return IsPhoneValid(a) && IsPhoneValid(b) && challenge.Program.KDifferences(a.ToString(), b.ToString(), 1);
+        }
+
+        public static bool IsPhoneValid(int a)
+        {
+            return a > 0;
+        }
+
         public static bool NonemptyEquality(string a, string b)
         {
             return a != "" && b != "" && a == b;
@@ -946,6 +992,31 @@ namespace LucasPlayground
                 fieldAgreement++;
 
             if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                fieldAgreement++;
+
+            return fieldAgreement;
+        }
+
+        public static int EasiestAgreementCount(row ri, row rj)
+        {
+            int fieldAgreement = 0;
+
+            if (challenge.Program.KDifferences(ri.LAST, rj.LAST, 2))
+                fieldAgreement++;
+
+            if (challenge.Program.KDifferences(ri.FIRST, rj.FIRST, 2))
+                fieldAgreement++;
+
+            if (FuzzySSNMatch(ri.SSN, rj.SSN))
+                fieldAgreement++;
+
+            if (challenge.Program.FuzzyAddressMatch(ri, rj))
+                fieldAgreement++;
+
+            if (FuzzyDateEquals(ri.DOB, rj.DOB))
+                fieldAgreement++;
+
+            if (FuzzyPhoneMatch(ri.PHONE, rj.PHONE))
                 fieldAgreement++;
 
             return fieldAgreement;
