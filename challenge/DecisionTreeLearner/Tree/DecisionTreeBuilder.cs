@@ -439,7 +439,8 @@ namespace DecisionTreeLearner.Tree
             return (positives / (forest.Length) * 1.0) > .5;
         }
 
-        public DecisionTree Train(List<RecordPair> trainingData, SplittingQuestion[] splittingQuestions, double subsamplingPercentage,
+        public DecisionTree Train(List<RecordPair> trainingData, 
+            SplittingQuestion[] splittingQuestions, double subsamplingPercentage,
             double minGain, int maximumEditDistance)
         {
             Console.WriteLine("Learning...");
@@ -447,7 +448,8 @@ namespace DecisionTreeLearner.Tree
             DecisionTree tree = new DecisionTree();
             tree.Root = new DecisionTreeNode();
 
-            RecurseAndPartition(tree.Root, splittingQuestions, trainingData.ToArray(), 0, subsamplingPercentage, minGain);
+            RecurseAndPartition(tree.Root, splittingQuestions, trainingData.ToArray(), 
+                0, subsamplingPercentage, minGain);
 
             return tree;
         }

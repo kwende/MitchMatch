@@ -1,4 +1,5 @@
-﻿using DecisionTreeLearner.Tree;
+﻿using DecisionTreeLearner.NLP;
+using DecisionTreeLearner.Tree;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -155,7 +156,7 @@ namespace DecisionTreeLearner
                 }
             }
 
-            return trainingData;
+            return DataCleaner.CleanRecordPairs(trainingData, "StreetSuffixes.csv");
         }
 
         static void Train(int numberOfTrees, string outputDirectory, double subsamplingPercentage,
@@ -164,6 +165,8 @@ namespace DecisionTreeLearner
             Stopwatch sw = new Stopwatch();
             sw.Start();
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+
+
             int numberPerTree = trainingData.Count / numberOfTrees;
 
             for (int c = 0; c < numberOfTrees; c++)
