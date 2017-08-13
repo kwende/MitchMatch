@@ -13,6 +13,23 @@ namespace DecisionTreeLearner
 {
     class Program
     {
+        static void TestTree3()
+        {
+            List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+
+            RecordPair match = trainingData.Where(m => m.Record1.SSN == "805474518" && m.IsMatch == true).First();
+            RecordPair noMatch = trainingData.Where(m => m.Record1.Phone1 == "8485746346" && m.Record2.Phone1 == "9292655229" && m.IsMatch == false).First();
+
+            FieldEnum[] fieldsOnWhichToTrain = new FieldEnum[]
+            {
+                    FieldEnum.Address1,
+            };
+            SplittingQuestion[] splittingQuestions = DecisionTreeBuilder.GenerateSplittingQuestions(fieldsOnWhichToTrain, 3);
+
+            DecisionTreeBuilder builder = new DecisionTreeBuilder();
+            builder.Train(new List<RecordPair>() { match, noMatch }, splittingQuestions, 1, 0, 3);
+        }
+
         static void TestTree2()
         {
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
@@ -320,7 +337,8 @@ namespace DecisionTreeLearner
             //EditDistanceTests();
             //TestTree();
             //TestTree2();
-            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            TestTree3(); 
+            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
         }
     }

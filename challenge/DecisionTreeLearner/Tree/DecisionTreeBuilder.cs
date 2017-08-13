@@ -209,73 +209,7 @@ namespace DecisionTreeLearner.Tree
             int displayTop = Console.CursorTop;
 
             #region DEBUGLOOP
-            //foreach(SplittingQuestion splittingQuestion in splittingQuestions)
-            //{
-            //    List<RecordPair> leftBucket = new List<RecordPair>();
-            //    List<RecordPair> rightBucket = new List<RecordPair>();
-
-            //    Random rand = new Random();
-
-            //    int matchesInLeft = 0, noMatchesInLeft = 0,
-            //        matchesInRight = 0, noMatchesInRight = 0;
-
-            //    foreach (RecordPair pair in allPairs)
-            //    {
-            //        if (rand.NextDouble() <= subsamplingPercentage)
-            //        {
-            //            bool goLeft = ComputeSplitDirection(splittingQuestion, pair);
-
-            //            if (goLeft)
-            //            {
-            //                if (pair.IsMatch)
-            //                {
-            //                    matchesInLeft++;
-            //                }
-            //                else
-            //                {
-            //                    noMatchesInLeft++;
-            //                }
-            //            }
-            //            else
-            //            {
-            //                if (pair.IsMatch)
-            //                {
-            //                    matchesInRight++;
-            //                }
-            //                else
-            //                {
-            //                    noMatchesInRight++;
-            //                }
-            //            }
-            //        }
-            //    }
-
-            //    double leftEntropy = ComputeShannonEntropy(matchesInLeft, noMatchesInLeft);
-            //    double rightEntropy = ComputeShannonEntropy(matchesInRight, noMatchesInRight);
-
-            //    double gain = ComputeGain(currentEntropy, leftEntropy, (noMatchesInLeft + matchesInLeft),
-            //        rightEntropy, (matchesInRight + noMatchesInRight));
-
-            //    lock (splittingQuestions)
-            //    {
-            //        if (gain > highestGain)
-            //        {
-            //            highestGain = gain;
-            //            bestQuestion = splittingQuestion;
-            //        }
-            //    }
-
-            //    lock (splittingQuestions)
-            //    {
-            //        numberDone++;
-            //        Console.SetCursorPosition(displayLeft, displayTop);
-            //        Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
-            //    }
-            //}
-            #endregion
-
-            #region PARALLELLOOP
-            Parallel.ForEach(splittingQuestions, splittingQuestion =>
+            foreach (SplittingQuestion splittingQuestion in splittingQuestions)
             {
                 List<RecordPair> leftBucket = new List<RecordPair>();
                 List<RecordPair> rightBucket = new List<RecordPair>();
@@ -337,8 +271,74 @@ namespace DecisionTreeLearner.Tree
                     Console.SetCursorPosition(displayLeft, displayTop);
                     Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
                 }
-            });
+            }
             #endregion
+
+            //#region PARALLELLOOP
+            //Parallel.ForEach(splittingQuestions, splittingQuestion =>
+            //{
+            //    List<RecordPair> leftBucket = new List<RecordPair>();
+            //    List<RecordPair> rightBucket = new List<RecordPair>();
+
+            //    Random rand = new Random();
+
+            //    int matchesInLeft = 0, noMatchesInLeft = 0,
+            //        matchesInRight = 0, noMatchesInRight = 0;
+
+            //    foreach (RecordPair pair in allPairs)
+            //    {
+            //        if (rand.NextDouble() <= subsamplingPercentage)
+            //        {
+            //            bool goLeft = ComputeSplitDirection(splittingQuestion, pair);
+
+            //            if (goLeft)
+            //            {
+            //                if (pair.IsMatch)
+            //                {
+            //                    matchesInLeft++;
+            //                }
+            //                else
+            //                {
+            //                    noMatchesInLeft++;
+            //                }
+            //            }
+            //            else
+            //            {
+            //                if (pair.IsMatch)
+            //                {
+            //                    matchesInRight++;
+            //                }
+            //                else
+            //                {
+            //                    noMatchesInRight++;
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    double leftEntropy = ComputeShannonEntropy(matchesInLeft, noMatchesInLeft);
+            //    double rightEntropy = ComputeShannonEntropy(matchesInRight, noMatchesInRight);
+
+            //    double gain = ComputeGain(currentEntropy, leftEntropy, (noMatchesInLeft + matchesInLeft),
+            //        rightEntropy, (matchesInRight + noMatchesInRight));
+
+            //    lock (splittingQuestions)
+            //    {
+            //        if (gain > highestGain)
+            //        {
+            //            highestGain = gain;
+            //            bestQuestion = splittingQuestion;
+            //        }
+            //    }
+
+            //    lock (splittingQuestions)
+            //    {
+            //        numberDone++;
+            //        Console.SetCursorPosition(displayLeft, displayTop);
+            //        Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
+            //    }
+            //});
+            //#endregion
 
             if (highestGain <= minGainToBreak)
             {
