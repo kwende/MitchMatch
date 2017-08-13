@@ -17,9 +17,12 @@ namespace DecisionTreeLearner
         static void TestTree3()
         {
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+            Console.Beep();
 
             RecordPair match = trainingData.Where(m => m.Record1.SSN == "805474518" && m.IsMatch == true).First();
+            match = NLP.DataCleaner.CleanRecordPair(match, "StreetSuffixes.csv");
             RecordPair noMatch = trainingData.Where(m => m.Record1.Phone1 == "8485746346" && m.Record2.Phone1 == "9292655229" && m.IsMatch == false).First();
+            noMatch = NLP.DataCleaner.CleanRecordPair(noMatch, "StreetSuffixes.csv");
 
             FieldEnum[] fieldsOnWhichToTrain = new FieldEnum[]
             {
@@ -172,7 +175,7 @@ namespace DecisionTreeLearner
                     }
                 }
             }
-
+            //return trainingData; 
             return DataCleaner.CleanRecordPairs(trainingData, "StreetSuffixes.csv");
         }
 
@@ -340,8 +343,8 @@ namespace DecisionTreeLearner
             //EditDistanceTests();
             //TestTree();
             //TestTree2();
-            TestTree3(); 
-            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            //TestTree3();
+            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
         }
     }

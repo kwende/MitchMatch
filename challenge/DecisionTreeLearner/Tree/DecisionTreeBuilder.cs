@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -129,8 +130,11 @@ namespace DecisionTreeLearner.Tree
         {
             bool matches = false;
 
-            string column1 = pair.Record1.Parts[(int)question.Field];
-            string column2 = pair.Record2.Parts[(int)question.Field];
+            Type recordType = typeof(Record);
+            PropertyInfo property = recordType.GetProperty(question.Field.ToString());
+
+            string column1 = (string)property.GetValue(pair.Record1);
+            string column2 = (string)property.GetValue(pair.Record2);
 
             switch (question.MatchType)
             {
