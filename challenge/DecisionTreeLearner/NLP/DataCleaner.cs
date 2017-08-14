@@ -1,4 +1,5 @@
-﻿using DecisionTreeLearner.Tree;
+﻿using DecisionTreeLearner.Data;
+using DecisionTreeLearner.Tree;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,24 +11,6 @@ namespace DecisionTreeLearner.NLP
 {
     public static class DataCleaner
     {
-        private static List<Tuple<string, string>> _suffixes = null;
-
-        private static List<Tuple<string, string>> LazyLoadStreetSuffixes(string streetSuffixesFile)
-        {
-            if (_suffixes == null)
-            {
-                _suffixes = new List<Tuple<string, string>>();
-
-                string[] lines = File.ReadAllLines(streetSuffixesFile);
-                foreach (string line in lines)
-                {
-                    string[] bits = line.Split(',').Select(n => n.Trim().ToUpper()).ToArray();
-                    _suffixes.Add(new Tuple<string, string>(bits[0], bits[1]));
-                }
-            }
-
-            return _suffixes;
-        }
 
         public static List<RecordPair> CleanRecordPairs(List<RecordPair> pairs,
             string streetSuffixesFile)
@@ -37,10 +20,10 @@ namespace DecisionTreeLearner.NLP
             Parallel.For(0, pairs.Count, c =>
             {
                 pairs[c] = CleanRecordPair(pairs[c], streetSuffixesFile);
-            }); 
-            Console.WriteLine("...done"); 
+            });
+            Console.WriteLine("...done");
 
-            return pairs; 
+            return pairs;
         }
 
         public static RecordPair CleanRecordPair(RecordPair pair, string streetSuffixesFile)
@@ -48,17 +31,12 @@ namespace DecisionTreeLearner.NLP
             pair.Record1 = CleanRecord(pair.Record1, streetSuffixesFile);
             pair.Record2 = CleanRecord(pair.Record2, streetSuffixesFile);
 
-            return pair; 
+            return pair;
         }
 
         public static Record CleanRecord(Record input, string streetSuffixesFile)
         {
-            List<Tuple<string, string>> suffixes = null;
-
-            lock(typeof(DataCleaner))
-            {
-                suffixes = LazyLoadStreetSuffixes(streetSuffixesFile);
-            }
+            List<Tuple<string, string>> suffixes = AddressSuffixLoader.GetStreetSuffixAbbreviationTuples();
 
             string cleaned =
                 input.Address1.ToUpper().Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(" NORTH ", " N ").Replace(" SOUTH ", " S ");

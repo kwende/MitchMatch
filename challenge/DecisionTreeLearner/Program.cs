@@ -133,13 +133,14 @@ namespace DecisionTreeLearner
                 allRecords.Add(Record.FromString(lines[c + 1]));
             }
 
+            Console.WriteLine("Loading training data..."); 
             for (int c = 0; c < allRecords.Count; c += 2)
             {
-                if (c % 500 == 0)
-                {
-                    Console.Clear();
-                    Console.WriteLine(((c / (allRecords.Count * 1.0)) * 100) + "%");
-                }
+                //if (c % 500 == 0)
+                //{
+                //    Console.Clear();
+                //    Console.WriteLine(((c / (allRecords.Count * 1.0)) * 100) + "%");
+                //}
 
                 trainingData.Add(new RecordPair
                 {
@@ -340,10 +341,12 @@ namespace DecisionTreeLearner
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Starting up...");
             //EditDistanceTests();
             //TestTree();
             //TestTree2();
             //TestTree3();
+            //TestTree4(); 
             Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
         }

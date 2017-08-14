@@ -11,5 +11,6 @@ namespace DecisionTreeLearner.Tree
     {
         EditDistance = 0,
         EmptyMatch = 1,
+        SoftMatch = 2,
     }
 }
