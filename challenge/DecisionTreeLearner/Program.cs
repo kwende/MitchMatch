@@ -133,7 +133,7 @@ namespace DecisionTreeLearner
                 allRecords.Add(Record.FromString(lines[c + 1]));
             }
 
-            Console.WriteLine("Loading training data..."); 
+            Console.WriteLine("Loading training data...");
             for (int c = 0; c < allRecords.Count; c += 2)
             {
                 //if (c % 500 == 0)
@@ -260,6 +260,34 @@ namespace DecisionTreeLearner
         static void TestOnTrainingData()
         {
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+
+            using (StreamWriter positiveFout = File.CreateText("D:/positives.csv"))
+            {
+                using (StreamWriter negativeFout = File.CreateText("D:/negatives.csv"))
+                {
+                    foreach (RecordPair pair in trainingData)
+                    {
+                        if (pair.IsMatch)
+                        {
+                            positiveFout.WriteLine(pair.Record1.ToString() + "\n");
+                            positiveFout.WriteLine(pair.Record2.ToString() + "\n");
+                        }
+                        else
+                        {
+                            negativeFout.WriteLine(pair.Record1.ToString() + "\n");
+                            negativeFout.WriteLine(pair.Record2.ToString() + "\n");
+                        }
+                    }
+                }
+            }
+
+            //Console.WriteLine("Serializing to disk..."); 
+            //BinaryFormatter formatter = new BinaryFormatter();
+            //using (FileStream fout = File.OpenWrite("c:/users/brush/desktop/trainingData.dat"))
+            //{
+            //    formatter.Serialize(fout, trainingData); 
+            //}
+
             int consoleLeft = Console.CursorLeft;
             int consoleTop = Console.CursorTop;
 
@@ -339,6 +367,81 @@ namespace DecisionTreeLearner
             Console.WriteLine($"PPV: {(truePositive / ((truePositive + falsePositive) * 1.0)) * 100}%");
         }
 
+        static void TestOnLucasClosedSets(string closedSetPath, string finalDataSetPath, string forestDirectory)
+        {
+            string[] finalDataSetList = File.ReadAllLines(finalDataSetPath);
+            string[] closedSetIdLists = File.ReadAllLines(closedSetPath);
+
+            DecisionTree[] forest = LoadForest("C:/users/brush/desktop/forest");
+
+            // for each line of closed set ids
+            int number = 0; 
+            foreach (string closedSetIdList in closedSetIdLists)
+            {
+                Console.Write($"{(number / (closedSetIdLists.Length * 1.0)) * 100}%..."); 
+                number++;
+
+                bool allGood = true; 
+                // get the ids
+                string[] enterpriseIds = closedSetIdList.Split(',');
+                List<string[]> list = new List<string[]>();
+                // find the matching records
+                foreach (string finalDataSetRow in finalDataSetList)
+                {
+                    string[] bits = finalDataSetRow.Split(',');
+                    foreach (string enterpriseId in enterpriseIds)
+                    {
+                        if (bits[0] == enterpriseId)
+                        {
+                            list.Add(bits);
+                        }
+                    }
+
+                    // if we have found all of the records
+                    if (list.Count == enterpriseIds.Length)
+                    {
+                        Record[] recordsInSet =
+                            list.Select(n => Record.FromFinalDatasetString(n)).ToArray();
+
+                        foreach (Record recordA in recordsInSet)
+                        {
+                            foreach (Record recordB in recordsInSet)
+                            {
+                                if (recordA != recordB)
+                                {
+                                    RecordPair pair = new RecordPair
+                                    {
+                                        Record1 = recordA,
+                                        Record2 = recordB
+                                    };
+
+                                    bool match = DecisionTreeBuilder.IsMatch(pair, forest);
+
+                                    if (!match)
+                                    {
+                                        File.AppendAllText($"C:/users/brush/desktop/nomatches/{Guid.NewGuid().ToString().Replace("-", "")}.txt",
+                                            pair.ToString());
+                                        allGood = false; 
+                                    }
+                                }
+                            }
+                        }
+                        // transform them into the right colum format
+                        break;
+                    }
+                }
+
+                if(allGood)
+                {
+                    Console.WriteLine("...all good!"); 
+                }
+                else
+                {
+                    Console.WriteLine("...oops");
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("Starting up...");
@@ -347,8 +450,9 @@ namespace DecisionTreeLearner
             //TestTree2();
             //TestTree3();
             //TestTree4(); 
-            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
+            TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
         }
     }
 }

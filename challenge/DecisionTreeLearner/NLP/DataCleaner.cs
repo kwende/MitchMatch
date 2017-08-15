@@ -41,8 +41,10 @@ namespace DecisionTreeLearner.NLP
             string cleaned =
                 input.Address1.ToUpper().Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(" NORTH ", " N ").Replace(" SOUTH ", " S ");
 
-            foreach (Tuple<string, string> suffix in suffixes)
+            //foreach (Tuple<string, string> suffix in suffixes)
+            for(int c=0;c<suffixes.Count;c++)
             {
+                Tuple<string, string> suffix = suffixes[c]; 
                 if (cleaned.EndsWith(suffix.Item1))
                 {
                     cleaned = cleaned.Replace($" {suffix.Item1}", $" {suffix.Item2}");

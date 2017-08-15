@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DecisionTreeLearner.Tree
 {
+    [Serializable]
     public class Record
     {
         public string LastName { get; set; }
@@ -47,6 +48,43 @@ namespace DecisionTreeLearner.Tree
                 MothersMaidenName,//
                 Email,//
                 Alias);
+        }
+
+        public static Record FromFinalDatasetString(string[] bits)
+        {
+            Record record = new Record();
+
+            record.Parts = bits;
+            record.LastName = bits[1];
+            record.FirstName = bits[2];
+            record.MiddleName = bits[3];
+            record.Suffix = bits[4];
+            record.DOB = bits[5];
+            record.Gender = bits[6];
+            record.SSN = bits[7];
+            record.Address1 = bits[8];
+            record.Address2 = bits[9];
+            record.Zip = bits[10];
+            record.MothersMaidenName = bits[11];
+            record.City = bits[13];
+            record.State = bits[14];
+            record.Phone1 = bits[15];
+            record.Phone2 = bits[16];
+            record.Email = bits[17];
+            record.Alias = bits[18];
+
+            return record;
+        }
+
+        public static Record FromFinalDatasetString(string csvString)
+        {
+            string[] bits = csvString.Split(',');
+            if (bits.Length != 19)
+            {
+                throw new Exception();
+            }
+
+            return FromFinalDatasetString(bits); 
         }
 
         public static Record FromString(string csvString)
