@@ -147,11 +147,14 @@ namespace DecisionTreeLearner.Tree
         {
             bool matches = false;
 
-            Type recordType = typeof(Record);
-            PropertyInfo property = recordType.GetProperty(question.Field.ToString());
+            //Type recordType = typeof(Record);
+            //PropertyInfo property = _propInfoCache[(int)question.Field]; // recordType.GetProperty(question.Field.ToString());
 
-            string column1 = (string)property.GetValue(pair.Record1);
-            string column2 = (string)property.GetValue(pair.Record2);
+            //string column1 = (string)property.GetValue(pair.Record1);
+            //string column2 = (string)property.GetValue(pair.Record2);
+
+            string column1 = pair.Record1.Cache[(int)question.Field];
+            string column2 = pair.Record2.Cache[(int)question.Field];
 
             switch (question.MatchType)
             {
@@ -171,7 +174,6 @@ namespace DecisionTreeLearner.Tree
                         matches = MatchTypeMatcher.BasedOnDateSoftMatch(question, column1, column2);
                     }
                     break;
-
                 default:
                     throw new ArgumentException();
             }
@@ -259,6 +261,7 @@ namespace DecisionTreeLearner.Tree
 
             #region PARALLELLOOP
             //Console.WriteLine("Parallel mode...."); 
+            //foreach (SplittingQuestion splittingQuestion in splittingQuestions)
             Parallel.ForEach(splittingQuestions, splittingQuestion =>
             {
                 List<RecordPair> leftBucket = new List<RecordPair>();
@@ -269,8 +272,12 @@ namespace DecisionTreeLearner.Tree
                 int matchesInLeft = 0, noMatchesInLeft = 0,
                     matchesInRight = 0, noMatchesInRight = 0;
 
+                int pairNumber = 0;
                 foreach (RecordPair pair in allPairs)
                 {
+                    //if(pairNumber%10000==0)
+                    //    Console.WriteLine($"{pairNumber} of {allPairs.Length}");
+                    pairNumber++;
                     if (rand.NextDouble() <= subsamplingPercentage)
                     {
                         bool goLeft = ComputeSplitDirection(splittingQuestion, pair);
@@ -314,7 +321,6 @@ namespace DecisionTreeLearner.Tree
                         bestQuestion = splittingQuestion;
                     }
                 }
-
                 lock (splittingQuestions)
                 {
                     numberDone++;
@@ -390,7 +396,7 @@ namespace DecisionTreeLearner.Tree
             }
         }
 
-        private static bool RecurseAndCheckIsMatch(DecisionTreeNode parentNode, RecordPair pair)
+        private static bool RecurseAndCheckIsMatch(DecisionTreeNode parentNode, RecordPair pair, bool debug)
         {
             if (parentNode.IsLeaf)
             {
@@ -400,33 +406,42 @@ namespace DecisionTreeLearner.Tree
             {
                 bool goesLeft = ComputeSplitDirection(parentNode.Question, pair);
 
+                if (debug)
+                {
+                    Console.WriteLine($"Question: {parentNode.Question} Answer: {goesLeft}.");
+                }
+
                 if (goesLeft)
                 {
-                    return RecurseAndCheckIsMatch(parentNode.LeftBranch, pair);
+                    return RecurseAndCheckIsMatch(parentNode.LeftBranch, pair, debug);
                 }
                 else
                 {
-                    return RecurseAndCheckIsMatch(parentNode.RightBranch, pair);
+                    return RecurseAndCheckIsMatch(parentNode.RightBranch, pair, debug);
                 }
             }
         }
 
-        public static bool IsMatch(RecordPair pair, DecisionTree[] forest)
+        public static bool IsMatch(RecordPair pair, DecisionTree[] forest, bool debug)
         {
             int positives = 0;
             foreach (DecisionTree tree in forest)
             {
-                if (RecurseAndCheckIsMatch(tree.Root, pair))
+                if (RecurseAndCheckIsMatch(tree.Root, pair, debug))
                     positives++;
             }
 
             return (positives / (forest.Length) * 1.0) > .5;
         }
 
+        private static PropertyInfo[] _propInfoCache;
+
         public DecisionTree Train(List<RecordPair> trainingData,
             SplittingQuestion[] splittingQuestions, double subsamplingPercentage,
             double minGain, int maximumEditDistance)
         {
+            //PropertyInfo property = recordType.GetProperty(question.Field.ToString());
+            //TODO: do this better. major hack. 
             Console.WriteLine("Learning...");
 
             DecisionTree tree = new DecisionTree();

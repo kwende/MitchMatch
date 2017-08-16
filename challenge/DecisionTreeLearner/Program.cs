@@ -1,4 +1,5 @@
 ﻿using DecisionTreeLearner.NLP;
+using DecisionTreeLearner.Testers;
 using DecisionTreeLearner.Tree;
 using System;
 using System.Collections.Generic;
@@ -14,117 +15,52 @@ namespace DecisionTreeLearner
 {
     class Program
     {
-        static void TestTree3()
+        static List<RecordPair> LoadTrainingData(string positivesFile, string negativesFile)
         {
-            List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
-            Console.Beep();
+            List<RecordPair> ret = new List<RecordPair>();
 
-            RecordPair match = trainingData.Where(m => m.Record1.SSN == "805474518" && m.IsMatch == true).First();
-            match = NLP.DataCleaner.CleanRecordPair(match, "StreetSuffixes.csv");
-            RecordPair noMatch = trainingData.Where(m => m.Record1.Phone1 == "8485746346" && m.Record2.Phone1 == "9292655229" && m.IsMatch == false).First();
-            noMatch = NLP.DataCleaner.CleanRecordPair(noMatch, "StreetSuffixes.csv");
+            string[] lines = File.ReadAllLines(positivesFile);
 
-            FieldEnum[] fieldsOnWhichToTrain = new FieldEnum[]
+            for (int c = 0; c < lines.Length; c += 4)
             {
-                    FieldEnum.Address1,
-            };
-            SplittingQuestion[] splittingQuestions = DecisionTreeBuilder.GenerateSplittingQuestions(fieldsOnWhichToTrain, 3);
+                RecordPair pair = new RecordPair();
+                pair.Record1 = Record.FromString(lines[c]);
+                pair.Record2 = Record.FromString(lines[c + 2]);
+                pair.IsMatch = true;
 
-            DecisionTreeBuilder builder = new DecisionTreeBuilder();
-            builder.Train(new List<RecordPair>() { match, noMatch }, splittingQuestions, 1, 0, 3);
-        }
+                ret.Add(pair);
+            }
 
-        static void TestTree2()
-        {
-            List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+            IEnumerable<string> lineReader = File.ReadLines(negativesFile);
+            IEnumerator<string> lineReaderEnumerator = lineReader.GetEnumerator();
 
-            RecordPair match = trainingData.Where(m => m.Record1.Address1 == "1590 EAST NEW YORK" && m.IsMatch == true).First();
-            RecordPair noMatch = trainingData.Where(m => m.Record1.Address1 == "11130 174TH STREET" && m.Record2.Address1 == "SEE 3009793" && m.IsMatch == false).First();
-
-            FieldEnum[] fieldsOnWhichToTrain = new FieldEnum[]
+            while(lineReaderEnumerator.MoveNext())
             {
-                    FieldEnum.SSN,
-            };
-            SplittingQuestion[] splittingQuestions = DecisionTreeBuilder.GenerateSplittingQuestions(fieldsOnWhichToTrain, 3);
+                RecordPair pair = new RecordPair();
+                pair.Record1 = Record.FromString(lineReaderEnumerator.Current);
 
-            DecisionTreeBuilder builder = new DecisionTreeBuilder();
-            builder.Train(new List<RecordPair>() { match, noMatch }, splittingQuestions, 1, 0, 3);
-        }
+                lineReaderEnumerator.MoveNext();
+                lineReaderEnumerator.MoveNext();
 
-        static void TestTree()
-        {
-            RecordPair matchingPair = new RecordPair();
+                pair.Record2 = Record.FromString(lineReaderEnumerator.Current);
 
-            matchingPair.Record1 = Record.FromString("KRISTEN,,TQHKERSLEY,,F,866071061,12 / 12 / 1921,2673982600,973 - 376 - 2715 ^^ 267 - 398 - 2600,430 GRAND CONC,25,BRONX,NY,10451,,,4874700,15531659,KRISTEN TQHKERSLEY");
-            matchingPair.Record2 = Record.FromString("KRISTEN,,TANKERSLEY,,F,0,12 / 12 / 1921,2673982600,267 - 398 - 2600,1025 BOYNTON AVENUE,2D,BRONX,NY,10472,,,4874701,15893245,KIRSTEN TQHKERSLEY");
+                lineReaderEnumerator.MoveNext();
 
-            RecordPair notMatching = new RecordPair();
-            notMatching.Record1 = Record.FromString("SHAEE,,ZEITNER,,F,838540142,13 / 09 / 1997,5183581057,518 - 358 - 1057,622 E 229TH STREET,1,BRONX,NY,10466,,SZEITNER @AMGGT.COM,4873699,15738928,XIMENA ZEITNER");
-            notMatching.Record2 = Record.FromString("JIMENA,,ZEITNER,,F,838540142,13 / 09 / 1997,5183581057,518 - 358 - 1057,622 EAST 229TH STREET,1,BRONX,NY,10466,,,4873703,15821627,JIMENA ZEITNER");
+                pair.IsMatch = false;
 
-            bool directionMatching = DecisionTreeBuilder.ComputeSplitDirection(new SplittingQuestion
-            {
-                Field = FieldEnum.SSN,
-                MatchType = MatchTypeEnum.EmptyMatch,
-                OneFieldValueIsEmpty = true,
-            }, matchingPair);
+                ret.Add(pair); 
+            }
 
-            Debug.Assert(directionMatching == true);
-
-            bool directionNotMatching = DecisionTreeBuilder.ComputeSplitDirection(new SplittingQuestion
-            {
-                Field = FieldEnum.SSN,
-                MatchType = MatchTypeEnum.EmptyMatch,
-                OneFieldValueIsEmpty = true,
-            }, notMatching);
-
-            Debug.Assert(directionMatching == false);
-
-            return;
-        }
-
-        static void EditDistanceTests()
-        {
-            string str1 = "Hello World";
-            string str2 = "ello World";
-
-            int editDistance = NLP.EditDistance.Compute(str1, str2);
-            Debug.Assert(editDistance == 1);
-
-            str1 = "hello world";
-            str2 = "Hello World";
-
-            editDistance = NLP.EditDistance.Compute(str1, str2);
-
-            Debug.Assert(editDistance == 2);
-
-            str1 = "abcdefg";
-            str2 = "hijklmn";
-
-            editDistance = NLP.EditDistance.Compute(str1, str2);
-
-            Debug.Assert(editDistance == 7);
-
-            str1 = "";
-            str2 = "";
-
-            editDistance = NLP.EditDistance.Compute(str1, str2);
-
-            Debug.Assert(editDistance == 0);
-
-            str1 = "";
-            str2 = "googliebah";
-
-            editDistance = NLP.EditDistance.Compute(str1, str2);
-
-            Debug.Assert(editDistance == 10);
+            return ret;
         }
 
         static List<RecordPair> BuildTrainingData(string inputFilePath)
         {
             List<RecordPair> trainingData = new List<RecordPair>();
 
+            Console.Write("Reading training file..."); 
             string[] lines = File.ReadAllLines(inputFilePath);
+            Console.WriteLine("...done"); 
 
             List<Record> allRecords = new List<Record>();
             for (int c = 0; c < lines.Length; c += 3)
@@ -133,15 +69,11 @@ namespace DecisionTreeLearner
                 allRecords.Add(Record.FromString(lines[c + 1]));
             }
 
-            Console.WriteLine("Loading training data...");
+            allRecords = DataCleaner.CleanRecordPairs(allRecords); 
+
+            Console.Write("Building training data...");
             for (int c = 0; c < allRecords.Count; c += 2)
             {
-                //if (c % 500 == 0)
-                //{
-                //    Console.Clear();
-                //    Console.WriteLine(((c / (allRecords.Count * 1.0)) * 100) + "%");
-                //}
-
                 trainingData.Add(new RecordPair
                 {
                     IsMatch = true,
@@ -176,8 +108,8 @@ namespace DecisionTreeLearner
                     }
                 }
             }
-            //return trainingData; 
-            return DataCleaner.CleanRecordPairs(trainingData, "StreetSuffixes.csv");
+            Console.WriteLine("...done"); 
+            return trainingData; 
         }
 
         static void Train(int numberOfTrees, string outputDirectory, double subsamplingPercentage,
@@ -186,7 +118,7 @@ namespace DecisionTreeLearner
             Stopwatch sw = new Stopwatch();
             sw.Start();
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
-
+            //List<RecordPair> trainingData = LoadTrainingData("D:/positives.csv", "D:/negatives.csv");
 
             int numberPerTree = trainingData.Count / numberOfTrees;
 
@@ -241,21 +173,7 @@ namespace DecisionTreeLearner
             Console.WriteLine($"Whole operation took {sw.ElapsedMilliseconds / 1000.0 / 60.0} minutes");
         }
 
-        static DecisionTree[] LoadForest(string forestDirectory)
-        {
-            BinaryFormatter bf = new BinaryFormatter();
-            string[] treePaths = Directory.GetFiles(forestDirectory, "*.dat");
-            DecisionTree[] forest = new DecisionTree[treePaths.Length];
-            for (int c = 0; c < treePaths.Length; c++)
-            {
-                string treePath = treePaths[c];
-                using (FileStream fin = File.OpenRead(treePath))
-                {
-                    forest[c] = (DecisionTree)bf.Deserialize(fin);
-                }
-            }
-            return forest;
-        }
+
 
         static void TestOnTrainingData()
         {
@@ -281,13 +199,6 @@ namespace DecisionTreeLearner
                 }
             }
 
-            //Console.WriteLine("Serializing to disk..."); 
-            //BinaryFormatter formatter = new BinaryFormatter();
-            //using (FileStream fout = File.OpenWrite("c:/users/brush/desktop/trainingData.dat"))
-            //{
-            //    formatter.Serialize(fout, trainingData); 
-            //}
-
             int consoleLeft = Console.CursorLeft;
             int consoleTop = Console.CursorTop;
 
@@ -302,7 +213,7 @@ namespace DecisionTreeLearner
 
             BinaryFormatter bf = new BinaryFormatter();
 
-            DecisionTree[] forest = LoadForest("C:/users/brush/desktop/forest");
+            DecisionTree[] forest = ForestLoader.FromDirectory("C:/users/brush/desktop/forest");
 
             int numberExamined = 0;
             Parallel.ForEach(trainingData, pair =>
@@ -318,7 +229,7 @@ namespace DecisionTreeLearner
                     Interlocked.Increment(ref numberOfNonMatches);
                 }
 
-                bool guess = DecisionTreeBuilder.IsMatch(pair, forest);
+                bool guess = DecisionTreeBuilder.IsMatch(pair, forest, false);
 
                 if (guess == actual)
                 {
@@ -342,12 +253,6 @@ namespace DecisionTreeLearner
                     else
                     {
                         Interlocked.Increment(ref falseNegative);
-
-                        //lock (forest)
-                        //{
-                        //    File.AppendAllText("c:/users/brush/desktop/falseNegatives.csv",
-                        //                 pair.ToString() + "\n");
-                        //}
                     }
                 }
 
@@ -372,16 +277,16 @@ namespace DecisionTreeLearner
             string[] finalDataSetList = File.ReadAllLines(finalDataSetPath);
             string[] closedSetIdLists = File.ReadAllLines(closedSetPath);
 
-            DecisionTree[] forest = LoadForest("C:/users/brush/desktop/forest");
+            DecisionTree[] forest = ForestLoader.FromDirectory("C:/users/brush/desktop/forest");
 
             // for each line of closed set ids
-            int number = 0; 
+            int number = 0;
             foreach (string closedSetIdList in closedSetIdLists)
             {
-                Console.Write($"{(number / (closedSetIdLists.Length * 1.0)) * 100}%..."); 
+                Console.Write($"{(number / (closedSetIdLists.Length * 1.0)) * 100}%...");
                 number++;
 
-                bool allGood = true; 
+                bool allGood = true;
                 // get the ids
                 string[] enterpriseIds = closedSetIdList.Split(',');
                 List<string[]> list = new List<string[]>();
@@ -415,13 +320,13 @@ namespace DecisionTreeLearner
                                         Record2 = recordB
                                     };
 
-                                    bool match = DecisionTreeBuilder.IsMatch(pair, forest);
+                                    bool match = DecisionTreeBuilder.IsMatch(pair, forest, false);
 
                                     if (!match)
                                     {
                                         File.AppendAllText($"C:/users/brush/desktop/nomatches/{Guid.NewGuid().ToString().Replace("-", "")}.txt",
                                             pair.ToString());
-                                        allGood = false; 
+                                        allGood = false;
                                     }
                                 }
                             }
@@ -431,9 +336,9 @@ namespace DecisionTreeLearner
                     }
                 }
 
-                if(allGood)
+                if (allGood)
                 {
-                    Console.WriteLine("...all good!"); 
+                    Console.WriteLine("...all good!");
                 }
                 else
                 {
@@ -444,15 +349,16 @@ namespace DecisionTreeLearner
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Starting up...");
             //EditDistanceTests();
             //TestTree();
             //TestTree2();
             //TestTree3();
             //TestTree4(); 
-            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
-            TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
+            //TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
+
+            //Testers.TestSplitDirection.Test(); 
         }
     }
 }

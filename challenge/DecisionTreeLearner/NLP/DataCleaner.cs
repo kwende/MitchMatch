@@ -11,6 +11,18 @@ namespace DecisionTreeLearner.NLP
 {
     public static class DataCleaner
     {
+        public static List<Record> CleanRecordPairs(List<Record> records)
+        {
+            Console.Write("Cleaning data...");
+            //for(int c=0;c<pairs.Count;c++)
+            Parallel.For(0, records.Count, c =>
+            {
+                records[c] = CleanRecord(records[c]);
+            });
+            Console.WriteLine("...done");
+
+            return records;
+        }
 
         public static List<RecordPair> CleanRecordPairs(List<RecordPair> pairs,
             string streetSuffixesFile)
@@ -28,23 +40,28 @@ namespace DecisionTreeLearner.NLP
 
         public static RecordPair CleanRecordPair(RecordPair pair, string streetSuffixesFile)
         {
-            pair.Record1 = CleanRecord(pair.Record1, streetSuffixesFile);
-            pair.Record2 = CleanRecord(pair.Record2, streetSuffixesFile);
+            pair.Record1 = CleanRecord(pair.Record1);
+            pair.Record2 = CleanRecord(pair.Record2);
 
             return pair;
         }
 
-        public static Record CleanRecord(Record input, string streetSuffixesFile)
+        public static Record CleanRecord(Record input)
         {
             List<Tuple<string, string>> suffixes = AddressSuffixLoader.GetStreetSuffixAbbreviationTuples();
 
             string cleaned =
                 input.Address1.ToUpper().Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(" NORTH ", " N ").Replace(" SOUTH ", " S ");
 
-            //foreach (Tuple<string, string> suffix in suffixes)
-            for(int c=0;c<suffixes.Count;c++)
+            if (input.City == "BKLYN")
             {
-                Tuple<string, string> suffix = suffixes[c]; 
+                input.City = "BROOKLYN";
+            }
+
+            //foreach (Tuple<string, string> suffix in suffixes)
+            for (int c = 0; c < suffixes.Count; c++)
+            {
+                Tuple<string, string> suffix = suffixes[c];
                 if (cleaned.EndsWith(suffix.Item1))
                 {
                     cleaned = cleaned.Replace($" {suffix.Item1}", $" {suffix.Item2}");

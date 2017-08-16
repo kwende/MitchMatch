@@ -13,11 +13,33 @@ namespace DecisionTreeLearner.NLP
         public static bool BasedOnEditDistance(SplittingQuestion question, string column1, string column2)
         {
             bool matches = false;
-            int editDistance = NLP.EditDistance.Compute(column1, column2);
 
-            if (editDistance <= question.MaximumEditDistance)
+            bool isEmpty = false;
+            // is empty? 
+            if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1)
             {
-                matches = true;
+                if (string.IsNullOrEmpty(column1) || string.IsNullOrEmpty(column2) ||
+                    column1 == "0" || column2 == "0")
+                {
+                    isEmpty = true;
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(column1) || string.IsNullOrEmpty(column2))
+                {
+                    isEmpty = true;
+                }
+            }
+
+            if (!isEmpty)
+            {
+                int editDistance = NLP.EditDistance.Compute(column1, column2);
+
+                if (editDistance <= question.MaximumEditDistance)
+                {
+                    matches = true;
+                }
             }
 
             return matches;
@@ -28,15 +50,15 @@ namespace DecisionTreeLearner.NLP
             bool matches = false;
             if (question.OneFieldValueIsEmpty)
             {
-                if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1)
+                if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1 || question.Field == FieldEnum.SSN)
                 {
-                    if (string.IsNullOrEmpty(column1) || column1 == "0")
+                    if (string.IsNullOrEmpty(column1) || column1 == "0" || column1 == "-1")
                     {
-                        matches = !(string.IsNullOrEmpty(column2) || column2 == "0");
+                        matches = !(string.IsNullOrEmpty(column2) || column2 == "0" || column2 == "-1");
                     }
                     else
                     {
-                        matches = (string.IsNullOrEmpty(column2) || column2 == "0");
+                        matches = (string.IsNullOrEmpty(column2) || column2 == "0" || column2 == "-1");
                     }
                 }
                 else
@@ -53,10 +75,10 @@ namespace DecisionTreeLearner.NLP
             }
             else if (question.BothFieldValuesAreEmpty)
             {
-                if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1)
+                if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1 || question.Field == FieldEnum.SSN)
                 {
-                    matches = (string.IsNullOrEmpty(column1) || column1 == "0") &&
-                        (string.IsNullOrEmpty(column2) || column2 == "0");
+                    matches = (string.IsNullOrEmpty(column1) || column1 == "0" || column1 == "-1") &&
+                        (string.IsNullOrEmpty(column2) || column2 == "0" || column2 == "-1");
                 }
                 else
                 {
@@ -82,6 +104,20 @@ namespace DecisionTreeLearner.NLP
             {
                 passedSoftMatch = (column1Date.Day == column2Date.Month ||
                     column2Date.Day == column1Date.Month);
+
+                if (!passedSoftMatch)
+                {
+                    passedSoftMatch = column1Date.Day == column2Date.Day &&
+                        column1Date.Month == column2Date.Month &&
+                        System.Math.Abs(column1Date.Year - column1Date.Year) == 10;
+
+                    if (!passedSoftMatch)
+                    {
+                        passedSoftMatch = System.Math.Abs(column1Date.Day - column2Date.Day) == 1 &&
+                            column1Date.Month == column2Date.Month &&
+                            column1Date.Year == column2Date.Year;
+                    }
+                }
             }
             return passedSoftMatch;
         }

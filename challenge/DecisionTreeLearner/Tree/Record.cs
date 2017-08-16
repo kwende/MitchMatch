@@ -26,7 +26,8 @@ namespace DecisionTreeLearner.Tree
         public string Phone2 { get; set; }
         public string Email { get; set; }
         public string Alias { get; set; }
-        public string[] Parts { get; set; }
+
+        public string[] Cache { get; set; }
 
         public override string ToString()
         {
@@ -54,7 +55,7 @@ namespace DecisionTreeLearner.Tree
         {
             Record record = new Record();
 
-            record.Parts = bits;
+            record.Cache = bits; 
             record.LastName = bits[1];
             record.FirstName = bits[2];
             record.MiddleName = bits[3];
@@ -91,29 +92,53 @@ namespace DecisionTreeLearner.Tree
         {
             Record record = new Record();
             string[] bits = csvString.Split(',');
-            if (bits.Length != 19)
+            if (bits.Length != 19 && bits.Length != 17)
             {
                 throw new Exception();
             }
 
-            record.Parts = bits;
-            record.FirstName = bits[0];
-            record.MiddleName = bits[1];
-            record.LastName = bits[2];
-            record.Suffix = bits[3];
-            record.Gender = bits[4];
-            record.SSN = bits[5];
-            record.DOB = bits[6];
-            record.Phone1 = bits[7];
-            record.Phone2 = bits[8];
-            record.Address1 = bits[9];
-            record.Address2 = bits[10];
-            record.City = bits[11];
-            record.State = bits[12];
-            record.Zip = bits[13];
-            record.MothersMaidenName = bits[14];
-            record.Email = bits[15];
-            record.Alias = bits[18];
+            if(bits.Length == 19)
+            {
+                record.Cache = bits; 
+                record.FirstName = bits[0];
+                record.MiddleName = bits[1];
+                record.LastName = bits[2];
+                record.Suffix = bits[3];
+                record.Gender = bits[4];
+                record.SSN = bits[5];
+                record.DOB = bits[6];
+                record.Phone1 = bits[7];
+                record.Phone2 = bits[8];
+                record.Address1 = bits[9];
+                record.Address2 = bits[10];
+                record.City = bits[11];
+                record.State = bits[12];
+                record.Zip = bits[13];
+                record.MothersMaidenName = bits[14];
+                record.Email = bits[15];
+                record.Alias = bits[18];
+            }
+            else if(bits.Length == 17)
+            {
+                record.Cache = new string[19]; 
+                record.FirstName = record.Cache[0] = bits[0];
+                record.MiddleName = record.Cache[1] = bits[1];
+                record.LastName = record.Cache[2] = bits[2];
+                record.Suffix = record.Cache[3] = bits[3];
+                record.Gender = record.Cache[4] = bits[4];
+                record.SSN = record.Cache[5] = bits[5];
+                record.DOB = record.Cache[6] = bits[6];
+                record.Phone1 = record.Cache[7] = bits[7];
+                record.Phone2 = record.Cache[8] = bits[8];
+                record.Address1 = record.Cache[9] = bits[9];
+                record.Address2 = record.Cache[10] = bits[10];
+                record.City = record.Cache[11] = bits[11];
+                record.State = record.Cache[12] = bits[12];
+                record.Zip = record.Cache[13] = bits[13];
+                record.MothersMaidenName = record.Cache[14] = bits[14];
+                record.Email = record.Cache[15] = bits[15];
+                record.Alias = record.Cache[18] = bits[16];
+            }
 
             return record;
         }

@@ -20,8 +20,27 @@ namespace DecisionTreeLearner.Tree
 
         public override string ToString()
         {
-            return $"Ask about {Field} question of type {MatchType} with maximum" +
-                $" edit distance {MaximumEditDistance}, one field empty {OneFieldValueIsEmpty}, and both field values empty {BothFieldValuesAreEmpty}";
+            string ret = ""; 
+            switch(MatchType)
+            {
+                case MatchTypeEnum.EditDistance:
+                    ret = $"Is edit distance at or below {MaximumEditDistance} on {Field}?"; 
+                    break;
+                case MatchTypeEnum.EmptyMatch:
+                    if (OneFieldValueIsEmpty)
+                    {
+                        ret = $"Is one and only one value of {Field} empty?";
+                    }
+                    else
+                    {
+                        ret = $"Are both fields of {Field} empty?";
+                    }
+                    break;
+                case MatchTypeEnum.SoftMatch:
+                    ret = $"Soft match on {Field}"; 
+                    break; 
+            }
+            return ret; 
         }
     }
 }
