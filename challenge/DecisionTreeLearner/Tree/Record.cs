@@ -55,24 +55,26 @@ namespace DecisionTreeLearner.Tree
         {
             Record record = new Record();
 
-            record.Cache = bits; 
-            record.LastName = bits[1];
-            record.FirstName = bits[2];
-            record.MiddleName = bits[3];
-            record.Suffix = bits[4];
-            record.DOB = bits[5];
-            record.Gender = bits[6];
-            record.SSN = bits[7];
-            record.Address1 = bits[8];
-            record.Address2 = bits[9];
-            record.Zip = bits[10];
-            record.MothersMaidenName = bits[11];
-            record.City = bits[13];
-            record.State = bits[14];
-            record.Phone1 = bits[15];
-            record.Phone2 = bits[16];
-            record.Email = bits[17];
-            record.Alias = bits[18];
+            record.Cache = new string[19];
+            record.FirstName = record.Cache[0] = bits[2];
+            record.MiddleName = record.Cache[1] = bits[3];
+            record.LastName = record.Cache[2] = bits[1];
+            record.Suffix = record.Cache[3] = bits[4];
+            record.Gender = record.Cache[4] = bits[6];
+            record.SSN = record.Cache[5] = bits[7];
+            record.DOB = record.Cache[6] = bits[5];
+            record.Phone1 = record.Cache[7] = bits[15];
+            record.Phone2 = record.Cache[8] = bits[16];
+            record.Address1 = record.Cache[9] = bits[8];
+            record.Address2 = record.Cache[10] = bits[9];
+            record.City = record.Cache[11] = bits[13];
+            record.State = record.Cache[12] = bits[14];
+            record.Zip = record.Cache[13] = bits[10];
+            record.MothersMaidenName = record.Cache[14] = bits[11];
+            record.Email = record.Cache[15] = bits[17];
+            record.Cache[16] = "";
+            record.Cache[17] = "";
+            record.Alias = record.Cache[18] = bits[18];
 
             return record;
         }
@@ -137,6 +139,8 @@ namespace DecisionTreeLearner.Tree
                 record.Zip = record.Cache[13] = bits[13];
                 record.MothersMaidenName = record.Cache[14] = bits[14];
                 record.Email = record.Cache[15] = bits[15];
+                record.Cache[16] = "";
+                record.Cache[17] = ""; 
                 record.Alias = record.Cache[18] = bits[16];
             }
 

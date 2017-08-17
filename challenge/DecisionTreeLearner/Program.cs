@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,7 +35,7 @@ namespace DecisionTreeLearner
             IEnumerable<string> lineReader = File.ReadLines(negativesFile);
             IEnumerator<string> lineReaderEnumerator = lineReader.GetEnumerator();
 
-            while(lineReaderEnumerator.MoveNext())
+            while (lineReaderEnumerator.MoveNext())
             {
                 RecordPair pair = new RecordPair();
                 pair.Record1 = Record.FromString(lineReaderEnumerator.Current);
@@ -48,7 +49,7 @@ namespace DecisionTreeLearner
 
                 pair.IsMatch = false;
 
-                ret.Add(pair); 
+                ret.Add(pair);
             }
 
             return ret;
@@ -58,9 +59,9 @@ namespace DecisionTreeLearner
         {
             List<RecordPair> trainingData = new List<RecordPair>();
 
-            Console.Write("Reading training file..."); 
+            Console.Write("Reading training file...");
             string[] lines = File.ReadAllLines(inputFilePath);
-            Console.WriteLine("...done"); 
+            Console.WriteLine("...done");
 
             List<Record> allRecords = new List<Record>();
             for (int c = 0; c < lines.Length; c += 3)
@@ -69,7 +70,7 @@ namespace DecisionTreeLearner
                 allRecords.Add(Record.FromString(lines[c + 1]));
             }
 
-            allRecords = DataCleaner.CleanRecordPairs(allRecords); 
+            allRecords = DataCleaner.CleanRecordPairs(allRecords);
 
             Console.Write("Building training data...");
             for (int c = 0; c < allRecords.Count; c += 2)
@@ -108,8 +109,8 @@ namespace DecisionTreeLearner
                     }
                 }
             }
-            Console.WriteLine("...done"); 
-            return trainingData; 
+            Console.WriteLine("...done");
+            return trainingData;
         }
 
         static void Train(int numberOfTrees, string outputDirectory, double subsamplingPercentage,
@@ -178,26 +179,6 @@ namespace DecisionTreeLearner
         static void TestOnTrainingData()
         {
             List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
-
-            using (StreamWriter positiveFout = File.CreateText("D:/positives.csv"))
-            {
-                using (StreamWriter negativeFout = File.CreateText("D:/negatives.csv"))
-                {
-                    foreach (RecordPair pair in trainingData)
-                    {
-                        if (pair.IsMatch)
-                        {
-                            positiveFout.WriteLine(pair.Record1.ToString() + "\n");
-                            positiveFout.WriteLine(pair.Record2.ToString() + "\n");
-                        }
-                        else
-                        {
-                            negativeFout.WriteLine(pair.Record1.ToString() + "\n");
-                            negativeFout.WriteLine(pair.Record2.ToString() + "\n");
-                        }
-                    }
-                }
-            }
 
             int consoleLeft = Console.CursorLeft;
             int consoleTop = Console.CursorTop;
@@ -308,10 +289,14 @@ namespace DecisionTreeLearner
                         Record[] recordsInSet =
                             list.Select(n => Record.FromFinalDatasetString(n)).ToArray();
 
-                        foreach (Record recordA in recordsInSet)
+                        //foreach (Record recordA in recordsInSet)
+                        for (int a = 0; a < recordsInSet.Length; a++)
                         {
-                            foreach (Record recordB in recordsInSet)
+                            //foreach (Record recordB in recordsInSet)
+                            for (int b = a + 1; b < recordsInSet.Length; b++)
                             {
+                                Record recordA = recordsInSet[a];
+                                Record recordB = recordsInSet[b];
                                 if (recordA != recordB)
                                 {
                                     RecordPair pair = new RecordPair
@@ -347,18 +332,35 @@ namespace DecisionTreeLearner
             }
         }
 
+        static void Merge()
+        {
+            using (StreamWriter sw = File.CreateText("c:/users/brush/desktop/merged.csv"))
+            {
+                foreach (string file in Directory.GetFiles("c:/users/brush/desktop/nomatches"))
+                {
+                    string[] lines = File.ReadAllLines(file);
+
+                    sw.WriteLine(lines[1]);
+                    sw.WriteLine(lines[2]);
+                    sw.WriteLine(); 
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
+            //Merge(); 
+
             //EditDistanceTests();
             //TestTree();
             //TestTree2();
             //TestTree3();
             //TestTree4(); 
-            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
             //TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
-            //Testers.TestSplitDirection.Test(); 
+            Testers.TestSplitDirection.Test(); 
         }
     }
 }

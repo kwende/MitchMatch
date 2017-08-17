@@ -14,32 +14,11 @@ namespace DecisionTreeLearner.NLP
         {
             bool matches = false;
 
-            bool isEmpty = false;
-            // is empty? 
-            if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1)
-            {
-                if (string.IsNullOrEmpty(column1) || string.IsNullOrEmpty(column2) ||
-                    column1 == "0" || column2 == "0")
-                {
-                    isEmpty = true;
-                }
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(column1) || string.IsNullOrEmpty(column2))
-                {
-                    isEmpty = true;
-                }
-            }
+            int editDistance = NLP.EditDistance.Compute(column1, column2);
 
-            if (!isEmpty)
+            if (editDistance <= question.MaximumEditDistance)
             {
-                int editDistance = NLP.EditDistance.Compute(column1, column2);
-
-                if (editDistance <= question.MaximumEditDistance)
-                {
-                    matches = true;
-                }
+                matches = true;
             }
 
             return matches;
@@ -52,24 +31,24 @@ namespace DecisionTreeLearner.NLP
             {
                 if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1 || question.Field == FieldEnum.SSN)
                 {
-                    if (string.IsNullOrEmpty(column1) || column1 == "0" || column1 == "-1")
+                    if (column1 == "" || column1 == "0" || column1 == "-1")
                     {
-                        matches = !(string.IsNullOrEmpty(column2) || column2 == "0" || column2 == "-1");
+                        matches = !(column2 == "" || column2 == "0" || column2 == "-1");
                     }
                     else
                     {
-                        matches = (string.IsNullOrEmpty(column2) || column2 == "0" || column2 == "-1");
+                        matches = (column2 == "" || column2 == "0" || column2 == "-1");
                     }
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(column1))
+                    if (column1 == "")
                     {
-                        matches = !string.IsNullOrEmpty(column2);
+                        matches = column2 != "";
                     }
                     else
                     {
-                        matches = string.IsNullOrEmpty(column2);
+                        matches = column2 == "";
                     }
                 }
             }
@@ -77,17 +56,35 @@ namespace DecisionTreeLearner.NLP
             {
                 if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1 || question.Field == FieldEnum.SSN)
                 {
-                    matches = (string.IsNullOrEmpty(column1) || column1 == "0" || column1 == "-1") &&
-                        (string.IsNullOrEmpty(column2) || column2 == "0" || column2 == "-1");
+                    matches = (column1 == "" || column1 == "0" || column1 == "-1") &&
+                        (column2 == "" || column2 == "0" || column2 == "-1");
                 }
                 else
                 {
-                    matches = string.IsNullOrEmpty(column1) && string.IsNullOrEmpty(column2);
+                    matches = column1 == "" && column2 == "";
                 }
             }
             else
             {
                 throw new ArgumentException();
+            }
+
+            return matches;
+        }
+
+        public static bool BasedOnPhone2SoftMatch(SplittingQuestion question, string column1, string column2)
+        {
+            bool matches = false;
+
+            if (column1.Contains("^^"))
+            {
+                string[] column1Bits = column1.Split(new string[] { "^^" }, StringSplitOptions.None);
+                matches = column1Bits.Contains(column2);
+            }
+            else if (column2.Contains("^^"))
+            {
+                string[] column2Bits = column2.Split(new string[] { "^^" }, StringSplitOptions.None);
+                matches = column2Bits.Contains(column1);
             }
 
             return matches;
@@ -116,6 +113,38 @@ namespace DecisionTreeLearner.NLP
                         passedSoftMatch = System.Math.Abs(column1Date.Day - column2Date.Day) == 1 &&
                             column1Date.Month == column2Date.Month &&
                             column1Date.Year == column2Date.Year;
+
+                        if (!passedSoftMatch)
+                        {
+                            if (column1.Length == column2.Length)
+                            {
+                                int visuallySimilarChars = 0;
+                                for (int c = 0; c < column1.Length; c++)
+                                {
+                                    char column1Char = column1[c];
+                                    char column2Char = column2[c];
+
+                                    if (column1Char != column2Char)
+                                    {
+                                        if ((column1Char == '3' && column2Char == '2') ||
+                                            (column2Char == '2' && column1Char == '3') ||
+                                            (column1Char == '5' && column2Char == '6') ||
+                                            (column1Char == '6' && column2Char == '5') ||
+                                            (column1Char == '1' && column2Char == '7') ||
+                                            (column1Char == '7' && column2Char == '1'))
+                                        {
+                                            visuallySimilarChars++;
+                                        }
+                                    }
+
+                                    // too dissimilar
+                                    if (visuallySimilarChars >= 2)
+                                        break;
+                                }
+
+                                passedSoftMatch = visuallySimilarChars == 1;
+                            }
+                        }
                     }
                 }
             }

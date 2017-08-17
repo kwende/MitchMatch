@@ -173,6 +173,10 @@ namespace DecisionTreeLearner.Tree
                     {
                         matches = MatchTypeMatcher.BasedOnDateSoftMatch(question, column1, column2);
                     }
+                    else if (question.Field == FieldEnum.Phone2)
+                    {
+                        matches = MatchTypeMatcher.BasedOnPhone2SoftMatch(question, column1, column2);
+                    }
                     break;
                 default:
                     throw new ArgumentException();

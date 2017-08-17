@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DecisionTreeLearner.NLP
@@ -51,12 +52,14 @@ namespace DecisionTreeLearner.NLP
             List<Tuple<string, string>> suffixes = AddressSuffixLoader.GetStreetSuffixAbbreviationTuples();
 
             string cleaned =
-                input.Address1.ToUpper().Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(" NORTH ", " N ").Replace(" SOUTH ", " S ");
+                input.Address1.ToUpper().Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(" NORTH ", " N ").Replace(" SOUTH ", " S ").Replace(" SO ", " S ");
 
             if (input.City == "BKLYN")
             {
                 input.City = "BROOKLYN";
             }
+
+            input.Address1 = Regex.Replace(input.Address1, @"(\d)(ST|ND|RD|TH)\b", "$1");
 
             //foreach (Tuple<string, string> suffix in suffixes)
             for (int c = 0; c < suffixes.Count; c++)
