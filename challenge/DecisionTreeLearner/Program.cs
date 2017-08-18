@@ -267,7 +267,7 @@ namespace DecisionTreeLearner
                 Console.Write($"{(number / (closedSetIdLists.Length * 1.0)) * 100}%...");
                 number++;
 
-                bool allGood = true;
+                List<Record> blackSheep = new List<Record>();
                 // get the ids
                 string[] enterpriseIds = closedSetIdList.Split(',');
                 List<string[]> list = new List<string[]>();
@@ -290,12 +290,14 @@ namespace DecisionTreeLearner
                             list.Select(n => Record.FromFinalDatasetString(n)).ToArray();
 
                         //foreach (Record recordA in recordsInSet)
+
                         for (int a = 0; a < recordsInSet.Length; a++)
                         {
+                            Record recordA = recordsInSet[a];
+                            bool matchFound = false;
                             //foreach (Record recordB in recordsInSet)
-                            for (int b = a + 1; b < recordsInSet.Length; b++)
+                            for (int b = 0; b < recordsInSet.Length; b++)
                             {
-                                Record recordA = recordsInSet[a];
                                 Record recordB = recordsInSet[b];
                                 if (recordA != recordB)
                                 {
@@ -307,13 +309,17 @@ namespace DecisionTreeLearner
 
                                     bool match = DecisionTreeBuilder.IsMatch(pair, forest, false);
 
-                                    if (!match)
+                                    if (match)
                                     {
-                                        File.AppendAllText($"C:/users/brush/desktop/nomatches/{Guid.NewGuid().ToString().Replace("-", "")}.txt",
-                                            pair.ToString());
-                                        allGood = false;
+                                        matchFound = true;
+                                        break;
                                     }
                                 }
+                            }
+
+                            if (!matchFound)
+                            {
+                                blackSheep.Add(recordA);
                             }
                         }
                         // transform them into the right colum format
@@ -321,13 +327,22 @@ namespace DecisionTreeLearner
                     }
                 }
 
-                if (allGood)
+                if (blackSheep.Count > 0)
                 {
-                    Console.WriteLine("...all good!");
+                    StringBuilder outputString = new StringBuilder();
+                    outputString.AppendLine($"{blackSheep.Count} out of {enterpriseIds.Length} failed");
+                    foreach (Record sheep in blackSheep)
+                    {
+                        outputString.AppendLine(sheep.ToString());
+                    }
+
+                    Console.WriteLine("...oops");
+                    File.AppendAllText($"C:/users/brush/desktop/nomatches/{Guid.NewGuid().ToString().Replace("-", "")}.txt",
+                        outputString.ToString());
                 }
                 else
                 {
-                    Console.WriteLine("...oops");
+                    Console.WriteLine("...good"); 
                 }
             }
         }
@@ -342,7 +357,7 @@ namespace DecisionTreeLearner
 
                     sw.WriteLine(lines[1]);
                     sw.WriteLine(lines[2]);
-                    sw.WriteLine(); 
+                    sw.WriteLine();
                 }
             }
         }
@@ -358,9 +373,11 @@ namespace DecisionTreeLearner
             //TestTree4(); 
             //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
-            //TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
+            TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
-            Testers.TestSplitDirection.Test(); 
+            //Testers.TestSplitDirection.Test(); 
+
+            //Testers.ListAllMatches.List(); 
         }
     }
 }
