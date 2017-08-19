@@ -40,6 +40,17 @@ namespace DecisionTreeLearner.NLP
                         matches = (column2 == "" || column2 == "0" || column2 == "-1");
                     }
                 }
+                else if(question.Field == FieldEnum.Gender)
+                {
+                    if(column1 == "U" || column1 == "")
+                    {
+                        matches = !(column2 == "U" || column2 == ""); 
+                    }
+                    else
+                    {
+                        matches = (column2 == "U" || column2 == ""); 
+                    }
+                }
                 else
                 {
                     if (column1 == "")
@@ -58,6 +69,11 @@ namespace DecisionTreeLearner.NLP
                 {
                     matches = (column1 == "" || column1 == "0" || column1 == "-1") &&
                         (column2 == "" || column2 == "0" || column2 == "-1");
+                }
+                else if(question.Field == FieldEnum.SSN)
+                {
+                    matches = (column1 == "" || column1 == "U") &&
+                        (column2 == "" || column2 == "U"); 
                 }
                 else
                 {

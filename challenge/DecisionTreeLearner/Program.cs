@@ -287,7 +287,8 @@ namespace DecisionTreeLearner
                     if (list.Count == enterpriseIds.Length)
                     {
                         Record[] recordsInSet =
-                            list.Select(n => Record.FromFinalDatasetString(n)).ToArray();
+                            list.Select(n => NLP.DataCleaner.CleanRecord(
+                                Record.FromFinalDatasetString(n))).ToArray();
 
                         //foreach (Record recordA in recordsInSet)
 
