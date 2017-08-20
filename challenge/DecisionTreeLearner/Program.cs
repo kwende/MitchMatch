@@ -262,10 +262,11 @@ namespace DecisionTreeLearner
 
             // for each line of closed set ids
             int number = 0;
-            foreach (string closedSetIdList in closedSetIdLists)
+            //foreach (string closedSetIdList in closedSetIdLists)
+            Parallel.ForEach(closedSetIdLists, closedSetIdList =>
             {
-                Console.Write($"{(number / (closedSetIdLists.Length * 1.0)) * 100}%...");
-                number++;
+                Interlocked.Increment(ref number);
+                Console.WriteLine($"{(number / (closedSetIdLists.Length * 1.0)) * 100}%...");
 
                 List<Record> blackSheep = new List<Record>();
                 // get the ids
@@ -337,15 +338,15 @@ namespace DecisionTreeLearner
                         outputString.AppendLine(sheep.ToString());
                     }
 
-                    Console.WriteLine("...oops");
+                    //Console.WriteLine("...oops");
                     File.AppendAllText($"C:/users/brush/desktop/nomatches/{Guid.NewGuid().ToString().Replace("-", "")}.txt",
                         outputString.ToString());
                 }
                 else
                 {
-                    Console.WriteLine("...good"); 
+                    //Console.WriteLine("...good");
                 }
-            }
+            });
         }
 
         static void Merge()
@@ -374,9 +375,9 @@ namespace DecisionTreeLearner
             //TestTree4(); 
             //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
-            TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
+            //TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
-            //Testers.TestSplitDirection.Test(); 
+            Testers.TestSplitDirection.Test(); 
 
             //Testers.ListAllMatches.List(); 
         }
