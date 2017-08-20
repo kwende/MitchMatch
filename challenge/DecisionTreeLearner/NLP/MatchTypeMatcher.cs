@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DecisionTreeLearner.NLP
 {
     public static class MatchTypeMatcher
-    {
+    { 
         public static bool BasedOnEditDistance(SplittingQuestion question, string column1, string column2)
         {
             bool matches = false;

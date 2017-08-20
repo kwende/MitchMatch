@@ -12,6 +12,39 @@ namespace DecisionTreeLearner.NLP
 {
     public static class DataCleaner
     {
+        private static string[] BadSSNs =
+        {
+            "000-00-0000",
+            "999-99-9999",
+            "123-45-6789",
+            "111-11-1111",
+            "666-66-6666",
+            "888-88-8888",
+            "555-55-5555",
+            "333-33-3333",
+            "777-77-7777",
+            "444-44-4444",
+            "222-22-2222",
+            "432-10-9876",
+            "109-87-6543",
+            "654-32-1098",
+            "000-00-0001",
+            "098-76-5432",
+            "765-43-2109",
+            "210-98-7654",
+            "678-90-1234",
+            "789-01-2345",
+            "876-54-3210",
+            "901-23-4567",
+            "456-78-9012",
+            "234-56-7890",
+            "890-12-3456",
+            "321-09-8765",
+            "543-21-0987",
+            "567-89-0123",
+            "345-67-8901",
+        };
+
         public static List<Record> CleanRecordPairs(List<Record> records)
         {
             Console.Write("Cleaning data...");
@@ -60,6 +93,11 @@ namespace DecisionTreeLearner.NLP
             }
 
             input.Address1 = Regex.Replace(input.Address1, @"(\d)(ST|ND|RD|TH)\b", "$1");
+
+            if (BadSSNs.Contains(input.SSN))
+            {
+                input.SSN = "";
+            }
 
             //foreach (Tuple<string, string> suffix in suffixes)
             for (int c = 0; c < suffixes.Count; c++)
