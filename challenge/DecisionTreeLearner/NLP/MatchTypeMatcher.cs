@@ -9,12 +9,34 @@ using System.Threading.Tasks;
 namespace DecisionTreeLearner.NLP
 {
     public static class MatchTypeMatcher
-    { 
+    {
         public static bool BasedOnEditDistance(SplittingQuestion question, string column1, string column2)
         {
             bool matches = false;
+            int editDistance = int.MaxValue;
 
-            int editDistance = NLP.EditDistance.Compute(column1, column2);
+            if (question.Field == FieldEnum.Phone2)
+            {
+                string[] column1Numbers = column1.Split(new string[] { "^^" }, StringSplitOptions.None);
+                string[] column2Numbers = column2.Split(new string[] { "^^" }, StringSplitOptions.None);
+
+                foreach (string column1Number in column1Numbers)
+                {
+                    foreach (string column2Number in column2Numbers)
+                    {
+                        int currentEditDistance = NLP.EditDistance.Compute(column1Number, column2Number);
+
+                        if (currentEditDistance < editDistance)
+                        {
+                            editDistance = currentEditDistance;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                editDistance = NLP.EditDistance.Compute(column1, column2);
+            }
 
             if (editDistance <= question.MaximumEditDistance)
             {
@@ -29,56 +51,18 @@ namespace DecisionTreeLearner.NLP
             bool matches = false;
             if (question.OneFieldValueIsEmpty)
             {
-                if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1 || question.Field == FieldEnum.SSN)
+                if (column1 == "")
                 {
-                    if (column1 == "" || column1 == "0" || column1 == "-1")
-                    {
-                        matches = !(column2 == "" || column2 == "0" || column2 == "-1");
-                    }
-                    else
-                    {
-                        matches = (column2 == "" || column2 == "0" || column2 == "-1");
-                    }
-                }
-                else if(question.Field == FieldEnum.Gender)
-                {
-                    if(column1 == "U" || column1 == "")
-                    {
-                        matches = !(column2 == "U" || column2 == ""); 
-                    }
-                    else
-                    {
-                        matches = (column2 == "U" || column2 == ""); 
-                    }
+                    matches = column2 != "";
                 }
                 else
                 {
-                    if (column1 == "")
-                    {
-                        matches = column2 != "";
-                    }
-                    else
-                    {
-                        matches = column2 == "";
-                    }
+                    matches = column2 == "";
                 }
             }
             else if (question.BothFieldValuesAreEmpty)
             {
-                if (question.Field == FieldEnum.SSN || question.Field == FieldEnum.Phone1 || question.Field == FieldEnum.SSN)
-                {
-                    matches = (column1 == "" || column1 == "0" || column1 == "-1") &&
-                        (column2 == "" || column2 == "0" || column2 == "-1");
-                }
-                else if(question.Field == FieldEnum.SSN)
-                {
-                    matches = (column1 == "" || column1 == "U") &&
-                        (column2 == "" || column2 == "U"); 
-                }
-                else
-                {
-                    matches = column1 == "" && column2 == "";
-                }
+                matches = column1 == "" && column2 == "";
             }
             else
             {
@@ -88,22 +72,9 @@ namespace DecisionTreeLearner.NLP
             return matches;
         }
 
-        public static bool BasedOnPhone2SoftMatch(SplittingQuestion question, string column1, string column2)
+        public static bool BasedOnIsFemale(SplittingQuestion question, string column1, string column2)
         {
-            bool matches = false;
-
-            if (column1.Contains("^^"))
-            {
-                string[] column1Bits = column1.Split(new string[] { "^^" }, StringSplitOptions.None);
-                matches = column1Bits.Contains(column2);
-            }
-            else if (column2.Contains("^^"))
-            {
-                string[] column2Bits = column2.Split(new string[] { "^^" }, StringSplitOptions.None);
-                matches = column2Bits.Contains(column1);
-            }
-
-            return matches;
+            return column1 == column2 && column2 == "F";
         }
 
         public static bool BasedOnDateSoftMatch(SplittingQuestion question, string column1, string column2)

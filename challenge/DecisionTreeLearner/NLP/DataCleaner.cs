@@ -99,6 +99,22 @@ namespace DecisionTreeLearner.NLP
                 input.SSN = "";
             }
 
+            if(input.Gender == "U")
+            {
+                input.Gender = ""; 
+            }
+
+            if(input.SSN == "0" || input.SSN == "-1")
+            {
+                input.SSN = ""; 
+            }
+
+            if(input.Phone1 == "0" || input.Phone1 == "-1")
+            {
+                input.Phone1 = ""; 
+            }
+
+
             //foreach (Tuple<string, string> suffix in suffixes)
             for (int c = 0; c < suffixes.Count; c++)
             {

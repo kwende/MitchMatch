@@ -38,6 +38,9 @@ namespace DecisionTreeLearner.Tree
                     break;
                 case MatchTypeEnum.SoftMatch:
                     ret = $"Soft match on {Field}"; 
+                    break;
+                case MatchTypeEnum.IsFemale:
+                    ret = "Are both entries female?";
                     break; 
             }
             return ret; 

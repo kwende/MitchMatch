@@ -111,6 +111,14 @@ namespace DecisionTreeLearner.Tree
                 OneFieldValueIsEmpty = false
             });
 
+            splittingQuestions.Add(new SplittingQuestion()
+            {
+                Field = FieldEnum.Gender,
+                MatchType = MatchTypeEnum.IsFemale,
+                BothFieldValuesAreEmpty = false,
+                OneFieldValueIsEmpty = false
+            });
+
             foreach (FieldEnum field in fields)
             {
                 splittingQuestions.Add(new SplittingQuestion
@@ -147,12 +155,6 @@ namespace DecisionTreeLearner.Tree
         {
             bool matches = false;
 
-            //Type recordType = typeof(Record);
-            //PropertyInfo property = _propInfoCache[(int)question.Field]; // recordType.GetProperty(question.Field.ToString());
-
-            //string column1 = (string)property.GetValue(pair.Record1);
-            //string column2 = (string)property.GetValue(pair.Record2);
-
             string column1 = pair.Record1.Cache[(int)question.Field];
             string column2 = pair.Record2.Cache[(int)question.Field];
 
@@ -173,11 +175,10 @@ namespace DecisionTreeLearner.Tree
                     {
                         matches = MatchTypeMatcher.BasedOnDateSoftMatch(question, column1, column2);
                     }
-                    else if (question.Field == FieldEnum.Phone2)
-                    {
-                        matches = MatchTypeMatcher.BasedOnPhone2SoftMatch(question, column1, column2);
-                    }
                     break;
+                case MatchTypeEnum.IsFemale:
+                    matches = MatchTypeMatcher.BasedOnIsFemale(question, column1, column2);
+                    break; 
                 default:
                     throw new ArgumentException();
             }
@@ -271,7 +272,7 @@ namespace DecisionTreeLearner.Tree
                 List<RecordPair> leftBucket = new List<RecordPair>();
                 List<RecordPair> rightBucket = new List<RecordPair>();
 
-                Random rand = new Random();
+                //Random rand = new Random();
 
                 int matchesInLeft = 0, noMatchesInLeft = 0,
                     matchesInRight = 0, noMatchesInRight = 0;
@@ -282,7 +283,7 @@ namespace DecisionTreeLearner.Tree
                     //if(pairNumber%10000==0)
                     //    Console.WriteLine($"{pairNumber} of {allPairs.Length}");
                     pairNumber++;
-                    if (rand.NextDouble() <= subsamplingPercentage)
+                    //if (rand.NextDouble() <= subsamplingPercentage)
                     {
                         bool goLeft = ComputeSplitDirection(splittingQuestion, pair);
 

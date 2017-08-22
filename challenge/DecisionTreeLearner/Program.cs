@@ -257,8 +257,17 @@ namespace DecisionTreeLearner
         {
             string[] finalDataSetList = File.ReadAllLines(finalDataSetPath);
             string[] closedSetIdLists = File.ReadAllLines(closedSetPath);
+            List<string[]> finalDataSetListSplit = new List<string[]>();
+            foreach (string finalDataSetRow in finalDataSetList)
+            {
+                string[] bits = finalDataSetRow.Split(',');
+                finalDataSetListSplit.Add(bits);
+            }
 
             DecisionTree[] forest = ForestLoader.FromDirectory("C:/users/brush/desktop/forest");
+
+            List<Record> blackSheep = new List<Record>();
+            Dictionary<Record, List<Record>> originalBlackSheepMatches = new Dictionary<Record, List<Record>>();
 
             // for each line of closed set ids
             int number = 0;
@@ -266,16 +275,18 @@ namespace DecisionTreeLearner
             Parallel.ForEach(closedSetIdLists, closedSetIdList =>
             {
                 Interlocked.Increment(ref number);
-                Console.WriteLine($"{(number / (closedSetIdLists.Length * 1.0)) * 100}%...");
+                if (number % 100 == 0)
+                {
+                    Console.Clear();
+                    Console.WriteLine($"{(number / (closedSetIdLists.Length * 1.0)) * 100}%...");
+                }
 
-                List<Record> blackSheep = new List<Record>();
                 // get the ids
                 string[] enterpriseIds = closedSetIdList.Split(',');
                 List<string[]> list = new List<string[]>();
                 // find the matching records
-                foreach (string finalDataSetRow in finalDataSetList)
+                foreach (string[] bits in finalDataSetListSplit)
                 {
-                    string[] bits = finalDataSetRow.Split(',');
                     foreach (string enterpriseId in enterpriseIds)
                     {
                         if (bits[0] == enterpriseId)
@@ -291,13 +302,10 @@ namespace DecisionTreeLearner
                             list.Select(n => NLP.DataCleaner.CleanRecord(
                                 Record.FromFinalDatasetString(n))).ToArray();
 
-                        //foreach (Record recordA in recordsInSet)
-
                         for (int a = 0; a < recordsInSet.Length; a++)
                         {
                             Record recordA = recordsInSet[a];
                             bool matchFound = false;
-                            //foreach (Record recordB in recordsInSet)
                             for (int b = 0; b < recordsInSet.Length; b++)
                             {
                                 Record recordB = recordsInSet[b];
@@ -321,32 +329,64 @@ namespace DecisionTreeLearner
 
                             if (!matchFound)
                             {
-                                blackSheep.Add(recordA);
+                                lock (blackSheep)
+                                {
+                                    blackSheep.Add(recordA);
+                                    originalBlackSheepMatches.Add(recordA, new List<Record>(recordsInSet.Where(n => !n.Equals(blackSheep))));
+                                }
                             }
                         }
                         // transform them into the right colum format
                         break;
                     }
                 }
-
-                if (blackSheep.Count > 0)
-                {
-                    StringBuilder outputString = new StringBuilder();
-                    outputString.AppendLine($"{blackSheep.Count} out of {enterpriseIds.Length} failed");
-                    foreach (Record sheep in blackSheep)
-                    {
-                        outputString.AppendLine(sheep.ToString());
-                    }
-
-                    //Console.WriteLine("...oops");
-                    File.AppendAllText($"C:/users/brush/desktop/nomatches/{Guid.NewGuid().ToString().Replace("-", "")}.txt",
-                        outputString.ToString());
-                }
-                else
-                {
-                    //Console.WriteLine("...good");
-                }
             });
+
+            Console.WriteLine("Finding better options...");
+            Dictionary<Record, List<Record>> matches = ListAllMatches.GetMatches(blackSheep);
+
+            using (StreamWriter betterOptions = File.CreateText("c:/users/brush/desktop/betterOptions.txt"))
+            {
+                using (StreamWriter crapOptions = File.CreateText("C:/users/brush/desktop/crapMatches.txt"))
+                {
+                    foreach (Record key in matches.Keys)
+                    {
+                        List<Record> options = matches[key];
+
+                        if (options.Count > 0)
+                        {
+                            betterOptions.WriteLine($"{key}");
+                            betterOptions.WriteLine("Original matches:");
+                            foreach (Record originalMatch in originalBlackSheepMatches[key])
+                            {
+                                if (!originalMatch.Equals(key))
+                                {
+                                    betterOptions.WriteLine($"\t\t{originalMatch}");
+                                }
+                            }
+                            betterOptions.WriteLine("Better options:");
+                            foreach (Record betterOption in options)
+                            {
+                                betterOptions.WriteLine($"\t\t{betterOption}");
+                            }
+                            betterOptions.WriteLine("============================");
+                        }
+                        else
+                        {
+                            crapOptions.WriteLine($"{key}");
+                            crapOptions.WriteLine("Original matches:");
+                            foreach (Record originalMatch in originalBlackSheepMatches[key])
+                            {
+                                if (!originalMatch.Equals(key))
+                                {
+                                    crapOptions.WriteLine($"\t\t{originalMatch}");
+                                }
+                            }
+                            crapOptions.WriteLine("============================");
+                        }
+                    }
+                }
+            }
         }
 
         static void Merge()
@@ -379,7 +419,10 @@ namespace DecisionTreeLearner
 
             Testers.TestSplitDirection.Test(); 
 
-            //Testers.ListAllMatches.List(); 
+            //Testers.ListAllMatches.List();
+
+            //MatchTypeMatcher.BasedOnEditDistance(new SplittingQuestion { Field = FieldEnum.Phone2 },
+            //    "862-868-5040^^212-606-1687", "212-606-1687"); 
         }
     }
 }

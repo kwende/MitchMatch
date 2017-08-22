@@ -29,6 +29,40 @@ namespace DecisionTreeLearner.Tree
 
         public string[] Cache { get; set; }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            bool equals = false;
+
+            if (obj is Record)
+            {
+                Record other = (Record)obj;
+
+                equals = other.LastName == LastName &&
+                    other.FirstName == FirstName &&
+                    other.MiddleName == MiddleName &&
+                    other.Suffix == Suffix &&
+                    other.DOB == DOB &&
+                    other.Gender == Gender &&
+                    other.Address1 == Address1 &&
+                    other.Address2 == Address2 &&
+                    other.Zip == Zip &&
+                    other.MothersMaidenName == MothersMaidenName &&
+                    other.City == City &&
+                    other.State == State &&
+                    other.Phone1 == Phone1 &&
+                    other.Phone2 == Phone2 &&
+                    other.Email == Email &&
+                    other.Alias == Alias;
+            }
+
+            return equals;
+        }
+
         public override string ToString()
         {
             return string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}",
@@ -87,7 +121,7 @@ namespace DecisionTreeLearner.Tree
                 throw new Exception();
             }
 
-            return FromFinalDatasetString(bits); 
+            return FromFinalDatasetString(bits);
         }
 
         public static Record FromString(string csvString)
@@ -99,9 +133,9 @@ namespace DecisionTreeLearner.Tree
                 throw new Exception();
             }
 
-            if(bits.Length == 19)
+            if (bits.Length == 19)
             {
-                record.Cache = bits; 
+                record.Cache = bits;
                 record.FirstName = bits[0];
                 record.MiddleName = bits[1];
                 record.LastName = bits[2];
@@ -120,9 +154,9 @@ namespace DecisionTreeLearner.Tree
                 record.Email = bits[15];
                 record.Alias = bits[18];
             }
-            else if(bits.Length == 17)
+            else if (bits.Length == 17)
             {
-                record.Cache = new string[19]; 
+                record.Cache = new string[19];
                 record.FirstName = record.Cache[0] = bits[0];
                 record.MiddleName = record.Cache[1] = bits[1];
                 record.LastName = record.Cache[2] = bits[2];
@@ -140,7 +174,7 @@ namespace DecisionTreeLearner.Tree
                 record.MothersMaidenName = record.Cache[14] = bits[14];
                 record.Email = record.Cache[15] = bits[15];
                 record.Cache[16] = "";
-                record.Cache[17] = ""; 
+                record.Cache[17] = "";
                 record.Alias = record.Cache[18] = bits[16];
             }
 
