@@ -91,6 +91,14 @@ namespace DecisionTreeLearner.NLP
             {
                 input.City = "BROOKLYN";
             }
+            else if(input.City == "NY")
+            {
+                input.City = "NEW YORK"; 
+            }
+            else if(input.City == "BX")
+            {
+                input.City = "BRONX"; 
+            }
 
             input.Address1 = Regex.Replace(input.Address1, @"(\d)(ST|ND|RD|TH)\b", "$1");
 
@@ -99,21 +107,45 @@ namespace DecisionTreeLearner.NLP
                 input.SSN = "";
             }
 
-            if(input.Gender == "U")
+            if (input.Gender == "U")
             {
-                input.Gender = ""; 
+                input.Gender = "";
             }
 
-            if(input.SSN == "0" || input.SSN == "-1")
+            if (input.SSN == "0" || input.SSN == "-1")
             {
-                input.SSN = ""; 
+                input.SSN = "";
             }
 
-            if(input.Phone1 == "0" || input.Phone1 == "-1")
+            if (input.Phone1 == "0" || input.Phone1 == "-1")
             {
-                input.Phone1 = ""; 
+                input.Phone1 = "";
             }
 
+            if (input.Address1 == "UNKNOWN" ||
+                input.Address1 == "UNKOWN" ||
+                input.Address1 == "UNK")
+            {
+                input.Address1 = "";
+            }
+
+            if (input.Address2 == "UNKNOWN" ||
+                input.Address2 == "UNKOWN" ||
+                input.Address2 == "UNK")
+            {
+                input.Address2 = "";
+            }
+
+            // all the same digit? 
+            if (Regex.IsMatch(input.Phone1.Replace("-", ""), @"^([0-9])\1*$"))
+            {
+                input.Phone1 = "";
+            }
+            // all the same digit? 
+            if (Regex.IsMatch(input.Phone2.Replace("-", ""), @"^([0-9])\1*$"))
+            {
+                input.Phone2 = ""; 
+            }
 
             //foreach (Tuple<string, string> suffix in suffixes)
             for (int c = 0; c < suffixes.Count; c++)
