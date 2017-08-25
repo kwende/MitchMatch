@@ -413,7 +413,7 @@ namespace DecisionTreeLearner
             //TestTree2();
             //TestTree3();
             //TestTree4(); 
-            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
             //TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 

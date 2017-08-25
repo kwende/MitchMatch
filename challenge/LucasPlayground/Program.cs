@@ -17,8 +17,56 @@ namespace LucasPlayground
         private static string[] _badAddresses = new string[0];
         private static DateTime[] _badDOBs = new DateTime[0];
 
+        static void DoBen()
+        {
+            // get all lines
+            var lines = GetLines();
+            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
+            var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
+
+            string[] linesInClosedSetFile = File.ReadAllLines(@"C:\repos\MitchMatch\closedsets.txt");
+
+            using (StreamWriter sw = File.CreateText("c:/users/ben/desktop/alternatives.txt"))
+            {
+                foreach (string line in linesInClosedSetFile)
+                {
+                    int[] eids = line.Split(',').Select(n => int.Parse(n)).ToArray();
+
+                    List<row> rows = new List<row>();
+                    for (int d = 0; d < eids.Length; d++)
+                    {
+                        for (int c = 0; c < data.Length; c++)
+                        {
+                            if (data[c].EnterpriseID == eids[d])
+                            {
+                                rows.Add(data[c]);
+                                break;
+                            }
+                        }
+                    }
+
+                    List<int> otherEids = new List<int>();
+                    foreach (row row in rows)
+                    {
+                        foreach (row otherRow in data)
+                        {
+                            if (EasiestAgreementCount(row, otherRow) > 2)
+                            {
+                                otherEids.Add(otherRow.EnterpriseID);
+                            }
+                        }
+                    }
+
+                    string toAppend = string.Join(",", otherEids.ToArray());
+                    sw.WriteLine(toAppend);
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
+            DoBen();
+
             // Load Data
             var lines = GetLines();
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
@@ -384,7 +432,7 @@ namespace LucasPlayground
 
         static void DisplayPossibleMatches(IEnumerable<row> data)
         {
-            while(true)
+            while (true)
             {
                 string line = Console.ReadLine();
                 int eid;
@@ -398,7 +446,7 @@ namespace LucasPlayground
                     }
                     RowLibrary.Print(row);
                     var softmatches = data.Where(d => EasiestAgreementCount(d, row) >= 2);
-                    foreach(var match in softmatches)
+                    foreach (var match in softmatches)
                     {
                         if (row == match)
                             continue;
@@ -532,10 +580,13 @@ namespace LucasPlayground
             {
                 lines = File.ReadLines(@"C:/github/PMAC/FInalDataset.csv");
             }
-            else if (Environment.UserName.ToLower().Contains("brush") ||
-                Environment.UserName.ToLower().Contains("ben"))
+            else if (Environment.UserName.ToLower().Contains("brush"))
             {
                 lines = File.ReadLines(@"C:/users/brush/desktop/FInalDataset.csv");
+            }
+            else if (Environment.UserName.ToLower().Contains("ben"))
+            {
+                lines = File.ReadLines(@"C:/users/ben/desktop/FInalDataset.csv");
             }
             else if (Environment.UserName.ToLower().Contains("jbrownkramer") ||
                 Environment.UserName.ToLower().Contains("josh"))
