@@ -127,7 +127,7 @@ namespace DecisionTreeLearner.Tree
         public static Record FromString(string csvString)
         {
             Record record = new Record();
-            string[] bits = csvString.Split(',');
+            string[] bits = csvString.Split(',').Select(n=>n.Trim()).ToArray();
             if (bits.Length != 19 && bits.Length != 17)
             {
                 throw new Exception();

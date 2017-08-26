@@ -55,7 +55,7 @@ namespace DecisionTreeLearner
             return ret;
         }
 
-        static List<RecordPair> BuildTrainingData(string inputFilePath)
+        static List<RecordPair> BuildTrainingData(string inputFilePath, string inputMoreFilePath)
         {
             List<RecordPair> trainingData = new List<RecordPair>();
 
@@ -110,6 +110,72 @@ namespace DecisionTreeLearner
                 }
             }
             Console.WriteLine("...done");
+
+            string[] extraLines = File.ReadAllLines(inputMoreFilePath);
+            List<string[]> moreGroups = new List<string[]>();
+
+            for (int c = 0; c < extraLines.Length; c++)
+            {
+                List<string> group = new List<string>();
+                for (; c < extraLines.Length; c++)
+                {
+                    if (extraLines[c] == "")
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        group.Add(extraLines[c]);
+                    }
+                }
+                moreGroups.Add(group.ToArray());
+            }
+
+            for (int c = 0; c < moreGroups.Count; c++)
+            {
+                // get the positives by iterating in the group. 
+                Record[] recordsInGroupC = moreGroups[c].Select(n => Record.FromString(n)).ToArray();
+                for (int d = 0; d < recordsInGroupC.Length; d++)
+                {
+                    Record record1 = recordsInGroupC[d];
+                    for (int e = d; e < recordsInGroupC.Length; e++)
+                    {
+                        Record record2 = recordsInGroupC[e];
+                        RecordPair pair = new RecordPair
+                        {
+                            IsMatch = true,
+                            Record1 = record1,
+                            Record2 = record2
+                        };
+                        trainingData.Add(pair);
+                    }
+                }
+
+                // get the negatives by iterating everyone else
+                for (int d = 0; d < moreGroups.Count; d++)
+                {
+                    if (c != d)
+                    {
+                        Record[] others = moreGroups[d].Select(n => Record.FromString(n)).ToArray();
+                        for (int e = 0; e < recordsInGroupC.Length; c++)
+                        {
+                            Record record1 = recordsInGroupC[e];
+                            for (int f = 0; f < others.Length; f++)
+                            {
+                                Record record2 = others[f];
+                                RecordPair pair = new RecordPair
+                                {
+                                    IsMatch = false,
+                                    Record1 = record1,
+                                    Record2 = record2
+                                };
+                                trainingData.Add(pair);
+                            }
+                        }
+                    }
+                }
+            }
+
             return trainingData;
         }
 
@@ -118,7 +184,7 @@ namespace DecisionTreeLearner
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+            List<RecordPair> trainingData = BuildTrainingData("mrns.csv", "more.csv");
             //List<RecordPair> trainingData = LoadTrainingData("D:/positives.csv", "D:/negatives.csv");
 
             int numberPerTree = trainingData.Count / numberOfTrees;
@@ -178,7 +244,7 @@ namespace DecisionTreeLearner
 
         static void TestOnTrainingData()
         {
-            List<RecordPair> trainingData = BuildTrainingData("mrns.csv");
+            List<RecordPair> trainingData = BuildTrainingData("mrns.csv", "more.csv");
 
             int consoleLeft = Console.CursorLeft;
             int consoleTop = Console.CursorTop;
@@ -417,7 +483,7 @@ namespace DecisionTreeLearner
             //TestOnTrainingData();
             //TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
-            Testers.TestSplitDirection.Test(); 
+            Testers.TestSplitDirection.Test();
 
             //Testers.ListAllMatches.List();
 
