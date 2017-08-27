@@ -9,23 +9,193 @@ namespace DecisionTreeLearner.Tree
     [Serializable]
     public class Record
     {
-        public string LastName { get; set; }
-        public string FirstName { get; set; }
-        public string MiddleName { get; set; }
-        public string Suffix { get; set; }
-        public string DOB { get; set; }
-        public string Gender { get; set; }
-        public string SSN { get; set; }
-        public string Address1 { get; set; }
-        public string Address2 { get; set; }
-        public string Zip { get; set; }
-        public string MothersMaidenName { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-        public string Phone1 { get; set; }
-        public string Phone2 { get; set; }
-        public string Email { get; set; }
-        public string Alias { get; set; }
+        public string LastName
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.LastName]; 
+            }
+            set
+            {
+                Cache[(int)FieldEnum.LastName] = value; 
+            }
+        }
+        public string FirstName
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.FirstName];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.FirstName] = value;
+            }
+        }
+        public string MiddleName
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.MiddleName];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.MiddleName] = value;
+            }
+        }
+        public string Suffix
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.Suffix];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.Suffix] = value;
+            }
+        }
+        public string DOB
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.DOB];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.DOB] = value;
+            }
+        }
+        public string Gender
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.Gender];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.Gender] = value;
+            }
+        }
+        public string SSN
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.SSN];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.SSN] = value;
+            }
+        }
+        public string Address1
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.Address1];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.Address1] = value;
+            }
+        }
+        public string Address2
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.Address2];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.Address2] = value;
+            }
+        }
+        public string Zip
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.Zip];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.Zip] = value;
+            }
+        }
+        public string MothersMaidenName
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.MothersMaidenName];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.MothersMaidenName] = value;
+            }
+        }
+        public string City
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.City];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.City] = value;
+            }
+        }
+        public string State
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.State];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.State] = value;
+            }
+        }
+        public string Phone1
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.Phone1];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.Phone1] = value;
+            }
+        }
+        public string Phone2
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.Phone2];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.Phone2] = value;
+            }
+        }
+        public string Email
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.Email];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.Email] = value;
+            }
+        }
+        public string Alias
+        {
+            get
+            {
+                return Cache[(int)FieldEnum.Alias];
+            }
+            set
+            {
+                Cache[(int)FieldEnum.Alias] = value;
+            }
+        }
 
         public string[] Cache { get; set; }
 

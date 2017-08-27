@@ -55,6 +55,24 @@ namespace DecisionTreeLearner
             return ret;
         }
 
+        static List<RecordPair> LoadTrainingDataFromNoHomoFile(string noHomoFilePath)
+        {
+            List<RecordPair> ret = new List<RecordPair>();
+            string[] lines = File.ReadAllLines(noHomoFilePath);
+
+            for (int c = 0; c < lines.Length; c += 4)
+            {
+                RecordPair pair = new RecordPair();
+                pair.IsMatch = bool.Parse(lines[c]);
+                pair.Record1 = DataCleaner.CleanRecord(Record.FromString(lines[c + 1]));
+                pair.Record2 = DataCleaner.CleanRecord(Record.FromString(lines[c + 2]));
+
+                ret.Add(pair);
+            }
+
+            return ret;
+        }
+
         static List<RecordPair> BuildTrainingData(string inputFilePath, string inputMoreFilePath)
         {
             List<RecordPair> trainingData = new List<RecordPair>();
@@ -85,38 +103,40 @@ namespace DecisionTreeLearner
                 Random rand = new Random();
                 for (int d = 0; d < allRecords.Count; d += 2)
                 {
-                    if (c != d)
+                    //if (rand.Next() % 10 == 0)
                     {
-                        if (rand.Next() % 2 == 0)
+                        if (c != d)
                         {
-                            trainingData.Add(new RecordPair
+                            if (rand.Next() % 2 == 0)
                             {
-                                IsMatch = false,
-                                Record1 = allRecords[c],
-                                Record2 = allRecords[d]
-                            });
-                        }
-                        else
-                        {
-                            trainingData.Add(new RecordPair
+                                trainingData.Add(new RecordPair
+                                {
+                                    IsMatch = false,
+                                    Record1 = allRecords[c],
+                                    Record2 = allRecords[d]
+                                });
+                            }
+                            else
                             {
-                                IsMatch = false,
-                                Record1 = allRecords[c + 1],
-                                Record2 = allRecords[d]
-                            });
+                                trainingData.Add(new RecordPair
+                                {
+                                    IsMatch = false,
+                                    Record1 = allRecords[c + 1],
+                                    Record2 = allRecords[d]
+                                });
 
+                            }
                         }
                     }
                 }
             }
-            Console.WriteLine("...done");
 
             string[] extraLines = File.ReadAllLines(inputMoreFilePath);
-            List<string[]> moreGroups = new List<string[]>();
+            List<Record[]> moreGroups = new List<Record[]>();
 
             for (int c = 0; c < extraLines.Length; c++)
             {
-                List<string> group = new List<string>();
+                List<Record> group = new List<Record>();
                 for (; c < extraLines.Length; c++)
                 {
                     if (extraLines[c] == "")
@@ -125,7 +145,8 @@ namespace DecisionTreeLearner
                     }
                     else
                     {
-                        group.Add(extraLines[c]);
+                        Record record = Record.FromString(extraLines[c]); 
+                        group.Add(DataCleaner.CleanRecord(record));
                     }
                 }
                 moreGroups.Add(group.ToArray());
@@ -134,7 +155,7 @@ namespace DecisionTreeLearner
             for (int c = 0; c < moreGroups.Count; c++)
             {
                 // get the positives by iterating in the group. 
-                Record[] recordsInGroupC = moreGroups[c].Select(n => Record.FromString(n)).ToArray();
+                Record[] recordsInGroupC = moreGroups[c];
                 for (int d = 0; d < recordsInGroupC.Length; d++)
                 {
                     Record record1 = recordsInGroupC[d];
@@ -151,13 +172,14 @@ namespace DecisionTreeLearner
                     }
                 }
 
-                // get the negatives by iterating everyone else
+                //get the negatives by iterating everyone else
                 for (int d = 0; d < moreGroups.Count; d++)
                 {
+                    //Console.WriteLine(d.ToString()); 
                     if (c != d)
                     {
-                        Record[] others = moreGroups[d].Select(n => Record.FromString(n)).ToArray();
-                        for (int e = 0; e < recordsInGroupC.Length; c++)
+                        Record[] others = moreGroups[d];
+                        for (int e = 0; e < recordsInGroupC.Length; e++)
                         {
                             Record record1 = recordsInGroupC[e];
                             for (int f = 0; f < others.Length; f++)
@@ -175,6 +197,7 @@ namespace DecisionTreeLearner
                     }
                 }
             }
+            Console.WriteLine("...done");
 
             return trainingData;
         }
@@ -182,9 +205,27 @@ namespace DecisionTreeLearner
         static void Train(int numberOfTrees, string outputDirectory, double subsamplingPercentage,
             double minGain, int maximumEditDistance)
         {
+            Console.WriteLine("Train options:");
+            Console.WriteLine("\t1. Start full training.");
+            Console.WriteLine("\t2. Start debug training from nohomo file.");
+            Console.Write("Choice:"); 
+            int option = int.Parse(Console.ReadLine());
+
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            List<RecordPair> trainingData = BuildTrainingData("mrns.csv", "more.csv");
+
+            List<RecordPair> trainingData = null;
+            if (option == 1)
+            {
+                trainingData = BuildTrainingData("mrns.csv", "more.csv");
+            }
+            else if (option == 2)
+            {
+                Console.Write("Nohomo file path:");
+                string filePath = Console.ReadLine().Replace("\"","");
+                trainingData = LoadTrainingDataFromNoHomoFile(filePath);
+            }
+            //
             //List<RecordPair> trainingData = LoadTrainingData("D:/positives.csv", "D:/negatives.csv");
 
             int numberPerTree = trainingData.Count / numberOfTrees;
@@ -222,6 +263,16 @@ namespace DecisionTreeLearner
                     FieldEnum.Zip
                 };
                 SplittingQuestion[] splittingQuestions = DecisionTreeBuilder.GenerateSplittingQuestions(fieldsOnWhichToTrain, maximumEditDistance);
+
+                //SplittingQuestion[] splittingQuestions = new SplittingQuestion[]
+                //{
+                //     new SplittingQuestion
+                //     {
+                //          BothFieldValuesAreEmpty = true,
+                //           Field = FieldEnum.SSN,
+                //            MatchType = MatchTypeEnum.EmptyMatch
+                //     }
+                //};
 
 
                 DecisionTreeBuilder treeBuilder = new DecisionTreeBuilder();
@@ -479,11 +530,11 @@ namespace DecisionTreeLearner
             //TestTree2();
             //TestTree3();
             //TestTree4(); 
-            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+           // Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
-            //TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
+            TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
-            Testers.TestSplitDirection.Test();
+            //Testers.TestSplitDirection.Test();
 
             //Testers.ListAllMatches.List();
 

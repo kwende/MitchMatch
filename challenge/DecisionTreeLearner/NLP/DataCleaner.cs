@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -84,70 +85,82 @@ namespace DecisionTreeLearner.NLP
         {
             List<Tuple<string, string>> suffixes = AddressSuffixLoader.GetStreetSuffixAbbreviationTuples();
 
-            string cleaned =
-                input.Address1.ToUpper().Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(" NORTH ", " N ").Replace(" SOUTH ", " S ").Replace(" SO ", " S ");
-
+            ///////////////// CITY ////////////////////
             if (input.City == "BKLYN")
             {
                 input.City = "BROOKLYN";
             }
-            else if(input.City == "NY")
+            else if (input.City == "NY")
             {
-                input.City = "NEW YORK"; 
+                input.City = "NEW YORK";
             }
-            else if(input.City == "BX")
+            else if (input.City == "BX")
             {
-                input.City = "BRONX"; 
+                input.City = "BRONX";
             }
+            ///////////////////////////////////////
 
-            input.Address1 = Regex.Replace(input.Address1, @"(\d)(ST|ND|RD|TH)\b", "$1");
 
+            ///////////////////// SSN//////////////////////
             if (BadSSNs.Contains(input.SSN))
             {
                 input.SSN = "";
             }
-
-            if (input.Gender == "U")
-            {
-                input.Gender = "";
-            }
-
             if (input.SSN == "0" || input.SSN == "-1")
             {
                 input.SSN = "";
             }
+            ////////////////////////////////////////////
 
-            if (input.Phone1 == "0" || input.Phone1 == "-1")
+            ////////////////// GENDER //////////////////
+            if (input.Gender == "U")
             {
-                input.Phone1 = "";
+                input.Gender = "";
             }
+            /////////////////////////////////////////////
 
+            ///////////////// ADDRESS1 ////////////////////
             if (input.Address1 == "UNKNOWN" ||
                 input.Address1 == "UNKOWN" ||
                 input.Address1 == "UNK")
             {
                 input.Address1 = "";
             }
+            ///////////////////////////////////////////////
 
+            /////////////////// ADDRESS2 /////////////////////
             if (input.Address2 == "UNKNOWN" ||
                 input.Address2 == "UNKOWN" ||
                 input.Address2 == "UNK")
             {
                 input.Address2 = "";
             }
+            /////////////////////////////////////////////////
 
+            ///////////////// PHONE1 ////////////////////
             // all the same digit? 
             if (Regex.IsMatch(input.Phone1.Replace("-", ""), @"^([0-9])\1*$"))
             {
                 input.Phone1 = "";
             }
+            if (input.Phone1 == "0" || input.Phone1 == "-1")
+            {
+                input.Phone1 = "";
+            }
+            //////////////////////////////////////////////
+
+            /////////////// PHONE2 //////////////////
             // all the same digit? 
             if (Regex.IsMatch(input.Phone2.Replace("-", ""), @"^([0-9])\1*$"))
             {
-                input.Phone2 = ""; 
+                input.Phone2 = "";
             }
+            /////////////////////////////////////////
 
-            //foreach (Tuple<string, string> suffix in suffixes)
+            ////////////// ADDRESS1 /////////////////////
+            string cleaned = Regex.Replace(input.Address1, @"(\d)(ST|ND|RD|TH)\b", "$1");
+            cleaned = cleaned.Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(
+                    " NORTH ", " N ").Replace(" SOUTH ", " S ").Replace(" SO ", " S ");
             for (int c = 0; c < suffixes.Count; c++)
             {
                 Tuple<string, string> suffix = suffixes[c];
@@ -156,12 +169,10 @@ namespace DecisionTreeLearner.NLP
                     cleaned = cleaned.Replace($" {suffix.Item1}", $" {suffix.Item2}");
                 }
             }
-
             input.Address1 = cleaned;
+            ///////////////////////////////////////////////
 
             return input;
         }
-
-
     }
 }
