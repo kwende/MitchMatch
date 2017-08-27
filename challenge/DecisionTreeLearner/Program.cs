@@ -116,6 +116,13 @@ namespace DecisionTreeLearner
             //Testers.TestSplitDirection.Test();
 
             //Testers.ListAllMatches.List();
+
+            Testers.TrainedDataTesters.SearchForFalseNegatives(
+                "D:/repos/mitchmatch/closedsets.txt",
+                "C:/users/brush/desktop/finaldataset.csv",
+                "C:/users/brush/desktop/forest",
+                "D:/mitchMatchFalseNegativeSearchResults.txt",
+                "D:/mitchMatchFalsenegatievSearchState.txt"); 
         }
     }
 }

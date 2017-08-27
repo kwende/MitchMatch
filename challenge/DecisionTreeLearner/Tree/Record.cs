@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DecisionTreeLearner.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -264,7 +265,6 @@ namespace DecisionTreeLearner.Tree
 
             record.Cache = new string[19];
             record.EnterpriseId = int.Parse(bits[0]);
-            record.MRN = int.Parse(bits[12]); 
             record.FirstName = bits[2];
             record.MiddleName = bits[3];
             record.LastName = bits[1];
@@ -290,7 +290,7 @@ namespace DecisionTreeLearner.Tree
 
         public static Record FromFinalDatasetString(string csvString)
         {
-            string[] bits = csvString.Split(',');
+            string[] bits = DataLoader.SmartSplit(csvString); 
             if (bits.Length != 19)
             {
                 throw new Exception();

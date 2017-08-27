@@ -1,4 +1,5 @@
-﻿using DecisionTreeLearner.Tree;
+﻿using DecisionTreeLearner.Data;
+using DecisionTreeLearner.Tree;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace DecisionTreeLearner.Testers
             pair.Record1 = Record.FromString(line1);
             pair.Record2 = Record.FromString(line2); 
 
-            DecisionTree[] forest = ForestLoader.FromDirectory("C:/users/brush/desktop/forest");
+            DecisionTree[] forest = DataLoader.LoadForestFromDirectory("C:/users/brush/desktop/forest");
 
             bool isMatch = DecisionTreeBuilder.IsMatch(pair, forest, true);
 

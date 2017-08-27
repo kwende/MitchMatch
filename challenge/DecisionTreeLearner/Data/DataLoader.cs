@@ -12,17 +12,56 @@ namespace DecisionTreeLearner.Data
 {
     public static class DataLoader
     {
+        public static string[] SmartSplit(string csvLine)
+        {
+            List<int> separatorIndices = new List<int>();
+            bool withinQuotes = false;
+            for (int c = 0; c < csvLine.Length; c++)
+            {
+                if (csvLine[c] == '"')
+                {
+                    withinQuotes = !withinQuotes;
+                }
+                else if (csvLine[c] == ',' && !withinQuotes)
+                {
+                    separatorIndices.Add(c);
+                }
+            }
+
+            string[] ret = new string[separatorIndices.Count + 1];
+            int startIndex = 0;
+            for (int c = 0; c < separatorIndices.Count; c++)
+            {
+                int separatorIndex = separatorIndices[c];
+                ret[c] =
+                    csvLine.Substring(startIndex, separatorIndex - startIndex);
+                startIndex += ret[c].Length + 1;
+            }
+            ret[ret.Length - 1] = csvLine.Substring(startIndex); 
+
+            return ret;
+        }
+
         public static List<Record> LoadFinalDataSet(string finalDataSetPath)
         {
             List<Record> ret = new List<Record>();
             IEnumerable<string> lines = File.ReadLines(finalDataSetPath);
+            bool encounteredHeader = false;
             foreach (string line in lines)
             {
-                string[] bits = line.Split(',');
-                if (int.Parse(bits[0]) > 15374761)
+                if (!encounteredHeader)
                 {
-                    ret.Add(DataCleaner.CleanRecord(Record.FromFinalDatasetString(line)));
+                    encounteredHeader = true;
                 }
+                else
+                {
+                    string[] bits = line.Split(',');
+                    if (bits[0] != "" && int.Parse(bits[0]) > 15374761)
+                    {
+                        ret.Add(DataCleaner.CleanRecord(Record.FromFinalDatasetString(line)));
+                    }
+                }
+
             }
             return ret;
         }

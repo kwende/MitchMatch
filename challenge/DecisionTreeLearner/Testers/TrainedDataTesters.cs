@@ -16,31 +16,43 @@ namespace DecisionTreeLearner.Testers
         public static void SearchForFalseNegatives(string closedSetPath, string finalDataSetPath,
             string forestDirectory, string outputFile, string stateFile)
         {
+            Console.Write("Loading final dataset...");
             List<Record> finalDataSet = DataLoader.LoadFinalDataSet(finalDataSetPath);
+            Console.WriteLine("...done");
+            Console.Write("Loading closed sets file...");
             List<List<Record>> closedSets = DataLoader.LoadClosedSets(closedSetPath, finalDataSet);
+            Console.WriteLine("...done");
 
+            Console.Write("Loading decision tree forest...");
             DecisionTree[] forest =
                 DataLoader.LoadForestFromDirectory(forestDirectory);
+            Console.WriteLine("...done");
 
+            Console.Write("Reading state file...");
             int startIndex = 0;
             if (File.Exists(stateFile))
             {
-                startIndex = int.Parse(File.ReadAllText(stateFile)); 
+                startIndex = int.Parse(File.ReadAllText(stateFile));
             }
+            Console.WriteLine($"...done. Starting at {startIndex}.");
 
+            Console.WriteLine("Starting....");
             using (StreamWriter fout = File.AppendText(outputFile))
             {
                 for (int c = startIndex; c < closedSets.Count;)
                 {
-                    Console.WriteLine($"Working on set {c + 1} of {closedSets.Count}"); 
+                    Console.WriteLine($"Working on set {c + 1} of {closedSets.Count}");
                     List<Record> closedSet = closedSets[c];
-                    List<Record> thoseThatMach = new List<Record>();
-                    StringBuilder sb = new StringBuilder(1024); 
+
+                    StringBuilder sb = new StringBuilder(1024);
                     foreach (Record record in closedSet)
                     {
-                        Parallel.ForEach(finalDataSet, otherRecord =>
+                        List<Record> thoseThatMatchOutsideOfSet = new List<Record>();
+                        List<Record> thoseThatMatchInsideOfSet = new List<Record>();
+                        //Parallel.ForEach(finalDataSet, otherRecord =>
+                        foreach (Record otherRecord in finalDataSet)
                         {
-                            if (otherRecord != record)
+                            if (otherRecord.EnterpriseId != record.EnterpriseId)
                             {
                                 if (DecisionTreeBuilder.IsMatch(new RecordPair
                                 {
@@ -48,22 +60,30 @@ namespace DecisionTreeLearner.Testers
                                     Record2 = otherRecord
                                 }, forest, false))
                                 {
-                                    lock (thoseThatMach)
+                                    lock (thoseThatMatchOutsideOfSet)
                                     {
-                                        thoseThatMach.Add(otherRecord);
+                                        if (closedSet.Any(n => n.EnterpriseId == otherRecord.EnterpriseId))
+                                        {
+                                            thoseThatMatchInsideOfSet.Add(otherRecord); 
+                                        }
+                                        else
+                                        {
+                                            thoseThatMatchOutsideOfSet.Add(otherRecord);
+                                        }
                                     }
                                 }
                             }
-                        }); 
-                        sb.AppendLine(record.EnterpriseId.ToString() + ":" + 
-                            string.Join(",", thoseThatMach.Select(n => n.EnterpriseId.ToString()))); 
+                        }//);
+                        sb.AppendLine(record.EnterpriseId.ToString() + ":" +
+                            "[" + string.Join(",", thoseThatMatchOutsideOfSet.Select(n => n.EnterpriseId.ToString())) + "][" +
+                            string.Join(",", thoseThatMatchInsideOfSet.Select(n => n.EnterpriseId.ToString())) + "]"); 
                     }
 
-                    fout.Write(sb.ToString()); 
+                    fout.Write(sb.ToString());
                     fout.Flush();
 
-                    c++; 
-                    File.WriteAllText(stateFile, c.ToString()); 
+                    c++;
+                    File.WriteAllText(stateFile, c.ToString());
                 }
             }
         }
