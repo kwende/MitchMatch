@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -82,6 +83,13 @@ namespace DecisionTreeLearner.NLP
 
         public static string CleanAddress(string address)
         {
+            if (address == "UNKNOWN" ||
+                address == "UNKOWN" ||
+                address == "UNK")
+            {
+                return "";
+            }
+
             List<Tuple<string, string>> suffixes = AddressSuffixLoader.GetStreetSuffixAbbreviationTuples();
 
             string cleaned =
@@ -103,36 +111,76 @@ namespace DecisionTreeLearner.NLP
 
         public static Record CleanRecord(Record input)
         {
+            ////////////////// CITY //////////////////
             if (input.City == "BKLYN")
             {
                 input.City = "BROOKLYN";
             }
-            
+            else if (input.City == "NY")
+            {
+                input.City = "NEW YORK";
+            }
+            else if (input.City == "BX")
+            {
+                input.City = "BRONX";
+            }
+            ///////////////////////////////////////
+
+
+            ///////////////////// SSN//////////////////////
             if (BadSSNs.Contains(input.SSN))
             {
                 input.SSN = "";
             }
-
-            if(input.Gender == "U")
+            if (input.SSN == "0" || input.SSN == "-1")
             {
-                input.Gender = ""; 
+                input.SSN = "";
             }
+            ////////////////////////////////////////////
 
-            if(input.SSN == "0" || input.SSN == "-1")
+            ////////////////// GENDER //////////////////
+            if (input.Gender == "U")
             {
-                input.SSN = ""; 
+                input.Gender = "";
             }
+            /////////////////////////////////////////////
 
-            if(input.Phone1 == "0" || input.Phone1 == "-1")
+
+            /////////////////// ADDRESS2 /////////////////////
+            if (input.Address2 == "UNKNOWN" ||
+                input.Address2 == "UNKOWN" ||
+                input.Address2 == "UNK")
             {
-                input.Phone1 = ""; 
+                input.Address2 = "";
             }
+            /////////////////////////////////////////////////
 
+            ///////////////// PHONE1 ////////////////////
+            // all the same digit? 
+            if (Regex.IsMatch(input.Phone1.Replace("-", ""), @"^([0-9])\1*$"))
+            {
+                input.Phone1 = "";
+            }
+            if (input.Phone1 == "0" || input.Phone1 == "-1")
+            {
+                input.Phone1 = "";
+            }
+            //////////////////////////////////////////////
+
+            /////////////// PHONE2 //////////////////
+            // all the same digit? 
+            if (Regex.IsMatch(input.Phone2.Replace("-", ""), @"^([0-9])\1*$"))
+            {
+                input.Phone2 = "";
+            }
+            /////////////////////////////////////////
+
+            ////////////// ADDRESS1 /////////////////////
             input.Address1 = CleanAddress(input.Address1);
+            ///////////////////////////////////////////////
+
 
             return input;
         }
-
-
     }
 }

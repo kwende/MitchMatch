@@ -64,14 +64,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\AddressSuffixLoader.cs" />
+    <Compile Include="Data\DataLoader.cs" />
     <Compile Include="NLP\DataCleaner.cs" />
     <Compile Include="NLP\EditDistance.cs" />
     <Compile Include="NLP\MatchTypeMatcher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Testers\ForestLoader.cs" />
     <Compile Include="Testers\ListAllMatches.cs" />
     <Compile Include="Testers\TestSplitDirection.cs" />
+    <Compile Include="Testers\TrainedDataTesters.cs" />
     <Compile Include="Tree\DecisionTree.cs" />
     <Compile Include="Tree\DecisionTreeBuilder.cs" />
     <Compile Include="Tree\DecisionTreeNode.cs" />
@@ -83,6 +84,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="more.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="mrns.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -84,6 +84,10 @@ namespace challenge.Ben
             {
                 foreach(var id in thing)
                 {
+                    if (_component.ContainsKey(id))
+                    {
+                        Console.WriteLine("WTF?!");
+                    }
                     _component[id] = thing;
                 }
             }

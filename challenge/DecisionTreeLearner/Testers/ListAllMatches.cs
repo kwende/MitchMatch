@@ -1,4 +1,5 @@
-﻿using DecisionTreeLearner.NLP;
+﻿using DecisionTreeLearner.Data;
+using DecisionTreeLearner.NLP;
 using DecisionTreeLearner.Tree;
 using System;
 using System.Collections.Generic;
@@ -39,7 +40,7 @@ namespace DecisionTreeLearner.Testers
                             Record2 = comparisonRecord,
                         };
 
-                        DecisionTree[] forest = ForestLoader.FromDirectory("C:/users/brush/desktop/forest");
+                        DecisionTree[] forest = DataLoader.LoadForestFromDirectory("C:/users/brush/desktop/forest");
 
                         bool isMatch = DecisionTreeBuilder.IsMatch(pair, forest, false);
 
@@ -58,7 +59,7 @@ namespace DecisionTreeLearner.Testers
         {
             Dictionary<Record, List<Record>> ret = new Dictionary<Record, List<Record>>();
             string[] finalDataSetList = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
-            DecisionTree[] forest = ForestLoader.FromDirectory("C:/users/brush/desktop/forest");
+            DecisionTree[] forest = DataLoader.LoadForestFromDirectory("C:/users/brush/desktop/forest");
 
             foreach (Record record in records)
             {

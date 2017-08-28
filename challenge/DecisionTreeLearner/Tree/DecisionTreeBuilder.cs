@@ -178,7 +178,7 @@ namespace DecisionTreeLearner.Tree
                     break;
                 case MatchTypeEnum.IsFemale:
                     matches = MatchTypeMatcher.BasedOnIsFemale(question, column1, column2);
-                    break; 
+                    break;
                 default:
                     throw new ArgumentException();
             }
@@ -329,14 +329,15 @@ namespace DecisionTreeLearner.Tree
                 lock (splittingQuestions)
                 {
                     numberDone++;
-                    Console.SetCursorPosition(displayLeft, displayTop);
-                    Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
+                    //Console.SetCursorPosition(displayLeft, displayTop);
+                    //Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
                 }
             });
             #endregion
 
             if (highestGain <= minGainToBreak)
             {
+
                 parentNode.IsLeaf = true;
                 int matchCount = allPairs.Count(n => n.IsMatch);
                 int noMatchCount = allPairs.Count(n => !n.IsMatch);
@@ -352,6 +353,19 @@ namespace DecisionTreeLearner.Tree
 
                 if (matchCount > 0 && noMatchCount > 0)
                 {
+                    foreach (RecordPair noHomoPair in allPairs)
+                    {
+                        Console.WriteLine(noHomoPair);
+                        bool goLeft = ComputeSplitDirection(new SplittingQuestion
+                        {
+                            BothFieldValuesAreEmpty = true,
+                            Field = FieldEnum.SSN,
+                            MatchType = MatchTypeEnum.EmptyMatch
+                        }, noHomoPair);
+                        Console.WriteLine("\t\tGo left: " + goLeft.ToString());
+                    }
+
+                    Console.WriteLine("\tNOHOMO!");
                     StringBuilder sb = new StringBuilder();
                     foreach (RecordPair pair in allPairs)
                     {
@@ -362,13 +376,12 @@ namespace DecisionTreeLearner.Tree
                         sb.ToString());
                 }
 
-                Console.WriteLine("Gain limit met. Anything reaching this leaf will " + (parentNode.IsMatch ? " match." : " not match"));
+                Console.WriteLine("\tGain limit met. Anything reaching this leaf will be labeled as " + (parentNode.IsMatch ? "match." : "no match"));
             }
             else
             {
-                Console.WriteLine($"Best question at this level is {bestQuestion}");
+                Console.WriteLine($"\tBest question at this level is {bestQuestion}");
 
-                Console.Write("Copying data...");
                 List<RecordPair> bestLeftBucket = new List<RecordPair>(), bestRightBucket = new List<RecordPair>();
                 Parallel.ForEach(allPairs, pair =>
                 {
