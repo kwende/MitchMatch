@@ -11,6 +11,8 @@ namespace challenge.Ben
         private Dictionary<int, List<int>> _matches;
         private row[] _allRows;
         private List<List<int>> _closedRowSets;
+        private Dictionary<int, row> _eidToRow;
+        private Dictionary<int, List<int>> _component;
 
         public List<List<int>> ClosedRowSets
         {
@@ -27,6 +29,10 @@ namespace challenge.Ben
             _allRows = allRows;
 
             _closedRowSets = new List<List<int>>();
+            _eidToRow = new Dictionary<int, row>();
+            foreach (var row in allRows)
+                _eidToRow[row.EnterpriseID] = row;
+            _component = new Dictionary<int, List<int>>();
         }
 
         private void RecursiveFindClosure(int key, List<int> closedSet, Dictionary<int, List<int>> matches)
@@ -73,21 +79,19 @@ namespace challenge.Ben
 
                 _closedRowSets.Add(rowsInClosedSet); 
             }
+
+            foreach(var thing in _closedRowSets)
+            {
+                foreach(var id in thing)
+                {
+                    _component[id] = thing;
+                }
+            }
         }
 
         public row[] FindClosedSetForRow(row input)
         {
-            row[] toReturn = null; 
-            int enterpriseId = input.EnterpriseID;
-            foreach (List<int> rowSet in _closedRowSets)
-            {
-                if(rowSet.Any(n=>n == enterpriseId))
-                {
-                    toReturn = _allRows.Where(r => rowSet.Contains(r.EnterpriseID)).ToArray();
-                    break; 
-                }
-            }
-            return toReturn; 
+            return _component[input.EnterpriseID].Select(eid => _eidToRow[eid]).ToArray();
         }
 
         public static TransitiveClosure Compute(Dictionary<int, List<int>> matches, row[] allRows)

@@ -30,7 +30,13 @@ namespace LucasPlayground
             _badPhones = data.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
             _badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ') && g.Count() > 2).Select(g => g.Key).ToArray();
 
+
             CleanData(ref data);
+
+            //Create a dictionary for quick lookup
+            Dictionary<int, row> enterpriseIdToRow = new Dictionary<int, row>();
+            foreach (var r in data)
+                enterpriseIdToRow[r.EnterpriseID] = r;
 
             //DisplayPossibleMatches(data);
 
@@ -328,34 +334,48 @@ namespace LucasPlayground
 
             weakerMatchedIDs = weakerMatchedIDs.Distinct().ToList();
 
-            //TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
-            //bool[] alreadyTakenCareOf = new bool[weakerMatchedIDs.Count];
-            //List<List<int>> possibleBadSets = new List<List<int>>();
-            //for (int i = 0; i < weakerMatchedIDs.Count; i++)
-            //{
-            //    if (!alreadyTakenCareOf[i])
-            //    {
-            //        row row = data.Where(r => r.EnterpriseID == weakerMatchedIDs[i]).First();
-            //        row[] group = tc.FindClosedSetForRow(row);
-            //        List<int> toAdd = new List<int>();
-            //        foreach (row r in group)
-            //        {
-            //            toAdd.Add(r.EnterpriseID);
-            //            if (weakerMatchedIDs.IndexOf(r.EnterpriseID) >= 0)
-            //            {
-            //                alreadyTakenCareOf[weakerMatchedIDs.IndexOf(r.EnterpriseID)] = true;
-            //            }
-            //        }
-            //        possibleBadSets.Add(toAdd);
-            //    }
-            //}
-            //using (StreamWriter sw = File.CreateText("C:/users/lsabalka/desktop/closedsets.txt"))
-            //{
-            //    foreach (List<int> closedSet in possibleBadSets)
-            //    {
-            //        sw.WriteLine(string.Join(",", closedSet));
-            //    }
-            //}
+            TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
+            bool[] alreadyTakenCareOf = new bool[weakerMatchedIDs.Count];
+            List<List<int>> possibleBadSets = new List<List<int>>();
+            for (int i = 0; i < weakerMatchedIDs.Count; i++)
+            {
+                if (!alreadyTakenCareOf[i])
+                {
+                    row row = data.Where(r => r.EnterpriseID == weakerMatchedIDs[i]).First();
+                    row[] group = tc.FindClosedSetForRow(row);
+                    List<int> toAdd = new List<int>();
+                    foreach (row r in group)
+                    {
+                        toAdd.Add(r.EnterpriseID);
+                        if (weakerMatchedIDs.IndexOf(r.EnterpriseID) >= 0)
+                        {
+                            alreadyTakenCareOf[weakerMatchedIDs.IndexOf(r.EnterpriseID)] = true;
+                        }
+                    }
+                    possibleBadSets.Add(toAdd);
+                }
+            }
+
+            List<List<int>> autoPassedSets = new List<List<int>>();
+            int c = 0;
+            foreach(var badSet in possibleBadSets)
+            {
+                //Express as rows
+                row[] r = badSet.Select(eid => enterpriseIdToRow[eid]).ToArray();
+
+                //Check the mrns
+                if (ActuallyAGoodSet(r, data))
+                    autoPassedSets.Add(badSet);
+
+                Console.Write($"\r{++c}/{possibleBadSets.Count()}");
+            }
+            Console.WriteLine();
+
+            Console.WriteLine(autoPassedSets.Count());
+
+            SaveSets(autoPassedSets, @"C:/users/jbrownkramer/desktop/autoPassed.txt");
+
+            //SaveSets(possibleBadSets, @"C:/users/lsabalka/desktop/closedsets.txt");
 
 
             PrintAnalysis(matches, data);
@@ -380,6 +400,153 @@ namespace LucasPlayground
             //SaveResults(matches, data);
 
             Console.ReadLine();
+        }
+
+        static void SaveSets(IEnumerable<List<int>> sets, string path)
+        {
+            using (StreamWriter sw = File.CreateText(path))
+            {
+                foreach (List<int> set in sets)
+                {
+                    sw.WriteLine(string.Join(",", set));
+                }
+            }
+        }
+
+        static bool ActuallyAGoodSet(row[] r, row[] data)
+        {
+            if (TrueForEveryPair(r, MRNsClose))
+                return true;
+
+            if (TrueForEveryPair(r,Address2Evidence))
+                return true;
+
+            if (TrueForEveryPair(r, CleanAddressButNotExactAddressMatch))
+                return true;
+
+            if (TrueForEveryPair(r, LucasAutoPass))
+                return true;
+
+            if (OnlyPossiblePair(r, data))
+                return true;
+
+            return false;
+        }
+
+        static bool OnlyPossiblePair(row[] component, row[] data)
+        {
+            if (component.Count() >= 3) //I am skipping this for now, since the exact condition I want is eluding me
+            {
+                return false;
+            }
+
+            foreach(row r in component)
+            {
+                if (VerySoftMatches(r,data).Count() <= 1)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static List<row> VerySoftMatches(row r, row[] data)
+        {
+            List<row> toReturn = new List<row>();
+
+            foreach(var datum in data)
+            {
+                if (EasiestAgreementCount(datum,r) >= 2 && datum.EnterpriseID != r.EnterpriseID)
+                {
+                    toReturn.Add(datum);
+                }
+            }
+
+            return toReturn;
+        }
+
+        static bool LucasAutoPass(row r1, row r2)
+        {
+            if (r1.LAST != r2.LAST)
+                return false;
+
+            int matchNumber = 0;
+
+            if (FuzzySSNMatch(r1.SSN, r2.SSN))
+                matchNumber++;
+
+            if (FuzzyDateEquals(r1.DOB, r2.DOB))
+                matchNumber++;
+
+            if (FuzzyPhoneMatch(r1.PHONE, r2.PHONE))
+                matchNumber++;
+
+            if (challenge.Program.FuzzyAddressMatch(r1, r2))
+                matchNumber++;
+
+            return matchNumber >= 2;
+        }
+
+        static bool CleanAddressButNotExactAddressMatch(row r1, row r2)
+        {
+            if (r1.ADDRESS1 == r2.ADDRESS2)
+                return false;
+
+            string clean1 = DecisionTreeLearner.NLP.DataCleaner.CleanAddress(r1.ADDRESS1);
+            string clean2 = DecisionTreeLearner.NLP.DataCleaner.CleanAddress(r2.ADDRESS1);
+
+            return clean1 != "" && clean2 != "" && clean1 == clean2;
+        }
+
+        static bool TrueForEveryPair(row[] r, Func<row, row, bool> predicate)
+        {
+            for (int i = 0; i < r.Length; i++)
+            {
+                for (int j = i + 1; j < r.Length; j++)
+                {
+                    if (!predicate(r[i], r[j]))
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        static bool Address2Evidence(row r1, row r2)
+        {
+            if (challenge.Program.FuzzyAddressMatch(r1, r2) && r1.ADDRESS1 != "" && r1.ADDRESS2 == r2.ADDRESS2)
+                return true;
+
+            return false;
+        }
+
+        static bool MRNsClose(row r1, row r2)
+        {
+            if (r1.MRN < 1 || r2.MRN < 1)
+            {
+                return false;
+            }
+
+            return System.Math.Abs(r1.MRN - r2.MRN) <= 100;
+        }
+
+        static bool MRNsClose(row[] r)
+        {
+            for (int i = 0; i < r.Length; i++)
+            {
+                if (r[i].MRN < 1)
+                {
+                    return false;
+                }
+
+                for (int j = i + 1; j < r.Length; j++)
+                {
+                    if (System.Math.Abs(r[i].MRN - r[j].MRN) > 100)
+                        return false;
+                }
+            }
+            return true;
         }
 
         static void DisplayPossibleMatches(IEnumerable<row> data)

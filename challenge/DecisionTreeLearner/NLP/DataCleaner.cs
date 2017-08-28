@@ -80,20 +80,34 @@ namespace DecisionTreeLearner.NLP
             return pair;
         }
 
-        public static Record CleanRecord(Record input)
+        public static string CleanAddress(string address)
         {
             List<Tuple<string, string>> suffixes = AddressSuffixLoader.GetStreetSuffixAbbreviationTuples();
 
             string cleaned =
-                input.Address1.ToUpper().Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(" NORTH ", " N ").Replace(" SOUTH ", " S ").Replace(" SO ", " S ");
+    address.ToUpper().Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(" NORTH ", " N ").Replace(" SOUTH ", " S ").Replace(" SO ", " S ");
 
+            cleaned = Regex.Replace(cleaned, @"(\d)(ST|ND|RD|TH)\b", "$1");
+
+            for (int c = 0; c < suffixes.Count; c++)
+            {
+                Tuple<string, string> suffix = suffixes[c];
+                if (cleaned.EndsWith(suffix.Item1))
+                {
+                    cleaned = cleaned.Replace($" {suffix.Item1}", $" {suffix.Item2}");
+                }
+            }
+
+            return cleaned;
+        }
+
+        public static Record CleanRecord(Record input)
+        {
             if (input.City == "BKLYN")
             {
                 input.City = "BROOKLYN";
             }
-
-            input.Address1 = Regex.Replace(input.Address1, @"(\d)(ST|ND|RD|TH)\b", "$1");
-
+            
             if (BadSSNs.Contains(input.SSN))
             {
                 input.SSN = "";
@@ -114,18 +128,7 @@ namespace DecisionTreeLearner.NLP
                 input.Phone1 = ""; 
             }
 
-
-            //foreach (Tuple<string, string> suffix in suffixes)
-            for (int c = 0; c < suffixes.Count; c++)
-            {
-                Tuple<string, string> suffix = suffixes[c];
-                if (cleaned.EndsWith(suffix.Item1))
-                {
-                    cleaned = cleaned.Replace($" {suffix.Item1}", $" {suffix.Item2}");
-                }
-            }
-
-            input.Address1 = cleaned;
+            input.Address1 = CleanAddress(input.Address1);
 
             return input;
         }
