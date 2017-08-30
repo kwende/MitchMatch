@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Data\AddressSuffixLoader.cs" />
     <Compile Include="Data\DataLoader.cs" />
+    <Compile Include="Data\LargeResidenceFileLoader.cs" />
     <Compile Include="NLP\DataCleaner.cs" />
     <Compile Include="NLP\EditDistance.cs" />
     <Compile Include="NLP\MatchTypeMatcher.cs" />
@@ -73,6 +74,11 @@
     <None Include="StreetSuffixes.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="largeResidence.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -138,6 +138,22 @@ namespace DecisionTreeLearner.NLP
             return passedSoftMatch;
         }
 
+        public static bool BasedOnLivesInMassResidence(SplittingQuestion question, string column1, string column2)
+        {
+            string[] largeResidenceList = LargeResidenceFileLoader.GetLargeResidenceList();
+            return largeResidenceList.Contains(column1) || largeResidenceList.Contains(column2); 
+        }
+
+        public static bool BasedOnIsHomeless(SplittingQuestion question, string column1, string column2)
+        {
+            return (column1 == "HOMELESS" || column2 == "HOMELESS" ||
+                column1 == "UNDOMICILED" || column2 == "UNDOMICILED" ||
+                column1 == "UNDOMICILE" || column2 == "UNDOMICILE" ||
+                column1 == "H O M E L E S S" || column2 == "H O M E L E S S" ||
+                column1 == "XXX" || column2 == "XXX" ||
+                column1.StartsWith("UNABL") || column2.StartsWith("UNABL"));
+        }
+
         public static bool BasedOnAddressSoftMatch(SplittingQuestion question, string column1, string column2)
         {
             bool passedSoftMatch = false;

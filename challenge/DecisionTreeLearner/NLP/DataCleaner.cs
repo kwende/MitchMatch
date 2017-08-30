@@ -131,7 +131,8 @@ namespace DecisionTreeLearner.NLP
             ///////////////// ADDRESS1 ////////////////////
             if (input.Address1 == "UNKNOWN" ||
                 input.Address1 == "UNKOWN" ||
-                input.Address1 == "UNK")
+                input.Address1 == "UNK" ||
+                input.Address1 == "UNABLE TO OBTAIN")
             {
                 input.Address1 = "";
             }
@@ -140,7 +141,8 @@ namespace DecisionTreeLearner.NLP
             /////////////////// ADDRESS2 /////////////////////
             if (input.Address2 == "UNKNOWN" ||
                 input.Address2 == "UNKOWN" ||
-                input.Address2 == "UNK")
+                input.Address2 == "UNK" ||
+                input.Address2 == "UNABLE TO OBTAIN")
             {
                 input.Address2 = "";
             }
