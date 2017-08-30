@@ -506,7 +506,11 @@ namespace LucasPlayground
         {
             if (component.Count() >= 3) //I am skipping this for now, since the exact condition I want is eluding me
             {
-                return false;
+                //Sanity check to ensure that everything in component is a neighbor of everything else in component in the very fuzzy match graph
+                var neighbors = component.Select(r => VerySoftMatches(r, data)).ToArray();
+
+                //Graph structure check
+                return !neighbors.Any(n => n.Count() > 2);
             }
 
             foreach(row r in component)
@@ -555,6 +559,120 @@ namespace LucasPlayground
                 matchNumber++;
 
             return matchNumber >= 2;
+        }
+
+        static bool StrictlyDominates(row a, row b, row c)
+        {
+            return InclusivelyDominates(a, b, c) && !InclusivelyDominates(b, a, c);
+        }
+
+
+        static bool InclusivelyDominates(row a, row b, row c)
+        {
+            if (!StringDominates(a,b,c,r => r.ADDRESS1, challenge.Program.FuzzyAddressMatch))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.ADDRESS2))
+                return false;
+
+            if (!StringDominates(a,b,c,r => r.ALIAS))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.CITY))
+                return false;
+
+            if (!Dominates(a, b, c, r => r.DOB, DOBHardMatch, FuzzyDateEquals))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.EMAIL))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.FIRST, TwoDifferences))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.GENDER))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.LAST, TwoDifferences))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.MIDDLE))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.MOTHERS_MAIDEN_NAME))
+                return false;
+
+            if (!Dominates(a, b, c, r => r.PHONE, LongHardMatch, FuzzyPhoneMatch))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.PHONE2))
+                return false;
+
+            if (!Dominates(a, b, c, r => r.SSN, IntHardMatch, FuzzySSNMatch))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.STATE))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.SUFFIX))
+                return false;
+
+            if (!Dominates(a, b, c, r => r.ZIP, IntHardMatch, IntHardMatch))
+                return false;
+
+            return true;
+        }
+
+        static bool StringDominates(row ra, row rb, row rc, Func<row, string> fieldSelector)
+        {
+            return StringDominates(ra, rb, rc, fieldSelector, StringHardMatch);
+        }
+
+        static bool StringDominates(row ra, row rb, row rc, Func<row,string> fieldSelector, Func<string,string,bool> softMatch)
+        {
+            return Dominates(ra, rb, rc, fieldSelector, StringHardMatch, softMatch);
+        }
+
+        static bool Dominates<T>(row ra, row rb, row rc, Func<row, T> fieldSelector, Func<T, T, bool> HardMatch, Func<T, T, bool> softMatch)
+        {
+            T a = fieldSelector(ra);
+            T b = fieldSelector(rb);
+            T c = fieldSelector(rc);
+
+            if (HardMatch(a, c))
+                return true;
+
+            if (HardMatch(b, c))
+                return false;
+
+            if (softMatch(a, c))
+                return true;
+
+            if (softMatch(b, c))
+                return false;
+
+            return true;
+        }
+
+
+        static bool StringHardMatch(string a, string b)
+        {
+            return a != "" && b != "" && b == a;
+        }
+
+        static bool DOBHardMatch(DateTime a, DateTime b)
+        {
+            return a != default(DateTime) && b != default(DateTime) && a == b;
+        }
+
+        static bool LongHardMatch(long a, long b)
+        {
+            return a > 0 && b > 0 && a == b;
+        }
+
+        static bool IntHardMatch(int a, int b)
+        {
+            return a > 0 && b > 0 && a == b;
         }
 
         static bool CleanAddressButNotExactAddressMatch(row r1, row r2)
@@ -779,7 +897,8 @@ namespace LucasPlayground
             else if (Environment.UserName.ToLower().Contains("jbrownkramer") ||
                 Environment.UserName.ToLower().Contains("josh"))
             {
-                lines = File.ReadLines(@"C:\Users\jbrownkramer\Desktop\Data\data.csv");
+                //lines = File.ReadLines(@"C:\Users\jbrownkramer\Desktop\Data\data.csv");
+                lines = File.ReadLines(@"C:\Users\jbrownkramer\Desktop\FInalDataset.csv");
             }
 
 
@@ -1142,6 +1261,9 @@ namespace LucasPlayground
 
         public static bool FuzzyDateEquals(DateTime a, DateTime b)
         {
+            if (a == default(DateTime) || b == default(DateTime))
+                return false;
+
             if (OneOrOneDigit(a.Month, b.Month) && a.Day == b.Day && a.Year == b.Year)
                 return true;
 
@@ -1259,6 +1381,14 @@ namespace LucasPlayground
                 fieldAgreement++;
 
             return fieldAgreement;
+        }
+
+        public static bool TwoDifferences(string a, string b)
+        {
+            if (a == "" || b == "")
+                return false;
+
+            return challenge.Program.KDifferences(a, b, 2);
         }
         #endregion
 
