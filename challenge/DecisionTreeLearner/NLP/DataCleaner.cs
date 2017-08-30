@@ -102,6 +102,7 @@ namespace DecisionTreeLearner.NLP
 
 
             ///////////////////// SSN//////////////////////
+            input.SSN = input.SSN.Replace("-", "");
             if (BadSSNs.Contains(input.SSN))
             {
                 input.SSN = "";
@@ -116,6 +117,14 @@ namespace DecisionTreeLearner.NLP
             if (input.Gender == "U")
             {
                 input.Gender = "";
+            }
+            else if (input.Gender == "FEMALE")
+            {
+                input.Gender = "F";
+            }
+            else if (input.Gender == "MALE")
+            {
+                input.Gender = "M";
             }
             /////////////////////////////////////////////
 
@@ -139,11 +148,13 @@ namespace DecisionTreeLearner.NLP
 
             ///////////////// PHONE1 ////////////////////
             // all the same digit? 
-            if (Regex.IsMatch(input.Phone1.Replace("-", ""), @"^([0-9])\1*$"))
+            input.Phone1 = input.Phone1.Replace("-", "");
+            input.Phone2 = input.Phone2.Replace("-", "");
+            if (Regex.IsMatch(input.Phone1, @"^([0-9])\1*$"))
             {
                 input.Phone1 = "";
             }
-            if (input.Phone1 == "0" || input.Phone1 == "-1")
+            if (input.Phone1 == "0" || input.Phone1 == "-1" || input.Phone1 == "1234567890")
             {
                 input.Phone1 = "";
             }

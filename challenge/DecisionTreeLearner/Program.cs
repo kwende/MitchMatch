@@ -122,7 +122,7 @@ namespace DecisionTreeLearner
                 "C:/users/brush/desktop/finaldataset.csv",
                 "C:/users/brush/desktop/forest",
                 "D:/mitchMatchFalseNegativeSearchResults.txt",
-                "D:/mitchMatchFalsenegatievSearchState.txt"); 
+                "D:/mitchMatchFalsenegatievSearchState.txt");
         }
     }
 }

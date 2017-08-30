@@ -65,7 +65,7 @@ namespace LucasPlayground
 
         static void Main(string[] args)
         {
-            DoBen();
+            //DoBen();
 
             // Load Data
             var lines = GetLines();
