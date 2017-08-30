@@ -41,6 +41,12 @@ namespace DecisionTreeLearner.Tree
                     break;
                 case MatchTypeEnum.IsFemale:
                     ret = "Are both entries female?";
+                    break;
+                case MatchTypeEnum.IsHomeless:
+                    ret = "Is or was patient homeless.";
+                    break;
+                case MatchTypeEnum.LivesInMassResidence:
+                    ret = "Is or was the patient living in a mass residence.";
                     break; 
             }
             return ret; 

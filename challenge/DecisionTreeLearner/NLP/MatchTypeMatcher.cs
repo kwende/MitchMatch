@@ -72,9 +72,9 @@ namespace DecisionTreeLearner.NLP
             return matches;
         }
 
-        public static bool BasedOnIsFemale(SplittingQuestion question, string column1, string column2)
+        public static bool BasedOnIsFemale(SplittingQuestion question, RecordPair pair)
         {
-            return column1 == column2 && column2 == "F";
+            return pair.Record1.Gender == pair.Record2.Gender && pair.Record1.Gender == "F";
         }
 
         public static bool BasedOnDateSoftMatch(SplittingQuestion question, string column1, string column2)
@@ -138,20 +138,14 @@ namespace DecisionTreeLearner.NLP
             return passedSoftMatch;
         }
 
-        public static bool BasedOnLivesInMassResidence(SplittingQuestion question, string column1, string column2)
+        public static bool BasedOnLivesInMassResidence(SplittingQuestion question, RecordPair pair)
         {
-            string[] largeResidenceList = LargeResidenceFileLoader.GetLargeResidenceList();
-            return largeResidenceList.Contains(column1) || largeResidenceList.Contains(column2); 
+            return pair.Record1.LivesInLargeResidence || pair.Record2.LivesInLargeResidence;
         }
 
-        public static bool BasedOnIsHomeless(SplittingQuestion question, string column1, string column2)
+        public static bool BasedOnIsHomeless(SplittingQuestion question, RecordPair pair)
         {
-            return (column1 == "HOMELESS" || column2 == "HOMELESS" ||
-                column1 == "UNDOMICILED" || column2 == "UNDOMICILED" ||
-                column1 == "UNDOMICILE" || column2 == "UNDOMICILE" ||
-                column1 == "H O M E L E S S" || column2 == "H O M E L E S S" ||
-                column1 == "XXX" || column2 == "XXX" ||
-                column1.StartsWith("UNABL") || column2.StartsWith("UNABL"));
+            return pair.Record1.Address1 == "HOMELESS" || pair.Record1.Address2 == "HOMELESS";
         }
 
         public static bool BasedOnAddressSoftMatch(SplittingQuestion question, string column1, string column2)

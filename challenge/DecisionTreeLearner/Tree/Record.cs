@@ -201,6 +201,8 @@ namespace DecisionTreeLearner.Tree
         public int EnterpriseId { get; set; }
         public int MRN { get; set; }
 
+        public bool LivesInLargeResidence { get; set; }
+
         public string[] Cache { get; set; }
 
         public override int GetHashCode()
@@ -290,7 +292,7 @@ namespace DecisionTreeLearner.Tree
 
         public static Record FromFinalDatasetString(string csvString)
         {
-            string[] bits = DataLoader.SmartSplit(csvString); 
+            string[] bits = DataLoader.SmartSplit(csvString);
             if (bits.Length != 19)
             {
                 throw new Exception();

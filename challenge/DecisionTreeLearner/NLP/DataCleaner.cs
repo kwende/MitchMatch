@@ -129,12 +129,26 @@ namespace DecisionTreeLearner.NLP
             /////////////////////////////////////////////
 
             ///////////////// ADDRESS1 ////////////////////
+            input.LivesInLargeResidence = false;
+            string[] largeResidenceList = LargeResidenceFileLoader.GetLargeResidenceList();
             if (input.Address1 == "UNKNOWN" ||
                 input.Address1 == "UNKOWN" ||
                 input.Address1 == "UNK" ||
-                input.Address1 == "UNABLE TO OBTAIN")
+                input.Address1 == "XXX" ||
+                input.Address1.StartsWith("UNABL"))
             {
                 input.Address1 = "";
+            }
+            else if (largeResidenceList.Contains(input.Address1))
+            {
+                input.LivesInLargeResidence = true;
+            }
+            else if (input.Address1 == "HOMELESS" ||
+                    input.Address1 == "UNDOMICILED" ||
+                    input.Address1 == "UNDOMICILE" ||
+                    input.Address1 == "H O M E L E S S")
+            {
+                input.Address1 = "HOMELESS";
             }
             ///////////////////////////////////////////////
 

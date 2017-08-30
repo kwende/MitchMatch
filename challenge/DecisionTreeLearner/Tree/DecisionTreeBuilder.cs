@@ -178,10 +178,10 @@ namespace DecisionTreeLearner.Tree
             switch (question.MatchType)
             {
                 case MatchTypeEnum.LivesInMassResidence:
-                    matches = MatchTypeMatcher.BasedOnLivesInMassResidence(question, column1, column2);
+                    matches = MatchTypeMatcher.BasedOnLivesInMassResidence(question, pair);
                     break;
                 case MatchTypeEnum.IsHomeless:
-                    matches = MatchTypeMatcher.BasedOnIsHomeless(question, column1, column2);
+                    matches = MatchTypeMatcher.BasedOnIsHomeless(question, pair);
                     break;
                 case MatchTypeEnum.EditDistance:
                     matches = MatchTypeMatcher.BasedOnEditDistance(question, column1, column2);
@@ -200,7 +200,7 @@ namespace DecisionTreeLearner.Tree
                     }
                     break;
                 case MatchTypeEnum.IsFemale:
-                    matches = MatchTypeMatcher.BasedOnIsFemale(question, column1, column2);
+                    matches = MatchTypeMatcher.BasedOnIsFemale(question, pair);
                     break;
                 default:
                     throw new ArgumentException();
