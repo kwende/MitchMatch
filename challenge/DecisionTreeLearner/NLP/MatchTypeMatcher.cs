@@ -184,5 +184,17 @@ namespace DecisionTreeLearner.NLP
             }
             return passedSoftMatch;
         }
+
+        public static bool BasedOnMRNDistance(SplittingQuestion question, RecordPair pair)
+        {
+            bool ret = false;
+            int maxDistance = question.MRNMaxDistance;
+
+            if (pair.Record1.MRN > 0 && pair.Record2.MRN > 0)
+            {
+                ret = System.Math.Abs(pair.Record1.MRN - pair.Record2.MRN) <= maxDistance;
+            }
+            return ret;
+        }
     }
 }

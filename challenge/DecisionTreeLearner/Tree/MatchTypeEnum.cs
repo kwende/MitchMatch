@@ -15,5 +15,6 @@ namespace DecisionTreeLearner.Tree
         IsFemale = 3,
         IsHomeless = 4,
         LivesInMassResidence = 5,
+        MRNDistance = 6,
     }
 }
