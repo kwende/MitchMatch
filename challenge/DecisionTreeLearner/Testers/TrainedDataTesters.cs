@@ -44,13 +44,11 @@ namespace DecisionTreeLearner.Testers
                     Console.WriteLine($"Working on set {c + 1} of {closedSets.Count}");
                     List<Record> closedSet = closedSets[c];
 
-                    StringBuilder sb = new StringBuilder(1024);
+                    List<Record> extraSetMembersFound = new List<Record>(); 
                     foreach (Record record in closedSet)
                     {
-                        List<Record> thoseThatMatchOutsideOfSet = new List<Record>();
-                        List<Record> thoseThatMatchInsideOfSet = new List<Record>();
-                        //Parallel.ForEach(finalDataSet, otherRecord =>
-                        foreach (Record otherRecord in finalDataSet)
+                        Parallel.ForEach(finalDataSet, otherRecord =>
+                        //foreach (Record otherRecord in finalDataSet)
                         {
                             if (otherRecord.EnterpriseId != record.EnterpriseId)
                             {
@@ -60,26 +58,23 @@ namespace DecisionTreeLearner.Testers
                                     Record2 = otherRecord
                                 }, forest, false))
                                 {
-                                    lock (thoseThatMatchOutsideOfSet)
+                                    lock (extraSetMembersFound)
                                     {
-                                        if (closedSet.Any(n => n.EnterpriseId == otherRecord.EnterpriseId))
+                                        // is this NOT a set member and have we not added it yet...
+                                        if(!extraSetMembersFound.Any(n=>n.EnterpriseId == otherRecord.EnterpriseId) && 
+                                            !closedSet.Any(n=>n.EnterpriseId == otherRecord.EnterpriseId))
                                         {
-                                            thoseThatMatchInsideOfSet.Add(otherRecord); 
-                                        }
-                                        else
-                                        {
-                                            thoseThatMatchOutsideOfSet.Add(otherRecord);
+                                            extraSetMembersFound.Add(otherRecord);
                                         }
                                     }
                                 }
                             }
-                        }//);
-                        sb.AppendLine(record.EnterpriseId.ToString() + ":" +
-                            "[" + string.Join(",", thoseThatMatchOutsideOfSet.Select(n => n.EnterpriseId.ToString())) + "][" +
-                            string.Join(",", thoseThatMatchInsideOfSet.Select(n => n.EnterpriseId.ToString())) + "]"); 
+                        });
                     }
 
-                    fout.Write(sb.ToString());
+                    string toSave = $"[{string.Join(",", closedSet.Select(n => n.EnterpriseId))}][{string.Join(",", extraSetMembersFound.Select(n => n.EnterpriseId))}]\n"; 
+
+                    fout.Write(toSave);
                     fout.Flush();
 
                     c++;

@@ -65,6 +65,7 @@ namespace LucasPlayground
 
         static void Main(string[] args)
         {
+            //DoBen();
             //Rectify(@"C:\Users\jbrownkramer\Desktop\closedsets.txt");
             //Rectify(@"C:\Users\jbrownkramer\Desktop\closedsets - Copy.txt");
 
@@ -81,6 +82,9 @@ namespace LucasPlayground
 
 
             CleanData(ref data);
+
+            var bob = allData.GroupBy(r => r.EMAIL + r.FIRST + r.LAST + r.GENDER + r.DOB).Where(g => g.Count() >= 2 && g.Key.Contains("@") && !g.Key.Contains("1/1/0001 12:00:00 AM")).OrderBy(g => -g.Count()).ToArray();
+            Console.WriteLine(bob.Count(g => g.Any(r => r.EnterpriseID < 15374761)));
 
             //Create a dictionary for quick lookup
             Dictionary<int, row> enterpriseIdToRow = new Dictionary<int, row>();

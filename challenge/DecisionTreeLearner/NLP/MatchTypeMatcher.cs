@@ -72,9 +72,9 @@ namespace DecisionTreeLearner.NLP
             return matches;
         }
 
-        public static bool BasedOnIsFemale(SplittingQuestion question, string column1, string column2)
+        public static bool BasedOnIsFemale(SplittingQuestion question, RecordPair pair)
         {
-            return column1 == column2 && column2 == "F";
+            return pair.Record1.Gender == pair.Record2.Gender && pair.Record1.Gender == "F";
         }
 
         public static bool BasedOnDateSoftMatch(SplittingQuestion question, string column1, string column2)
@@ -136,6 +136,16 @@ namespace DecisionTreeLearner.NLP
                 }
             }
             return passedSoftMatch;
+        }
+
+        public static bool BasedOnLivesInMassResidence(SplittingQuestion question, RecordPair pair)
+        {
+            return pair.Record1.LivesInLargeResidence || pair.Record2.LivesInLargeResidence;
+        }
+
+        public static bool BasedOnIsHomeless(SplittingQuestion question, RecordPair pair)
+        {
+            return pair.Record1.Address1 == "HOMELESS" || pair.Record1.Address2 == "HOMELESS";
         }
 
         public static bool BasedOnAddressSoftMatch(SplittingQuestion question, string column1, string column2)

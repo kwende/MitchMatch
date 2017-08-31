@@ -85,9 +85,20 @@ namespace DecisionTreeLearner.NLP
         {
             if (address == "UNKNOWN" ||
                 address == "UNKOWN" ||
-                address == "UNK")
+                address == "UNK" ||
+                address == "XXX" ||
+                address.StartsWith("UNABL")
+                )
             {
                 return "";
+            }
+
+            if (address == "HOMELESS" ||
+                address == "UNDOMICILED" ||
+                address == "UNDOMICILE" ||
+                address == "H O M E L E S S")
+            {
+                return "HOMELESS";
             }
 
             List<Tuple<string, string>> suffixes = AddressSuffixLoader.GetStreetSuffixAbbreviationTuples();
@@ -128,6 +139,7 @@ namespace DecisionTreeLearner.NLP
 
 
             ///////////////////// SSN//////////////////////
+            input.SSN = input.SSN.Replace("-", "");
             if (BadSSNs.Contains(input.SSN))
             {
                 input.SSN = "";
@@ -143,13 +155,22 @@ namespace DecisionTreeLearner.NLP
             {
                 input.Gender = "";
             }
+            else if (input.Gender == "FEMALE")
+            {
+                input.Gender = "F";
+            }
+            else if (input.Gender == "MALE")
+            {
+                input.Gender = "M";
+            }
             /////////////////////////////////////////////
 
 
             /////////////////// ADDRESS2 /////////////////////
             if (input.Address2 == "UNKNOWN" ||
                 input.Address2 == "UNKOWN" ||
-                input.Address2 == "UNK")
+                input.Address2 == "UNK" ||
+                input.Address2 == "UNABLE TO OBTAIN")
             {
                 input.Address2 = "";
             }
@@ -157,11 +178,13 @@ namespace DecisionTreeLearner.NLP
 
             ///////////////// PHONE1 ////////////////////
             // all the same digit? 
-            if (Regex.IsMatch(input.Phone1.Replace("-", ""), @"^([0-9])\1*$"))
+            input.Phone1 = input.Phone1.Replace("-", "");
+            input.Phone2 = input.Phone2.Replace("-", "");
+            if (Regex.IsMatch(input.Phone1, @"^([0-9])\1*$"))
             {
                 input.Phone1 = "";
             }
-            if (input.Phone1 == "0" || input.Phone1 == "-1")
+            if (input.Phone1 == "0" || input.Phone1 == "-1" || input.Phone1 == "1234567890")
             {
                 input.Phone1 = "";
             }
@@ -177,6 +200,11 @@ namespace DecisionTreeLearner.NLP
 
             ////////////// ADDRESS1 /////////////////////
             input.Address1 = CleanAddress(input.Address1);
+            var largeResidenceList = LargeResidenceFileLoader.GetLargeResidenceList();
+            if (largeResidenceList.Contains(input.Address1))
+            {
+                input.LivesInLargeResidence = true;
+            }
             ///////////////////////////////////////////////
 
 

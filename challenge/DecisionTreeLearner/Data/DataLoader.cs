@@ -37,7 +37,7 @@ namespace DecisionTreeLearner.Data
                     csvLine.Substring(startIndex, separatorIndex - startIndex);
                 startIndex += ret[c].Length + 1;
             }
-            ret[ret.Length - 1] = csvLine.Substring(startIndex); 
+            ret[ret.Length - 1] = csvLine.Substring(startIndex);
 
             return ret;
         }

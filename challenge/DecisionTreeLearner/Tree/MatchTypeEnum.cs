@@ -13,5 +13,7 @@ namespace DecisionTreeLearner.Tree
         EmptyMatch = 1,
         SoftMatch = 2,
         IsFemale = 3,
+        IsHomeless = 4,
+        LivesInMassResidence = 5,
     }
 }
