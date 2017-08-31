@@ -17,6 +17,7 @@ namespace DecisionTreeLearner.Tree
         public int MaximumEditDistance { get; set; }
         public bool OneFieldValueIsEmpty { get; set; }
         public bool BothFieldValuesAreEmpty { get; set; }
+        public int MRNMaxDistance { get; set; }
 
         public override string ToString()
         {
@@ -47,6 +48,9 @@ namespace DecisionTreeLearner.Tree
                     break;
                 case MatchTypeEnum.LivesInMassResidence:
                     ret = "Is or was the patient living in a mass residence.";
+                    break;
+                case MatchTypeEnum.MRNDistance:
+                    ret = $"Is MRN distance of {MRNMaxDistance} or less.";
                     break; 
             }
             return ret; 

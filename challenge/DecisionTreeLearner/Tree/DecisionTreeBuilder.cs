@@ -1,4 +1,5 @@
-﻿using DecisionTreeLearner.NLP;
+﻿using DecisionTreeLearner.Attributes;
+using DecisionTreeLearner.NLP;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -91,7 +92,7 @@ namespace DecisionTreeLearner.Tree
             return gain;
         }
 
-        public static SplittingQuestion[] GenerateSplittingQuestions(FieldEnum[] fields, int maximumEditDistance)
+        public static SplittingQuestion[] GenerateSplittingQuestions(int maximumEditDistance)
         {
             List<SplittingQuestion> splittingQuestions = new List<SplittingQuestion>();
 
@@ -136,32 +137,55 @@ namespace DecisionTreeLearner.Tree
                 OneFieldValueIsEmpty = false
             });
 
-            foreach (FieldEnum field in fields)
+            int[] mrnDistances = new int[]
+            {
+                100,
+                500,
+                1000,
+                10000,
+                90000,
+            };
+
+            for (int c = 0; c < mrnDistances.Length; c++)
             {
                 splittingQuestions.Add(new SplittingQuestion
                 {
-                    Field = field,
-                    MatchType = MatchTypeEnum.EmptyMatch,
-                    BothFieldValuesAreEmpty = true,
-                    OneFieldValueIsEmpty = false,
+                    Field = FieldEnum.MRN,
+                    MatchType = MatchTypeEnum.MRNDistance,
+                    MRNMaxDistance = mrnDistances[c],
                 });
+            }
 
-                splittingQuestions.Add(new SplittingQuestion
-                {
-                    Field = field,
-                    MatchType = MatchTypeEnum.EmptyMatch,
-                    BothFieldValuesAreEmpty = false,
-                    OneFieldValueIsEmpty = true,
-                });
-
-                for (int editDistance = 0; editDistance < maximumEditDistance; editDistance++)
+            Type fieldEnumType = typeof(FieldEnum);
+            foreach (FieldEnum field in fieldEnumType.GetEnumValues().OfType<FieldEnum>())
+            {
+                if (typeof(FieldEnum).GetMember(field.ToString())[0].GetCustomAttributes().Any(n => n.GetType() == typeof(EditDistanceCapableAttribute)))
                 {
                     splittingQuestions.Add(new SplittingQuestion
                     {
                         Field = field,
-                        MatchType = MatchTypeEnum.EditDistance,
-                        MaximumEditDistance = editDistance,
+                        MatchType = MatchTypeEnum.EmptyMatch,
+                        BothFieldValuesAreEmpty = true,
+                        OneFieldValueIsEmpty = false,
                     });
+
+                    splittingQuestions.Add(new SplittingQuestion
+                    {
+                        Field = field,
+                        MatchType = MatchTypeEnum.EmptyMatch,
+                        BothFieldValuesAreEmpty = false,
+                        OneFieldValueIsEmpty = true,
+                    });
+
+                    for (int editDistance = 0; editDistance < maximumEditDistance; editDistance++)
+                    {
+                        splittingQuestions.Add(new SplittingQuestion
+                        {
+                            Field = field,
+                            MatchType = MatchTypeEnum.EditDistance,
+                            MaximumEditDistance = editDistance,
+                        });
+                    }
                 }
             }
 
@@ -177,6 +201,9 @@ namespace DecisionTreeLearner.Tree
 
             switch (question.MatchType)
             {
+                case MatchTypeEnum.MRNDistance:
+                    matches = MatchTypeMatcher.BasedOnMRNDistance(question, pair);
+                    break;
                 case MatchTypeEnum.LivesInMassResidence:
                     matches = MatchTypeMatcher.BasedOnLivesInMassResidence(question, pair);
                     break;

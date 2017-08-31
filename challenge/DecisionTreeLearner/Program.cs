@@ -60,35 +60,7 @@ namespace DecisionTreeLearner
                     trainingDataSubset.Add(trainingData[d]);
                 }
 
-                FieldEnum[] fieldsOnWhichToTrain = new FieldEnum[]
-                {
-                    FieldEnum.Address1,
-                    FieldEnum.Address2,
-                    FieldEnum.City,
-                    FieldEnum.DOB,
-                    FieldEnum.Email,
-                    FieldEnum.FirstName,
-                    FieldEnum.Gender,
-                    FieldEnum.LastName,
-                    FieldEnum.MiddleName,
-                    FieldEnum.Phone1,
-                    FieldEnum.Phone2,
-                    FieldEnum.SSN,
-                    FieldEnum.State,
-                    FieldEnum.Zip
-                };
-                SplittingQuestion[] splittingQuestions = DecisionTreeBuilder.GenerateSplittingQuestions(fieldsOnWhichToTrain, maximumEditDistance);
-
-                //SplittingQuestion[] splittingQuestions = new SplittingQuestion[]
-                //{
-                //     new SplittingQuestion
-                //     {
-                //          BothFieldValuesAreEmpty = true,
-                //           Field = FieldEnum.SSN,
-                //            MatchType = MatchTypeEnum.EmptyMatch
-                //     }
-                //};
-
+                SplittingQuestion[] splittingQuestions = DecisionTreeBuilder.GenerateSplittingQuestions(maximumEditDistance);
 
                 DecisionTreeBuilder treeBuilder = new DecisionTreeBuilder();
                 DecisionTree tree = treeBuilder.Train(trainingDataSubset, splittingQuestions,

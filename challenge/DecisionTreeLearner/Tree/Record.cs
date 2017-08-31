@@ -4,12 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DecisionTreeLearner.Attributes;
 
 namespace DecisionTreeLearner.Tree
 {
     [Serializable]
     public class Record
     {
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string LastName
         {
             get
@@ -21,6 +24,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.LastName] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string FirstName
         {
             get
@@ -32,6 +37,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.FirstName] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string MiddleName
         {
             get
@@ -43,6 +50,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.MiddleName] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string Suffix
         {
             get
@@ -54,6 +63,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.Suffix] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string DOB
         {
             get
@@ -65,6 +76,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.DOB] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string Gender
         {
             get
@@ -76,6 +89,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.Gender] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string SSN
         {
             get
@@ -87,6 +102,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.SSN] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string Address1
         {
             get
@@ -98,6 +115,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.Address1] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string Address2
         {
             get
@@ -109,6 +128,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.Address2] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string Zip
         {
             get
@@ -120,6 +141,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.Zip] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string MothersMaidenName
         {
             get
@@ -131,6 +154,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.MothersMaidenName] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string City
         {
             get
@@ -142,6 +167,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.City] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string State
         {
             get
@@ -153,6 +180,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.State] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string Phone1
         {
             get
@@ -164,6 +193,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.Phone1] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string Phone2
         {
             get
@@ -175,6 +206,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.Phone2] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string Email
         {
             get
@@ -186,6 +219,8 @@ namespace DecisionTreeLearner.Tree
                 Cache[(int)FieldEnum.Email] = value;
             }
         }
+        [EditDistanceCapable]
+        [PersonalInformation]
         public string Alias
         {
             get
@@ -198,7 +233,9 @@ namespace DecisionTreeLearner.Tree
             }
         }
 
+        [BookkeepingInformation]
         public int EnterpriseId { get; set; }
+        [BookkeepingInformation]
         public int MRN { get; set; }
 
         public bool LivesInLargeResidence { get; set; }
@@ -218,22 +255,7 @@ namespace DecisionTreeLearner.Tree
             {
                 Record other = (Record)obj;
 
-                equals = other.LastName == LastName &&
-                    other.FirstName == FirstName &&
-                    other.MiddleName == MiddleName &&
-                    other.Suffix == Suffix &&
-                    other.DOB == DOB &&
-                    other.Gender == Gender &&
-                    other.Address1 == Address1 &&
-                    other.Address2 == Address2 &&
-                    other.Zip == Zip &&
-                    other.MothersMaidenName == MothersMaidenName &&
-                    other.City == City &&
-                    other.State == State &&
-                    other.Phone1 == Phone1 &&
-                    other.Phone2 == Phone2 &&
-                    other.Email == Email &&
-                    other.Alias == Alias;
+                equals = other.EnterpriseId == other.EnterpriseId;
             }
 
             return equals;
@@ -241,7 +263,7 @@ namespace DecisionTreeLearner.Tree
 
         public override string ToString()
         {
-            return string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16}",
+            return string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}",
                 FirstName,
                 MiddleName,
                 LastName,
@@ -258,6 +280,8 @@ namespace DecisionTreeLearner.Tree
                 Zip,
                 MothersMaidenName,//
                 Email,//
+                MRN,
+                EnterpriseId,
                 Alias);
         }
 
@@ -267,6 +291,7 @@ namespace DecisionTreeLearner.Tree
 
             record.Cache = new string[19];
             record.EnterpriseId = int.Parse(bits[0]);
+            record.MRN = bits[12] != "" ? int.Parse(bits[12]) : 0;
             record.FirstName = bits[2];
             record.MiddleName = bits[3];
             record.LastName = bits[1];
@@ -283,8 +308,8 @@ namespace DecisionTreeLearner.Tree
             record.Zip = bits[10];
             record.MothersMaidenName = bits[11];
             record.Email = bits[17];
-            record.Cache[16] = "";
-            record.Cache[17] = "";
+            record.Cache[16] = bits[12];
+            record.Cache[17] = bits[0];
             record.Alias = bits[18];
 
             return record;
@@ -305,7 +330,7 @@ namespace DecisionTreeLearner.Tree
         {
             Record record = new Record();
             string[] bits = csvString.Split(',').Select(n => n.Trim()).ToArray();
-            if (bits.Length != 19 && bits.Length != 17)
+            if (bits.Length != 19)
             {
                 throw new Exception();
             }
@@ -329,32 +354,11 @@ namespace DecisionTreeLearner.Tree
                 record.Zip = bits[13];
                 record.MothersMaidenName = bits[14];
                 record.Email = bits[15];
-                record.Cache[16] = "";
-                record.Cache[17] = "";
+                record.Cache[16] = bits[16];
+                record.MRN = bits[16] != "" ? int.Parse(bits[16]) : 0;
+                record.Cache[17] = bits[17];
+                record.EnterpriseId = int.Parse(bits[17]);
                 record.Alias = bits[18];
-            }
-            else if (bits.Length == 17)
-            {
-                record.Cache = new string[19];
-                record.FirstName = record.Cache[0] = bits[0];
-                record.MiddleName = record.Cache[1] = bits[1];
-                record.LastName = record.Cache[2] = bits[2];
-                record.Suffix = record.Cache[3] = bits[3];
-                record.Gender = record.Cache[4] = bits[4];
-                record.SSN = record.Cache[5] = bits[5];
-                record.DOB = record.Cache[6] = bits[6];
-                record.Phone1 = record.Cache[7] = bits[7];
-                record.Phone2 = record.Cache[8] = bits[8];
-                record.Address1 = record.Cache[9] = bits[9];
-                record.Address2 = record.Cache[10] = bits[10];
-                record.City = record.Cache[11] = bits[11];
-                record.State = record.Cache[12] = bits[12];
-                record.Zip = record.Cache[13] = bits[13];
-                record.MothersMaidenName = record.Cache[14] = bits[14];
-                record.Email = record.Cache[15] = bits[15];
-                record.Cache[16] = "";
-                record.Cache[17] = "";
-                record.Alias = record.Cache[18] = bits[16];
             }
 
             return record;
