@@ -32,7 +32,7 @@ namespace DecisionTreeLearner
             List<RecordPair> trainingData = null;
             if (option == 1)
             {
-                trainingData = DataLoader.BuildTrainingData("mrns.csv", "more.csv");
+                trainingData = DataLoader.BuildTrainingData("mrns.csv", "more.csv", "rejected.txt");
             }
             else if (option == 2)
             {

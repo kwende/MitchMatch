@@ -126,7 +126,8 @@ namespace DecisionTreeLearner.Data
             return ret;
         }
 
-        public static List<RecordPair> BuildTrainingData(string inputFilePath, string inputMoreFilePath)
+        public static List<RecordPair> BuildTrainingData(string inputFilePath,
+            string inputMoreFilePath, string rejectedFilePath)
         {
             List<RecordPair> trainingData = new List<RecordPair>();
 
@@ -250,6 +251,22 @@ namespace DecisionTreeLearner.Data
                     }
                 }
             }
+
+            string[] rejectedLines = File.ReadAllLines(rejectedFilePath);
+
+            for (int c = 0; c < rejectedLines.Length; c += 2)
+            {
+                string line1 = rejectedLines[c];
+                string line2 = rejectedLines[c + 1];
+
+                RecordPair failurePair = new RecordPair();
+                failurePair.Record1 = DataCleaner.CleanRecord(Record.FromString(line1));
+                failurePair.Record2 = DataCleaner.CleanRecord(Record.FromString(line2));
+                failurePair.IsMatch = false;
+
+                trainingData.Add(failurePair);
+            }
+
             Console.WriteLine("...done");
 
             return trainingData;

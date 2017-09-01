@@ -79,6 +79,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="rejected.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="largeResidence.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
