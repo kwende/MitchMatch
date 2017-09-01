@@ -357,7 +357,7 @@ namespace DecisionTreeLearner.Tree
                 record.Cache[16] = bits[16];
                 record.MRN = bits[16] != "" ? int.Parse(bits[16]) : 0;
                 record.Cache[17] = bits[17];
-                record.EnterpriseId = int.Parse(bits[17]);
+                record.EnterpriseId = bits[17] != "" ? int.Parse(bits[17]) : 0; 
                 record.Alias = bits[18];
             }
 

@@ -189,6 +189,12 @@ namespace DecisionTreeLearner.Tree
                 }
             }
 
+            Console.WriteLine("I will be asking the following questions:"); 
+            foreach(SplittingQuestion question in splittingQuestions)
+            {
+                Console.WriteLine("\t" + question); 
+            }
+
             return splittingQuestions.ToArray();
         }
 
