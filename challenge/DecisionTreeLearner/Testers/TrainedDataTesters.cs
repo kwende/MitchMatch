@@ -85,7 +85,7 @@ namespace DecisionTreeLearner.Testers
 
         public static void TestOnTrainingData()
         {
-            List<RecordPair> trainingData = DataLoader.BuildTrainingData("mrns.csv", "more.csv");
+            List<RecordPair> trainingData = DataLoader.BuildTrainingData("mrns.csv", "more.csv", "rejected.txt");
 
             int consoleLeft = Console.CursorLeft;
             int consoleTop = Console.CursorTop;
