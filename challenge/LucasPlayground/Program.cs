@@ -82,9 +82,7 @@ namespace LucasPlayground
 
 
             CleanData(ref data);
-
-            var bob = allData.GroupBy(r => r.EMAIL + r.FIRST + r.LAST + r.GENDER + r.DOB).Where(g => g.Count() >= 2 && g.Key.Contains("@") && !g.Key.Contains("1/1/0001 12:00:00 AM")).OrderBy(g => -g.Count()).ToArray();
-            Console.WriteLine(bob.Count(g => g.Any(r => r.EnterpriseID < 15374761)));
+            DisplayPossibleMatches(data);
 
             //Create a dictionary for quick lookup
             Dictionary<int, row> enterpriseIdToRow = new Dictionary<int, row>();
@@ -419,7 +417,7 @@ namespace LucasPlayground
                 row[] r = badSet.Select(eid => enterpriseIdToRow[eid]).ToArray();
 
                 //Check the mrns
-                if (ActuallyAGoodSet(r, data))
+                if (ActuallyAGoodSet(r, data, enterpriseIdToRow))
                     autoPassedSets.Add(badSet);
 
                 Console.Write($"\r{++c}/{possibleBadSets.Count()}");
@@ -486,7 +484,7 @@ namespace LucasPlayground
             }
         }
 
-        static bool ActuallyAGoodSet(row[] r, row[] data)
+        static bool ActuallyAGoodSet(row[] r, row[] data, Dictionary<int, row> enterpriseIdToRow)
         {
             if (TrueForEveryPair(r, MRNsClose))
                 return true;
@@ -500,15 +498,18 @@ namespace LucasPlayground
             if (TrueForEveryPair(r, LucasAutoPass))
                 return true;
 
-            if (OnlyPossiblePair(r, data))
+            if (CorrectByDominance(r, data))
                 return true;
 
             return false;
         }
 
-        static bool OnlyPossiblePair(row[] component, row[] data)
+        static bool CorrectByDominance(row[] component, row[] data)
         {
-            if (component.Count() >= 3) //I am skipping this for now, since the exact condition I want is eluding me
+            if (component.Count() > 3)
+                return false;
+
+            if (component.Count() == 3) //I am skipping this for now, since the exact condition I want is eluding me
             {
                 //Sanity check to ensure that everything in component is a neighbor of everything else in component in the very fuzzy match graph
                 var neighbors = component.Select(r => VerySoftMatches(r, data)).ToArray();
@@ -517,15 +518,25 @@ namespace LucasPlayground
                 return !neighbors.Any(n => n.Count() > 2);
             }
 
-            foreach(row r in component)
+            var a = component[0];
+            var b = component[1];
+
+            bool toReturn = AStrictlyDominatesAllNeighborsOfB(a, b, data) || AStrictlyDominatesAllNeighborsOfB(b, a, data);
+
+            return toReturn;
+        }
+
+        static bool AStrictlyDominatesAllNeighborsOfB(row a, row b, row[] data)
+        {
+            var neighbors = VerySoftMatches(b, data);
+
+            foreach (var neighbor in neighbors)
             {
-                if (VerySoftMatches(r,data).Count() <= 1)
-                {
-                    return true;
-                }
+                if (neighbor != a && !StrictlyDominates(a, neighbor, b))
+                    return false;
             }
 
-            return false;
+            return true;
         }
 
         static List<row> VerySoftMatches(row r, row[] data)
