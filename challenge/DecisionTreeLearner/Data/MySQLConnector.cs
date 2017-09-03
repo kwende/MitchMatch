@@ -32,30 +32,32 @@ namespace DecisionTreeLearner.Data
                 {
                     reader.Read();
 
-                    ret.Cache = new string[reader.FieldCount - 1];
+                    ret = ReaderToObject.ReaderToRecord(reader);
+                }
+            }
 
-                    ret.EnterpriseId = (int)reader["EnterpriseId"];
-                    ret.Address1 = (string)reader["Address1"];
-                    ret.Address2 = (string)reader["Address2"];
-                    ret.Alias = (string)reader["Alias"];
-                    ret.City = (string)reader["City"];
-                    ret.DOB = (string)reader["DOB"];
-                    ret.Email = (string)reader["Email"];
-                    ret.FirstName = (string)reader["FirstName"];
-                    ret.MiddleName = (string)reader["MiddleName"];
-                    ret.LastName = (string)reader["LastName"];
-                    ret.MothersMaidenName = (string)reader["MothersMaidenName"];
-                    ret.Gender = (string)reader["Gender"]; 
+            return ret;
+        }
 
-                    string mrn = (string)reader["MRN"];
+        public List<Record> GetSetFromSetMember(Record setMember)
+        {
+            List<Record> ret = new List<Record>();
 
-                    ret.MRN = !string.IsNullOrEmpty(mrn) ? int.Parse(mrn) : 0;
-                    ret.Phone1 = (string)reader["Phone"];
-                    ret.Phone2 = (string)reader["Phone2"];
-                    ret.SSN = (string)reader["SSN"];
-                    ret.State = (string)reader["State"];
-                    ret.Suffix = (string)reader["Suffix"];
-                    ret.Zip = (string)reader["Zip"];
+            List<Record> recordIds = new List<Record>();
+            using (MySqlCommand command = _connection.CreateCommand())
+            {
+                command.CommandText = "select * from app_record where id in " +
+                    "(select recordid_id from app_setmember where setid_id = " +
+                        "(select setid_id from app_setmember where recordid_id = " +
+                            "(select id from app_record where enterpriseid = @enterpriseId)))";
+                command.Parameters.AddWithValue("enterpriseId", setMember.EnterpriseId);
+
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        ret.Add(ReaderToObject.ReaderToRecord(reader));
+                    }
                 }
             }
 
@@ -127,7 +129,7 @@ namespace DecisionTreeLearner.Data
                     setWithPossibleOthers.PossibleMatches.Add(GetRecordById(recordId));
                 }
 
-                ret.Add(setWithPossibleOthers); 
+                ret.Add(setWithPossibleOthers);
             }
 
             return ret;
