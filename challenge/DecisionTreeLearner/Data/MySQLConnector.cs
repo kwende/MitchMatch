@@ -63,11 +63,17 @@ namespace DecisionTreeLearner.Data
                     }
                 }
 
+                command.Parameters.Clear();
+
                 foreach (int recordId in recordIds)
                 {
-                    command.CommandText = "insert into app_mlfoundextrasetmember (ReviewedStatus, CorrespondingRecord_id, CorrespndingSet_id) " +
+                    command.CommandText = "insert into app_mlfoundextrasetmember (ReviewedStatus, CorrespondingRecord_id, CorrespondingSet_id) " +
                            " values (0, @recordId, @setId)";
                     command.Parameters.AddWithValue("recordId", recordId);
+                    command.Parameters.AddWithValue("setId", setId); 
+                    command.ExecuteNonQuery();
+
+                    command.Parameters.Clear(); 
                 }
             }
         }
@@ -77,7 +83,7 @@ namespace DecisionTreeLearner.Data
             using (MySqlCommand command = _connection.CreateCommand())
             {
                 command.CommandText = "(select setid_id from app_setmember where recordid_id = " +
-                            "(select id from app_record where enterpriseid = @enterpriseId)))";
+                            "(select id from app_record where enterpriseid = @enterpriseId))";
                 command.Parameters.AddWithValue("enterpriseId", member.EnterpriseId);
 
                 return (int)command.ExecuteScalar();

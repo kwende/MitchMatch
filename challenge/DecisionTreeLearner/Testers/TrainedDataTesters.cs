@@ -76,8 +76,11 @@ namespace DecisionTreeLearner.Testers
                         });
                     }
 
-                    int setId = connector.GetSetIdForSetGivenMember(closedSet.First());
-                    connector.CreateMLFoundExtraRecordsForSet(setId, extraSetMembersFound);
+                    if(extraSetMembersFound.Count > 0)
+                    {
+                        int setId = connector.GetSetIdForSetGivenMember(closedSet.First());
+                        connector.CreateMLFoundExtraRecordsForSet(setId, extraSetMembersFound);
+                    }
 
                     string toSave = $"[{string.Join(",", closedSet.Select(n => n.EnterpriseId))}][{string.Join(",", extraSetMembersFound.Select(n => n.EnterpriseId))}]\n";
 
