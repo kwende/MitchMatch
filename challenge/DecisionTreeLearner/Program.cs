@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using DecisionTreeLearner.Tree;
+using DecisionTreeLearner.DataTypes.MySQL;
 
 namespace DecisionTreeLearner
 {
@@ -82,7 +83,12 @@ namespace DecisionTreeLearner
 
         static void Main(string[] args)
         {
-            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            MySQLConnector conn = MySQLConnector.Connect();
+            List<SetWithPossibleOthers> setsWithOthers = conn.GetSetsWithPossibleOthers();
+
+            return; 
+
+            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
             //TrainedDataTesters.TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 

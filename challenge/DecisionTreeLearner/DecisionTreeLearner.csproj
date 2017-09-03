@@ -53,6 +53,7 @@
     <Compile Include="Attributes\BookkeepingInformationAttribute.cs" />
     <Compile Include="Attributes\EditDistanceCapableAttribute.cs" />
     <Compile Include="Attributes\PersonalInformationAttribute.cs" />
+    <Compile Include="DataTypes\MySQL\SetWithPossibleOthers.cs" />
     <Compile Include="DataTypes\TreeLogger.cs" />
     <Compile Include="Data\AddressSuffixLoader.cs" />
     <Compile Include="Data\DataLoader.cs" />
