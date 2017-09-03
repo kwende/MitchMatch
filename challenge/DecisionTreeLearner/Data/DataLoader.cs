@@ -1,5 +1,5 @@
 ﻿using DecisionTreeLearner.NLP;
-using DecisionTreeLearner.Tree;
+using DecisionTreeLearner.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -254,7 +254,7 @@ namespace DecisionTreeLearner.Data
 
             string[] rejectedLines = File.ReadAllLines(rejectedFilePath);
 
-            for (int c = 0; c < rejectedLines.Length; c += 2)
+            for (int c = 0; c < rejectedLines.Length; c += 3)
             {
                 string line1 = rejectedLines[c];
                 string line2 = rejectedLines[c + 1];

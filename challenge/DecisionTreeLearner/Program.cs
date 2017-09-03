@@ -1,7 +1,7 @@
 ﻿using DecisionTreeLearner.Data;
 using DecisionTreeLearner.NLP;
 using DecisionTreeLearner.Testers;
-using DecisionTreeLearner.Tree;
+using DecisionTreeLearner.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using DecisionTreeLearner.Tree;
 
 namespace DecisionTreeLearner
 {
