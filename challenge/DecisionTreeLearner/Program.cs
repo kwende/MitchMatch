@@ -1,7 +1,7 @@
 ﻿using DecisionTreeLearner.Data;
 using DecisionTreeLearner.NLP;
 using DecisionTreeLearner.Testers;
-using DecisionTreeLearner.Tree;
+using DecisionTreeLearner.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using DecisionTreeLearner.Tree;
 
 namespace DecisionTreeLearner
 {
@@ -81,7 +82,7 @@ namespace DecisionTreeLearner
 
         static void Main(string[] args)
         {
-            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
             //TrainedDataTesters.TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
@@ -89,12 +90,12 @@ namespace DecisionTreeLearner
 
             //Testers.ListAllMatches.List();
 
-            Testers.TrainedDataTesters.SearchForFalseNegatives(
-                "D:/repos/mitchmatch/closedsets.txt",
-                "C:/users/brush/desktop/finaldataset.csv",
-                "C:/users/brush/desktop/forest",
-                "D:/mitchMatchFalseNegativeSearchResults.txt",
-                "D:/mitchMatchFalsenegatievSearchState.txt");
+            //Testers.TrainedDataTesters.SearchForFalseNegatives(
+            //    "D:/repos/mitchmatch/closedsets.txt",
+            //    "C:/users/brush/desktop/finaldataset.csv",
+            //    "C:/users/brush/desktop/forest",
+            //    "D:/mitchMatchFalseNegativeSearchResults.txt",
+            //    "D:/mitchMatchFalsenegatievSearchState.txt");
         }
     }
 }

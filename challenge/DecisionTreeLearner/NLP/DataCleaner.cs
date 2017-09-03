@@ -1,5 +1,5 @@
 ﻿using DecisionTreeLearner.Data;
-using DecisionTreeLearner.Tree;
+using DecisionTreeLearner.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.IO;

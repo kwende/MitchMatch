@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DecisionTreeLearner.Attributes;
 
-namespace DecisionTreeLearner.Tree
+namespace DecisionTreeLearner.DataTypes
 {
     [Serializable]
     public class Record

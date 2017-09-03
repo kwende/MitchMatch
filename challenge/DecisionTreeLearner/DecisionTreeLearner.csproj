@@ -46,6 +46,7 @@
     <Compile Include="Attributes\BookkeepingInformationAttribute.cs" />
     <Compile Include="Attributes\EditDistanceCapableAttribute.cs" />
     <Compile Include="Attributes\PersonalInformationAttribute.cs" />
+    <Compile Include="DataTypes\TreeLogger.cs" />
     <Compile Include="Data\AddressSuffixLoader.cs" />
     <Compile Include="Data\DataLoader.cs" />
     <Compile Include="Data\LargeResidenceFileLoader.cs" />
@@ -57,14 +58,14 @@
     <Compile Include="Testers\ListAllMatches.cs" />
     <Compile Include="Testers\TestSplitDirection.cs" />
     <Compile Include="Testers\TrainedDataTesters.cs" />
-    <Compile Include="Tree\DecisionTree.cs" />
+    <Compile Include="DataTypes\DecisionTree.cs" />
     <Compile Include="Tree\DecisionTreeBuilder.cs" />
-    <Compile Include="Tree\DecisionTreeNode.cs" />
-    <Compile Include="Tree\FieldEnum.cs" />
-    <Compile Include="Tree\MatchTypeEnum.cs" />
-    <Compile Include="Tree\Record.cs" />
-    <Compile Include="Tree\RecordPair.cs" />
-    <Compile Include="Tree\SplittingQuestion.cs" />
+    <Compile Include="DataTypes\DecisionTreeNode.cs" />
+    <Compile Include="DataTypes\FieldEnum.cs" />
+    <Compile Include="DataTypes\MatchTypeEnum.cs" />
+    <Compile Include="DataTypes\Record.cs" />
+    <Compile Include="DataTypes\RecordPair.cs" />
+    <Compile Include="DataTypes\SplittingQuestion.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

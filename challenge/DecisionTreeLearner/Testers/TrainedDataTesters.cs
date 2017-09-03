@@ -1,4 +1,5 @@
 ﻿using DecisionTreeLearner.Data;
+using DecisionTreeLearner.DataTypes;
 using DecisionTreeLearner.Tree;
 using System;
 using System.Collections.Generic;
@@ -56,7 +57,7 @@ namespace DecisionTreeLearner.Testers
                                 {
                                     Record1 = record,
                                     Record2 = otherRecord
-                                }, forest, false))
+                                }, forest, null))
                                 {
                                     lock (extraSetMembersFound)
                                     {
@@ -117,7 +118,7 @@ namespace DecisionTreeLearner.Testers
                     Interlocked.Increment(ref numberOfNonMatches);
                 }
 
-                bool guess = DecisionTreeBuilder.IsMatch(pair, forest, false);
+                bool guess = DecisionTreeBuilder.IsMatch(pair, forest, null);
 
                 if (guess == actual)
                 {
@@ -224,7 +225,7 @@ namespace DecisionTreeLearner.Testers
                                         Record2 = recordB
                                     };
 
-                                    bool match = DecisionTreeBuilder.IsMatch(pair, forest, false);
+                                    bool match = DecisionTreeBuilder.IsMatch(pair, forest, null);
 
                                     if (match)
                                     {
