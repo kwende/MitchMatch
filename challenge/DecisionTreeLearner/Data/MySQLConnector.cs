@@ -39,7 +39,52 @@ namespace DecisionTreeLearner.Data
             return ret;
         }
 
-        public List<Record> GetSetFromSetMember(Record setMember)
+        public void ClearMLFoundExtraSetMemberTable()
+        {
+            using (MySqlCommand command = _connection.CreateCommand())
+            {
+                command.CommandText = "delete from app_mlfoundextrasetmember";
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public void CreateMLFoundExtraRecordsForSet(int setId, List<Record> extras)
+        {
+            using (MySqlCommand command = _connection.CreateCommand())
+            {
+                command.CommandText =
+                    $"select id from app_record where enterpriseid in ({string.Join(",", extras.Select(n => n.EnterpriseId))})";
+                List<int> recordIds = new List<int>();
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        recordIds.Add((int)reader["id"]);
+                    }
+                }
+
+                foreach (int recordId in recordIds)
+                {
+                    command.CommandText = "insert into app_mlfoundextrasetmember (ReviewedStatus, CorrespondingRecord_id, CorrespndingSet_id) " +
+                           " values (0, @recordId, @setId)";
+                    command.Parameters.AddWithValue("recordId", recordId);
+                }
+            }
+        }
+
+        public int GetSetIdForSetGivenMember(Record member)
+        {
+            using (MySqlCommand command = _connection.CreateCommand())
+            {
+                command.CommandText = "(select setid_id from app_setmember where recordid_id = " +
+                            "(select id from app_record where enterpriseid = @enterpriseId)))";
+                command.Parameters.AddWithValue("enterpriseId", member.EnterpriseId);
+
+                return (int)command.ExecuteScalar();
+            }
+        }
+
+        public List<Record> GetRecordsForSetGivenMember(Record setMember)
         {
             List<Record> ret = new List<Record>();
 

@@ -17,6 +17,9 @@ namespace DecisionTreeLearner.Testers
         public static void SearchForFalseNegatives(string closedSetPath, string finalDataSetPath,
             string forestDirectory, string outputFile, string stateFile)
         {
+            MySQLConnector connector = MySQLConnector.Connect();
+            connector.ClearMLFoundExtraSetMemberTable();
+
             Console.Write("Loading final dataset...");
             List<Record> finalDataSet = DataLoader.LoadFinalDataSet(finalDataSetPath);
             Console.WriteLine("...done");
@@ -45,7 +48,7 @@ namespace DecisionTreeLearner.Testers
                     Console.WriteLine($"Working on set {c + 1} of {closedSets.Count}");
                     List<Record> closedSet = closedSets[c];
 
-                    List<Record> extraSetMembersFound = new List<Record>(); 
+                    List<Record> extraSetMembersFound = new List<Record>();
                     foreach (Record record in closedSet)
                     {
                         Parallel.ForEach(finalDataSet, otherRecord =>
@@ -62,8 +65,8 @@ namespace DecisionTreeLearner.Testers
                                     lock (extraSetMembersFound)
                                     {
                                         // is this NOT a set member and have we not added it yet...
-                                        if(!extraSetMembersFound.Any(n=>n.EnterpriseId == otherRecord.EnterpriseId) && 
-                                            !closedSet.Any(n=>n.EnterpriseId == otherRecord.EnterpriseId))
+                                        if (!extraSetMembersFound.Any(n => n.EnterpriseId == otherRecord.EnterpriseId) &&
+                                            !closedSet.Any(n => n.EnterpriseId == otherRecord.EnterpriseId))
                                         {
                                             extraSetMembersFound.Add(otherRecord);
                                         }
@@ -73,7 +76,10 @@ namespace DecisionTreeLearner.Testers
                         });
                     }
 
-                    string toSave = $"[{string.Join(",", closedSet.Select(n => n.EnterpriseId))}][{string.Join(",", extraSetMembersFound.Select(n => n.EnterpriseId))}]\n"; 
+                    int setId = connector.GetSetIdForSetGivenMember(closedSet.First());
+                    connector.CreateMLFoundExtraRecordsForSet(setId, extraSetMembersFound);
+
+                    string toSave = $"[{string.Join(",", closedSet.Select(n => n.EnterpriseId))}][{string.Join(",", extraSetMembersFound.Select(n => n.EnterpriseId))}]\n";
 
                     fout.Write(toSave);
                     fout.Flush();
