@@ -294,13 +294,18 @@ namespace challenge
 
         public static bool FuzzyAddressMatch(row a, row b)
         {
-            if (a.ADDRESS1 == "" || b.ADDRESS1 == "")
+            return FuzzyAddressMatch(a.ADDRESS1, b.ADDRESS1);
+        }
+
+        public static bool FuzzyAddressMatch(string addressA, string addressB)
+        {
+            if (addressA == "" || addressB == "")
                 return false;
-            if (a.ADDRESS1 == b.ADDRESS1)
+            if (addressA == addressB)
                 return true;
 
-            var anums = NumericParts(a.ADDRESS1);
-            var bnums = NumericParts(b.ADDRESS1);
+            var anums = NumericParts(addressA);
+            var bnums = NumericParts(addressB);
 
             if (anums.Count != bnums.Count)
                 return false;

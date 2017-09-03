@@ -66,6 +66,8 @@ namespace LucasPlayground
         static void Main(string[] args)
         {
             //DoBen();
+            //Rectify(@"C:\Users\jbrownkramer\Desktop\closedsets.txt");
+            //Rectify(@"C:\Users\jbrownkramer\Desktop\closedsets - Copy.txt");
 
             // Load Data
             var lines = GetLines();
@@ -78,7 +80,16 @@ namespace LucasPlayground
             _badPhones = data.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
             _badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ') && g.Count() > 2).Select(g => g.Key).ToArray();
 
+
             CleanData(ref data);
+
+            var bob = allData.GroupBy(r => r.EMAIL + r.FIRST + r.LAST + r.GENDER + r.DOB).Where(g => g.Count() >= 2 && g.Key.Contains("@") && !g.Key.Contains("1/1/0001 12:00:00 AM")).OrderBy(g => -g.Count()).ToArray();
+            Console.WriteLine(bob.Count(g => g.Any(r => r.EnterpriseID < 15374761)));
+
+            //Create a dictionary for quick lookup
+            Dictionary<int, row> enterpriseIdToRow = new Dictionary<int, row>();
+            foreach (var r in data)
+                enterpriseIdToRow[r.EnterpriseID] = r;
 
             //DisplayPossibleMatches(data);
 
@@ -376,34 +387,50 @@ namespace LucasPlayground
 
             weakerMatchedIDs = weakerMatchedIDs.Distinct().ToList();
 
-            //TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
-            //bool[] alreadyTakenCareOf = new bool[weakerMatchedIDs.Count];
-            //List<List<int>> possibleBadSets = new List<List<int>>();
-            //for (int i = 0; i < weakerMatchedIDs.Count; i++)
-            //{
-            //    if (!alreadyTakenCareOf[i])
-            //    {
-            //        row row = data.Where(r => r.EnterpriseID == weakerMatchedIDs[i]).First();
-            //        row[] group = tc.FindClosedSetForRow(row);
-            //        List<int> toAdd = new List<int>();
-            //        foreach (row r in group)
-            //        {
-            //            toAdd.Add(r.EnterpriseID);
-            //            if (weakerMatchedIDs.IndexOf(r.EnterpriseID) >= 0)
-            //            {
-            //                alreadyTakenCareOf[weakerMatchedIDs.IndexOf(r.EnterpriseID)] = true;
-            //            }
-            //        }
-            //        possibleBadSets.Add(toAdd);
-            //    }
-            //}
-            //using (StreamWriter sw = File.CreateText("C:/users/lsabalka/desktop/closedsets.txt"))
-            //{
-            //    foreach (List<int> closedSet in possibleBadSets)
-            //    {
-            //        sw.WriteLine(string.Join(",", closedSet));
-            //    }
-            //}
+            TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
+            bool[] alreadyTakenCareOf = new bool[weakerMatchedIDs.Count];
+            List<List<int>> possibleBadSets = new List<List<int>>();
+            for (int i = 0; i < weakerMatchedIDs.Count; i++)
+            {
+                if (!alreadyTakenCareOf[i])
+                {
+                    row row = data.Where(r => r.EnterpriseID == weakerMatchedIDs[i]).First();
+                    row[] group = tc.FindClosedSetForRow(row);
+                    List<int> toAdd = new List<int>();
+                    foreach (row r in group)
+                    {
+                        toAdd.Add(r.EnterpriseID);
+                        if (weakerMatchedIDs.IndexOf(r.EnterpriseID) >= 0)
+                        {
+                            alreadyTakenCareOf[weakerMatchedIDs.IndexOf(r.EnterpriseID)] = true;
+                        }
+                    }
+                    possibleBadSets.Add(toAdd);
+                }
+            }
+
+            SaveSets(possibleBadSets, @"C:/users/jbrownkramer/desktop/closedsets.txt");
+
+            List<List<int>> autoPassedSets = new List<List<int>>();
+            int c = 0;
+            foreach(var badSet in possibleBadSets)
+            {
+                //Express as rows
+                row[] r = badSet.Select(eid => enterpriseIdToRow[eid]).ToArray();
+
+                //Check the mrns
+                if (ActuallyAGoodSet(r, data))
+                    autoPassedSets.Add(badSet);
+
+                Console.Write($"\r{++c}/{possibleBadSets.Count()}");
+            }
+            Console.WriteLine();
+
+            Console.WriteLine(autoPassedSets.Count());
+
+            SaveSets(autoPassedSets, @"C:/users/jbrownkramer/desktop/autoPassed.txt");
+
+            //SaveSets(possibleBadSets, @"C:/users/lsabalka/desktop/closedsets.txt");
 
 
             PrintAnalysis(matches, data);
@@ -428,6 +455,289 @@ namespace LucasPlayground
             //SaveResults(matches, data);
 
             Console.ReadLine();
+        }
+
+        static void Rectify(string path)
+        {
+            List<List<int>> bob = new List<List<int>>();
+
+            var lines = System.IO.File.ReadAllLines(path);
+
+            foreach (var line in lines)
+            {
+                bob.Add(line.Split(',').Select(t => int.Parse(t)).OrderBy(e => e).ToList());
+            }
+
+            bob = bob.OrderBy(l => l.First()).ToList();
+
+            var orderedAsLines = bob.Select(l => String.Join(",", l));
+
+            System.IO.File.WriteAllLines(path, orderedAsLines);
+        }
+
+        static void SaveSets(IEnumerable<List<int>> sets, string path)
+        {
+            using (StreamWriter sw = File.CreateText(path))
+            {
+                foreach (List<int> set in sets)
+                {
+                    sw.WriteLine(string.Join(",", set));
+                }
+            }
+        }
+
+        static bool ActuallyAGoodSet(row[] r, row[] data)
+        {
+            if (TrueForEveryPair(r, MRNsClose))
+                return true;
+
+            if (TrueForEveryPair(r,Address2Evidence))
+                return true;
+
+            if (TrueForEveryPair(r, CleanAddressButNotExactAddressMatch))
+                return true;
+
+            if (TrueForEveryPair(r, LucasAutoPass))
+                return true;
+
+            if (OnlyPossiblePair(r, data))
+                return true;
+
+            return false;
+        }
+
+        static bool OnlyPossiblePair(row[] component, row[] data)
+        {
+            if (component.Count() >= 3) //I am skipping this for now, since the exact condition I want is eluding me
+            {
+                //Sanity check to ensure that everything in component is a neighbor of everything else in component in the very fuzzy match graph
+                var neighbors = component.Select(r => VerySoftMatches(r, data)).ToArray();
+
+                //Graph structure check
+                return !neighbors.Any(n => n.Count() > 2);
+            }
+
+            foreach(row r in component)
+            {
+                if (VerySoftMatches(r,data).Count() <= 1)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static List<row> VerySoftMatches(row r, row[] data)
+        {
+            List<row> toReturn = new List<row>();
+
+            foreach(var datum in data)
+            {
+                if (EasiestAgreementCount(datum,r) >= 2 && datum.EnterpriseID != r.EnterpriseID)
+                {
+                    toReturn.Add(datum);
+                }
+            }
+
+            return toReturn;
+        }
+
+        static bool LucasAutoPass(row r1, row r2)
+        {
+            if (r1.LAST != r2.LAST)
+                return false;
+
+            int matchNumber = 0;
+
+            if (FuzzySSNMatch(r1.SSN, r2.SSN))
+                matchNumber++;
+
+            if (FuzzyDateEquals(r1.DOB, r2.DOB))
+                matchNumber++;
+
+            if (FuzzyPhoneMatch(r1.PHONE, r2.PHONE))
+                matchNumber++;
+
+            if (challenge.Program.FuzzyAddressMatch(r1, r2))
+                matchNumber++;
+
+            return matchNumber >= 2;
+        }
+
+        static bool StrictlyDominates(row a, row b, row c)
+        {
+            return InclusivelyDominates(a, b, c) && !InclusivelyDominates(b, a, c);
+        }
+
+
+        static bool InclusivelyDominates(row a, row b, row c)
+        {
+            if (!StringDominates(a,b,c,r => r.ADDRESS1, challenge.Program.FuzzyAddressMatch))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.ADDRESS2))
+                return false;
+
+            if (!StringDominates(a,b,c,r => r.ALIAS))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.CITY))
+                return false;
+
+            if (!Dominates(a, b, c, r => r.DOB, DOBHardMatch, FuzzyDateEquals))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.EMAIL))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.FIRST, TwoDifferences))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.GENDER))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.LAST, TwoDifferences))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.MIDDLE))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.MOTHERS_MAIDEN_NAME))
+                return false;
+
+            if (!Dominates(a, b, c, r => r.PHONE, LongHardMatch, FuzzyPhoneMatch))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.PHONE2))
+                return false;
+
+            if (!Dominates(a, b, c, r => r.SSN, IntHardMatch, FuzzySSNMatch))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.STATE))
+                return false;
+
+            if (!StringDominates(a, b, c, r => r.SUFFIX))
+                return false;
+
+            if (!Dominates(a, b, c, r => r.ZIP, IntHardMatch, IntHardMatch))
+                return false;
+
+            return true;
+        }
+
+        static bool StringDominates(row ra, row rb, row rc, Func<row, string> fieldSelector)
+        {
+            return StringDominates(ra, rb, rc, fieldSelector, StringHardMatch);
+        }
+
+        static bool StringDominates(row ra, row rb, row rc, Func<row,string> fieldSelector, Func<string,string,bool> softMatch)
+        {
+            return Dominates(ra, rb, rc, fieldSelector, StringHardMatch, softMatch);
+        }
+
+        static bool Dominates<T>(row ra, row rb, row rc, Func<row, T> fieldSelector, Func<T, T, bool> HardMatch, Func<T, T, bool> softMatch)
+        {
+            T a = fieldSelector(ra);
+            T b = fieldSelector(rb);
+            T c = fieldSelector(rc);
+
+            if (HardMatch(a, c))
+                return true;
+
+            if (HardMatch(b, c))
+                return false;
+
+            if (softMatch(a, c))
+                return true;
+
+            if (softMatch(b, c))
+                return false;
+
+            return true;
+        }
+
+
+        static bool StringHardMatch(string a, string b)
+        {
+            return a != "" && b != "" && b == a;
+        }
+
+        static bool DOBHardMatch(DateTime a, DateTime b)
+        {
+            return a != default(DateTime) && b != default(DateTime) && a == b;
+        }
+
+        static bool LongHardMatch(long a, long b)
+        {
+            return a > 0 && b > 0 && a == b;
+        }
+
+        static bool IntHardMatch(int a, int b)
+        {
+            return a > 0 && b > 0 && a == b;
+        }
+
+        static bool CleanAddressButNotExactAddressMatch(row r1, row r2)
+        {
+            if (r1.ADDRESS1 == r2.ADDRESS2)
+                return false;
+
+            string clean1 = DecisionTreeLearner.NLP.DataCleaner.CleanAddress(r1.ADDRESS1);
+            string clean2 = DecisionTreeLearner.NLP.DataCleaner.CleanAddress(r2.ADDRESS1);
+
+            return clean1 != "" && clean2 != "" && clean1 == clean2;
+        }
+
+        static bool TrueForEveryPair(row[] r, Func<row, row, bool> predicate)
+        {
+            for (int i = 0; i < r.Length; i++)
+            {
+                for (int j = i + 1; j < r.Length; j++)
+                {
+                    if (!predicate(r[i], r[j]))
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        static bool Address2Evidence(row r1, row r2)
+        {
+            if (challenge.Program.FuzzyAddressMatch(r1, r2) && r1.ADDRESS1 != "" && r1.ADDRESS2 == r2.ADDRESS2)
+                return true;
+
+            return false;
+        }
+
+        static bool MRNsClose(row r1, row r2)
+        {
+            if (r1.MRN < 1 || r2.MRN < 1)
+            {
+                return false;
+            }
+
+            return System.Math.Abs(r1.MRN - r2.MRN) <= 100;
+        }
+
+        static bool MRNsClose(row[] r)
+        {
+            for (int i = 0; i < r.Length; i++)
+            {
+                if (r[i].MRN < 1)
+                {
+                    return false;
+                }
+
+                for (int j = i + 1; j < r.Length; j++)
+                {
+                    if (System.Math.Abs(r[i].MRN - r[j].MRN) > 100)
+                        return false;
+                }
+            }
+            return true;
         }
 
         static void DisplayPossibleMatches(IEnumerable<row> data)
@@ -591,7 +901,8 @@ namespace LucasPlayground
             else if (Environment.UserName.ToLower().Contains("jbrownkramer") ||
                 Environment.UserName.ToLower().Contains("josh"))
             {
-                lines = File.ReadLines(@"C:\Users\jbrownkramer\Desktop\Data\data.csv");
+                //lines = File.ReadLines(@"C:\Users\jbrownkramer\Desktop\Data\data.csv");
+                lines = File.ReadLines(@"C:\Users\jbrownkramer\Desktop\FInalDataset.csv");
             }
 
 
@@ -954,6 +1265,9 @@ namespace LucasPlayground
 
         public static bool FuzzyDateEquals(DateTime a, DateTime b)
         {
+            if (a == default(DateTime) || b == default(DateTime))
+                return false;
+
             if (OneOrOneDigit(a.Month, b.Month) && a.Day == b.Day && a.Year == b.Year)
                 return true;
 
@@ -1071,6 +1385,14 @@ namespace LucasPlayground
                 fieldAgreement++;
 
             return fieldAgreement;
+        }
+
+        public static bool TwoDifferences(string a, string b)
+        {
+            if (a == "" || b == "")
+                return false;
+
+            return challenge.Program.KDifferences(a, b, 2);
         }
         #endregion
 

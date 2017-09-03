@@ -81,11 +81,48 @@ namespace DecisionTreeLearner.NLP
             return pair;
         }
 
-        public static Record CleanRecord(Record input)
+        public static string CleanAddress(string address)
         {
+            if (address == "UNKNOWN" ||
+                address == "UNKOWN" ||
+                address == "UNK" ||
+                address == "XXX" ||
+                address.StartsWith("UNABL")
+                )
+            {
+                return "";
+            }
+
+            if (address == "HOMELESS" ||
+                address == "UNDOMICILED" ||
+                address == "UNDOMICILE" ||
+                address == "H O M E L E S S")
+            {
+                return "HOMELESS";
+            }
+
             List<Tuple<string, string>> suffixes = AddressSuffixLoader.GetStreetSuffixAbbreviationTuples();
 
-            ///////////////// CITY ////////////////////
+            string cleaned =
+    address.ToUpper().Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(" NORTH ", " N ").Replace(" SOUTH ", " S ").Replace(" SO ", " S ");
+
+            cleaned = Regex.Replace(cleaned, @"(\d)(ST|ND|RD|TH)\b", "$1");
+
+            for (int c = 0; c < suffixes.Count; c++)
+            {
+                Tuple<string, string> suffix = suffixes[c];
+                if (cleaned.EndsWith(suffix.Item1))
+                {
+                    cleaned = cleaned.Replace($" {suffix.Item1}", $" {suffix.Item2}");
+                }
+            }
+
+            return cleaned;
+        }
+
+        public static Record CleanRecord(Record input)
+        {
+            ////////////////// CITY //////////////////
             if (input.City == "BKLYN")
             {
                 input.City = "BROOKLYN";
@@ -128,29 +165,6 @@ namespace DecisionTreeLearner.NLP
             }
             /////////////////////////////////////////////
 
-            ///////////////// ADDRESS1 ////////////////////
-            input.LivesInLargeResidence = false;
-            string[] largeResidenceList = LargeResidenceFileLoader.GetLargeResidenceList();
-            if (input.Address1 == "UNKNOWN" ||
-                input.Address1 == "UNKOWN" ||
-                input.Address1 == "UNK" ||
-                input.Address1 == "XXX" ||
-                input.Address1.StartsWith("UNABL"))
-            {
-                input.Address1 = "";
-            }
-            else if (largeResidenceList.Contains(input.Address1))
-            {
-                input.LivesInLargeResidence = true;
-            }
-            else if (input.Address1 == "HOMELESS" ||
-                    input.Address1 == "UNDOMICILED" ||
-                    input.Address1 == "UNDOMICILE" ||
-                    input.Address1 == "H O M E L E S S")
-            {
-                input.Address1 = "HOMELESS";
-            }
-            ///////////////////////////////////////////////
 
             /////////////////// ADDRESS2 /////////////////////
             if (input.Address2 == "UNKNOWN" ||
@@ -185,19 +199,14 @@ namespace DecisionTreeLearner.NLP
             /////////////////////////////////////////
 
             ////////////// ADDRESS1 /////////////////////
-            string cleaned = Regex.Replace(input.Address1, @"(\d)(ST|ND|RD|TH)\b", "$1");
-            cleaned = cleaned.Replace(" WEST ", " W ").Replace(" EAST ", " E ").Replace(
-                    " NORTH ", " N ").Replace(" SOUTH ", " S ").Replace(" SO ", " S ");
-            for (int c = 0; c < suffixes.Count; c++)
+            input.Address1 = CleanAddress(input.Address1);
+            var largeResidenceList = LargeResidenceFileLoader.GetLargeResidenceList();
+            if (largeResidenceList.Contains(input.Address1))
             {
-                Tuple<string, string> suffix = suffixes[c];
-                if (cleaned.EndsWith(suffix.Item1))
-                {
-                    cleaned = cleaned.Replace($" {suffix.Item1}", $" {suffix.Item2}");
-                }
+                input.LivesInLargeResidence = true;
             }
-            input.Address1 = cleaned;
             ///////////////////////////////////////////////
+
 
             return input;
         }
