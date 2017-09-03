@@ -45,6 +45,7 @@ namespace DecisionTreeLearner.Data
                     ret.MiddleName = (string)reader["MiddleName"];
                     ret.LastName = (string)reader["LastName"];
                     ret.MothersMaidenName = (string)reader["MothersMaidenName"];
+                    ret.Gender = (string)reader["Gender"]; 
 
                     string mrn = (string)reader["MRN"];
 

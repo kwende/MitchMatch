@@ -83,49 +83,55 @@ namespace DecisionTreeLearner
 
         static void Main(string[] args)
         {
-            MySQLConnector conn = MySQLConnector.Connect();
-            List<SetWithPossibleOthers> setsWithOthers = conn.GetSetsWithPossibleOthers();
+            //string response = Regex.Replace("SCOT   DREYER      5", " + ", " ", RegexOptions.None);
 
-            DecisionTree[] forest = DataLoader.LoadForestFromDirectory("c:/users/brush/desktop/forest/");
-            List<RecordPair> pairs = DataLoader.BuildTrainingData("mrns.csv", "more.csv", "rejected.txt");
+            //MySQLConnector conn = MySQLConnector.Connect();
+            //List<SetWithPossibleOthers> setsWithOthers = conn.GetSetsWithPossibleOthers();
 
-            foreach (SetWithPossibleOthers setWithOther in setsWithOthers)
-            {
-                foreach (Record recordInSet in setWithOther.OriginalSet)
-                {
-                    foreach (Record possibleMatch in setWithOther.PossibleMatches)
-                    {
-                        RecordPair pair = new RecordPair
-                        {
-                            Record1 = recordInSet,
-                            Record2 = possibleMatch
-                        };
+            //DecisionTree[] forest = DataLoader.LoadForestFromDirectory("c:/users/brush/desktop/forest/");
+            //List<RecordPair> pairs = DataLoader.BuildTrainingData("mrns.csv", "more.csv", "rejected.txt");
 
-                        TreeLogger logger = new TreeLogger();
-                        if (DecisionTreeBuilder.IsMatch(pair, forest, logger))
-                        {
-                            using (StreamWriter sw = File.AppendText(
-                                $"c:/users/brush/desktop/ends/{Guid.NewGuid().ToString().Replace("-", "")}.txt"))
-                            {
-                                Parallel.ForEach(pairs, p =>
-                                {
-                                    if (DecisionTreeBuilder.ReplayDecision(p, logger.SplittingQuestionsToTheBottom))
-                                    {
-                                        lock (sw)
-                                        {
-                                            sw.WriteLine(p);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-                }
-            }
+            //int number = 1;
+            //foreach (SetWithPossibleOthers setWithOther in setsWithOthers)
+            //{
+            //    Console.WriteLine($"Working on {number} of {setsWithOthers.Count}");
+            //    number++;
 
-            return;
+            //    foreach (Record recordInSet in setWithOther.OriginalSet)
+            //    {
+            //        foreach (Record possibleMatch in setWithOther.PossibleMatches)
+            //        {
+            //            RecordPair pair = new RecordPair
+            //            {
+            //                Record1 = recordInSet,
+            //                Record2 = possibleMatch
+            //            };
 
-            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            //            TreeLogger logger = new TreeLogger();
+            //            if (DecisionTreeBuilder.IsMatch(pair, forest, logger))
+            //            {
+            //                using (StreamWriter sw = File.AppendText(
+            //                    $"c:/users/brush/desktop/ends/{Guid.NewGuid().ToString().Replace("-", "")}.txt"))
+            //                {
+            //                    Parallel.ForEach(pairs, p =>
+            //                    {
+            //                        if (DecisionTreeBuilder.ReplayDecision(p, logger.SplittingQuestionsToTheBottom))
+            //                        {
+            //                            lock (sw)
+            //                            {
+            //                                sw.WriteLine(p);
+            //                            }
+            //                        }
+            //                    });
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+
+            //return;
+
+            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
             //TrainedDataTesters.TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 

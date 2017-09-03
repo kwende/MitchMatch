@@ -205,7 +205,14 @@ namespace DecisionTreeLearner.NLP
             {
                 input.LivesInLargeResidence = true;
             }
+
             ///////////////////////////////////////////////
+
+            /////////////// ALIAS /////////////////////
+            input.Alias = Regex.Replace(input.Alias, " +", " ", RegexOptions.None); 
+
+
+            //////////////////////////////////////////
 
 
             return input;
