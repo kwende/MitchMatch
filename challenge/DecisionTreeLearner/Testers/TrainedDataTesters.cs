@@ -34,10 +34,10 @@ namespace DecisionTreeLearner.Testers
 
             Console.Write("Reading state file...");
             int startIndex = 0;
-            if (File.Exists(stateFile))
-            {
-                startIndex = int.Parse(File.ReadAllText(stateFile));
-            }
+            //if (File.Exists(stateFile))
+            //{
+            //    startIndex = int.Parse(File.ReadAllText(stateFile));
+            //}
             Console.WriteLine($"...done. Starting at {startIndex}.");
 
             Console.WriteLine("Starting....");

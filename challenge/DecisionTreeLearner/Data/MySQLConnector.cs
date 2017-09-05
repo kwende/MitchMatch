@@ -152,7 +152,7 @@ namespace DecisionTreeLearner.Data
             using (MySqlCommand command = _connection.CreateCommand())
             {
                 command.CommandText = "SELECT CorrespondingRecord_id, CorrespondingSet_id FROM " +
-                    "MitchMatch.app_mlfoundextrasetmember where ReviewedStatus = 1";
+                    "MitchMatch.app_mlfoundextrasetmember where ReviewedStatus = 0";
                 using (MySqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
