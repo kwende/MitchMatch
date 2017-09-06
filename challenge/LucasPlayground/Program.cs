@@ -17,52 +17,6 @@ namespace LucasPlayground
         private static string[] _badAddresses = new string[0];
         private static DateTime[] _badDOBs = new DateTime[0];
 
-        static void DoBen()
-        {
-            // get all lines
-            var lines = GetLines();
-            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
-            var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
-
-            string[] linesInClosedSetFile = File.ReadAllLines(@"C:\repos\MitchMatch\closedsets.txt");
-
-            using (StreamWriter sw = File.CreateText("c:/users/ben/desktop/alternatives.txt"))
-            {
-                foreach (string line in linesInClosedSetFile)
-                {
-                    int[] eids = line.Split(',').Select(n => int.Parse(n)).ToArray();
-
-                    List<row> rows = new List<row>();
-                    for (int d = 0; d < eids.Length; d++)
-                    {
-                        for (int c = 0; c < data.Length; c++)
-                        {
-                            if (data[c].EnterpriseID == eids[d])
-                            {
-                                rows.Add(data[c]);
-                                break;
-                            }
-                        }
-                    }
-
-                    List<int> otherEids = new List<int>();
-                    foreach (row row in rows)
-                    {
-                        foreach (row otherRow in data)
-                        {
-                            if (EasiestAgreementCount(row, otherRow) > 2)
-                            {
-                                otherEids.Add(otherRow.EnterpriseID);
-                            }
-                        }
-                    }
-
-                    string toAppend = string.Join(",", otherEids.ToArray());
-                    sw.WriteLine(toAppend);
-                }
-            }
-        }
-
         static void Main(string[] args)
         {
             //DoBen();
@@ -80,7 +34,6 @@ namespace LucasPlayground
             //Josh Code Review : Actually, _badDOBs is not being cleaned
             _badPhones = data.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
             _badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ') && g.Count() > 2).Select(g => g.Key).ToArray();
-
 
             CleanData(ref data);
             //DisplayPossibleMatches(data);
@@ -451,6 +404,52 @@ namespace LucasPlayground
             //SaveResults(matches, data);
 
             Console.ReadLine();
+        }
+
+        static void DoBen()
+        {
+            // get all lines
+            var lines = GetLines();
+            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
+            var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
+
+            string[] linesInClosedSetFile = File.ReadAllLines(@"C:\repos\MitchMatch\closedsets.txt");
+
+            using (StreamWriter sw = File.CreateText("c:/users/ben/desktop/alternatives.txt"))
+            {
+                foreach (string line in linesInClosedSetFile)
+                {
+                    int[] eids = line.Split(',').Select(n => int.Parse(n)).ToArray();
+
+                    List<row> rows = new List<row>();
+                    for (int d = 0; d < eids.Length; d++)
+                    {
+                        for (int c = 0; c < data.Length; c++)
+                        {
+                            if (data[c].EnterpriseID == eids[d])
+                            {
+                                rows.Add(data[c]);
+                                break;
+                            }
+                        }
+                    }
+
+                    List<int> otherEids = new List<int>();
+                    foreach (row row in rows)
+                    {
+                        foreach (row otherRow in data)
+                        {
+                            if (EasiestAgreementCount(row, otherRow) > 2)
+                            {
+                                otherEids.Add(otherRow.EnterpriseID);
+                            }
+                        }
+                    }
+
+                    string toAppend = string.Join(",", otherEids.ToArray());
+                    sw.WriteLine(toAppend);
+                }
+            }
         }
 
         static void Rectify(string path)
@@ -1545,8 +1544,6 @@ namespace LucasPlayground
             Console.WriteLine($"Match modified: {modifiedCounter}");
 
             PrintRemainingRowCount(data, matches);
-
-            Console.ReadLine();
 
             return toReturn;
         }
