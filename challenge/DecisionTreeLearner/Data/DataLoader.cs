@@ -130,13 +130,14 @@ namespace DecisionTreeLearner.Data
         {
             Random rand = new Random();
             bool fallsIntoBigBucket = false;
-            if (!(EditDistance.Compute(pair.Record1.DOB, pair.Record2.DOB) <= 0))
+            int dobEditDistance = EditDistance.Compute(pair.Record1.DOB, pair.Record2.DOB);
+            if (!(dobEditDistance <= 0))
             {
                 if (!(System.Math.Abs(pair.Record1.MRN - pair.Record2.MRN) <= 100))
                 {
                     if (!(EditDistance.Compute(pair.Record1.LastName, pair.Record2.LastName) <= 1))
                     {
-                        if (!(EditDistance.Compute(pair.Record1.FirstName, pair.Record2.FirstName) <= 1))
+                        if (!(dobEditDistance <= 1))
                         {
                             fallsIntoBigBucket = true;
                         }

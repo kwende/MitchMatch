@@ -247,225 +247,138 @@ namespace DecisionTreeLearner.Tree
             Stack<Tuple<SplittingQuestion, bool>> splittingQuestionsThatGotUsHere)
         {
             Console.WriteLine($"Level {level}. {splittingQuestions.Length} splitting questions on {allPairs.Length} record pairs.");
-            double currentEntropy = ComputeShannonEntropy(allPairs);
 
             // find the best splitting question. 
-            double highestGain = 0.0;
             SplittingQuestion bestQuestion = null;
             int numberDone = 0;
             int displayLeft = Console.CursorLeft;
             int displayTop = Console.CursorTop;
 
-            #region DEBUGLOOP
-            //foreach (SplittingQuestion splittingQuestion in splittingQuestions)
-            //{
-            //    List<RecordPair> leftBucket = new List<RecordPair>();
-            //    List<RecordPair> rightBucket = new List<RecordPair>();
+            bool reachedLeafNode = false;
 
-            //    Random rand = new Random();
-
-            //    int matchesInLeft = 0, noMatchesInLeft = 0,
-            //        matchesInRight = 0, noMatchesInRight = 0;
-
-            //    foreach (RecordPair pair in allPairs)
-            //    {
-            //        if (rand.NextDouble() <= subsamplingPercentage)
-            //        {
-            //            bool goLeft = ComputeSplitDirection(splittingQuestion, pair);
-
-            //            if (goLeft)
-            //            {
-            //                if (pair.IsMatch)
-            //                {
-            //                    matchesInLeft++;
-            //                }
-            //                else
-            //                {
-            //                    noMatchesInLeft++;
-            //                }
-            //            }
-            //            else
-            //            {
-            //                if (pair.IsMatch)
-            //                {
-            //                    matchesInRight++;
-            //                }
-            //                else
-            //                {
-            //                    noMatchesInRight++;
-            //                }
-            //            }
-            //        }
-            //    }
-
-            //    double leftEntropy = ComputeShannonEntropy(matchesInLeft, noMatchesInLeft);
-            //    double rightEntropy = ComputeShannonEntropy(matchesInRight, noMatchesInRight);
-
-            //    double gain = ComputeGain(currentEntropy, leftEntropy, (noMatchesInLeft + matchesInLeft),
-            //        rightEntropy, (matchesInRight + noMatchesInRight));
-
-            //    lock (splittingQuestions)
-            //    {
-            //        if (gain > highestGain)
-            //        {
-            //            highestGain = gain;
-            //            bestQuestion = splittingQuestion;
-            //        }
-            //    }
-
-            //    lock (splittingQuestions)
-            //    {
-            //        numberDone++;
-            //        Console.SetCursorPosition(displayLeft, displayTop);
-            //        Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
-            //    }
-            //}
-            #endregion
-
-            #region PARALLELLOOP
-            //Console.WriteLine("Parallel mode...."); 
-            //foreach (SplittingQuestion splittingQuestion in splittingQuestions)
-            Parallel.ForEach(splittingQuestions, splittingQuestion =>
+            // is this precomputed? if not, then we need to compute it. 
+            if (parentNode.Question == null)
             {
-                List<RecordPair> leftBucket = new List<RecordPair>();
-                List<RecordPair> rightBucket = new List<RecordPair>();
+                double highestGain = 0.0;
+                double currentEntropy = ComputeShannonEntropy(allPairs);
 
-                //Random rand = new Random();
-
-                int matchesInLeft = 0, noMatchesInLeft = 0,
-                    matchesInRight = 0, noMatchesInRight = 0;
-
-                int pairNumber = 0;
-                foreach (RecordPair pair in allPairs)
+                //Console.WriteLine("Parallel mode...."); 
+                //foreach (SplittingQuestion splittingQuestion in splittingQuestions)
+                Parallel.ForEach(splittingQuestions, splittingQuestion =>
                 {
-                    //if(pairNumber%10000==0)
-                    //    Console.WriteLine($"{pairNumber} of {allPairs.Length}");
-                    pairNumber++;
-                    //if (rand.NextDouble() <= subsamplingPercentage)
-                    {
-                        bool goLeft = ComputeSplitDirection(splittingQuestion, pair);
+                    List<RecordPair> leftBucket = new List<RecordPair>();
+                    List<RecordPair> rightBucket = new List<RecordPair>();
 
-                        if (goLeft)
+                    //Random rand = new Random();
+
+                    int matchesInLeft = 0, noMatchesInLeft = 0,
+                            matchesInRight = 0, noMatchesInRight = 0;
+
+                    int pairNumber = 0;
+                    foreach (RecordPair pair in allPairs)
+                    {
+                        //if(pairNumber%10000==0)
+                        //    Console.WriteLine($"{pairNumber} of {allPairs.Length}");
+                        pairNumber++;
+                        //if (rand.NextDouble() <= subsamplingPercentage)
                         {
-                            if (pair.IsMatch)
+                            bool goLeft = ComputeSplitDirection(splittingQuestion, pair);
+
+                            if (goLeft)
                             {
-                                matchesInLeft++;
+                                if (pair.IsMatch)
+                                {
+                                    matchesInLeft++;
+                                }
+                                else
+                                {
+                                    noMatchesInLeft++;
+                                }
                             }
                             else
                             {
-                                noMatchesInLeft++;
-                            }
-                        }
-                        else
-                        {
-                            if (pair.IsMatch)
-                            {
-                                matchesInRight++;
-                            }
-                            else
-                            {
-                                noMatchesInRight++;
+                                if (pair.IsMatch)
+                                {
+                                    matchesInRight++;
+                                }
+                                else
+                                {
+                                    noMatchesInRight++;
+                                }
                             }
                         }
                     }
-                }
 
-                double leftEntropy = ComputeShannonEntropy(matchesInLeft, noMatchesInLeft);
-                double rightEntropy = ComputeShannonEntropy(matchesInRight, noMatchesInRight);
+                    double leftEntropy = ComputeShannonEntropy(matchesInLeft, noMatchesInLeft);
+                    double rightEntropy = ComputeShannonEntropy(matchesInRight, noMatchesInRight);
 
-                double gain = ComputeGain(currentEntropy, leftEntropy, (noMatchesInLeft + matchesInLeft),
-                    rightEntropy, (matchesInRight + noMatchesInRight));
+                    double gain = ComputeGain(currentEntropy, leftEntropy, (noMatchesInLeft + matchesInLeft),
+                        rightEntropy, (matchesInRight + noMatchesInRight));
 
-                lock (splittingQuestions)
-                {
-                    if (gain > highestGain)
+                    lock (splittingQuestions)
                     {
-                        highestGain = gain;
-                        bestQuestion = splittingQuestion;
+                        if (gain > highestGain)
+                        {
+                            highestGain = gain;
+                            bestQuestion = splittingQuestion;
+                        }
+                    }
+                    lock (splittingQuestions)
+                    {
+                        numberDone++;
+                        //Console.SetCursorPosition(displayLeft, displayTop);
+                        //Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
+                    }
+                });
+
+                reachedLeafNode = highestGain <= minGainToBreak;
+
+                if (reachedLeafNode)
+                {
+                    parentNode.IsLeaf = true;
+                    int matchCount = allPairs.Count(n => n.IsMatch);
+                    int noMatchCount = allPairs.Count(n => !n.IsMatch);
+
+                    if (matchCount > noMatchCount)
+                    {
+                        parentNode.IsMatch = true;
+                    }
+                    else
+                    {
+                        parentNode.IsMatch = false;
                     }
                 }
-                lock (splittingQuestions)
-                {
-                    numberDone++;
-                    //Console.SetCursorPosition(displayLeft, displayTop);
-                    //Console.WriteLine($"{(int)((numberDone / (splittingQuestions.Length * 1.0)) * 100)}%");
-                }
-            });
-            #endregion
-
-            if (highestGain <= minGainToBreak)
-            {
-                //if (allPairs.Any(n => n.Record1.EnterpriseId == 16027249 && n.Record2.EnterpriseId == 15715830))
-                //{
-                //    foreach (RecordPair pair in allPairs)
-                //    {
-                //        File.AppendAllText("C:/users/brush/desktop/fartsmoke.txt",
-                //            $"{pair}\n");
-                //    }
-                //}
-
-                parentNode.IsLeaf = true;
-                int matchCount = allPairs.Count(n => n.IsMatch);
-                int noMatchCount = allPairs.Count(n => !n.IsMatch);
-
-                if (matchCount > noMatchCount)
-                {
-                    parentNode.IsMatch = true;
-                }
-                else
-                {
-                    parentNode.IsMatch = false;
-                }
-
-                StringBuilder sb = new StringBuilder(1024);
-                sb.AppendLine($"Level {level}, IsMatch {parentNode.IsMatch}");
-                sb.AppendLine("Questions:");
-                foreach (Tuple<SplittingQuestion, bool> questionAnswer in splittingQuestionsThatGotUsHere)
-                {
-                    sb.AppendLine($"\t{questionAnswer.Item1}:{questionAnswer.Item2}");
-                }
-                sb.AppendLine($"match: {matchCount}, nomatch: {noMatchCount}");
-                File.WriteAllText(
-                    $"c:/users/brush/desktop/treeresults/{Guid.NewGuid().ToString().Replace("-", "")}",
-                    sb.ToString());
-
-                //using (StreamWriter sw = File.CreateText($"D:/allNodes/{Guid.NewGuid().ToString().Replace("-", "")}"))
-                //{
-                //    foreach (RecordPair pair in allPairs)
-                //    {
-                //        sw.WriteLine($"{pair.IsMatch},{pair.Record1.EnterpriseId},{pair.Record2.EnterpriseId}");
-                //    }
-                //}
-
-
-                //if (matchCount > 0 && noMatchCount > 0)
-                //{
-                //    foreach (RecordPair noHomoPair in allPairs)
-                //    {
-                //        Console.WriteLine(noHomoPair);
-                //        bool goLeft = ComputeSplitDirection(new SplittingQuestion
-                //        {
-                //            BothFieldValuesAreEmpty = true,
-                //            Field = FieldEnum.SSN,
-                //            MatchType = MatchTypeEnum.EmptyMatch
-                //        }, noHomoPair);
-                //        Console.WriteLine("\t\tGo left: " + goLeft.ToString());
-                //    }
-
-                //    Console.WriteLine("\tNOHOMO!");
-                //    StringBuilder sb = new StringBuilder();
-                //    foreach (RecordPair pair in allPairs)
-                //    {
-                //        sb.AppendLine(pair.ToString());
-                //    }
-
-                //    File.AppendAllText($"C:/users/brush/desktop/nohomo/{Guid.NewGuid().ToString().Replace("-", "")}.csv",
-                //        sb.ToString());
-                //}
 
                 Console.WriteLine("\tGain limit met. Anything reaching this leaf will be labeled as " + (parentNode.IsMatch ? "match." : "no match"));
             }
             else
+            {
+                // otherwise it's precomputed, just take the current question as the "best question"
+                bestQuestion = parentNode.Question;
+                reachedLeafNode = parentNode.IsLeaf;
+
+                Console.WriteLine("\tPrecomputed. Anything reaching this leaf will be labeled as " + (parentNode.IsMatch ? "match." : "no match"));
+            }
+
+            //if (reachedLeafNode)
+            //{
+
+
+            //    StringBuilder sb = new StringBuilder(1024);
+            //    sb.AppendLine($"Level {level}, IsMatch {parentNode.IsMatch}");
+            //    sb.AppendLine("Questions:");
+            //    foreach (Tuple<SplittingQuestion, bool> questionAnswer in splittingQuestionsThatGotUsHere)
+            //    {
+            //        sb.AppendLine($"\t{questionAnswer.Item1}:{questionAnswer.Item2}");
+            //    }
+            //    sb.AppendLine($"match: {matchCount}, nomatch: {noMatchCount}");
+            //    File.WriteAllText(
+            //        $"c:/users/brush/desktop/treeresults/{Guid.NewGuid().ToString().Replace("-", "")}",
+            //        sb.ToString());
+
+            //    Console.WriteLine("\tGain limit met. Anything reaching this leaf will be labeled as " + (parentNode.IsMatch ? "match." : "no match"));
+            //}
+            if (!reachedLeafNode)
             {
                 Console.WriteLine($"\tBest question at this level is {bestQuestion}");
 
@@ -491,8 +404,15 @@ namespace DecisionTreeLearner.Tree
                 });
 
                 parentNode.Question = bestQuestion;
-                parentNode.LeftBranch = new DecisionTreeNode();
-                parentNode.RightBranch = new DecisionTreeNode();
+                if (parentNode.LeftBranch == null)
+                {
+                    parentNode.LeftBranch = new DecisionTreeNode();
+                }
+
+                if (parentNode.RightBranch == null)
+                {
+                    parentNode.RightBranch = new DecisionTreeNode();
+                }
 
                 splittingQuestionsThatGotUsHere.Push(new Tuple<SplittingQuestion, bool>(bestQuestion, true));
                 RecurseAndPartition(parentNode.LeftBranch, splittingQuestions, bestLeftBucket.ToArray(),
@@ -569,11 +489,44 @@ namespace DecisionTreeLearner.Tree
             return (positives / (forest.Length) * 1.0) > .5;
         }
 
+        private static void PrefillTree(DecisionTreeNode parent, List<Tuple<SplittingQuestion, bool>> preComputedBranches, int level)
+        {
+            if (level < preComputedBranches.Count)
+            {
+                Tuple<SplittingQuestion, bool> preComputedBranch = preComputedBranches[level];
+
+                // are we at the end? 
+                if (preComputedBranch.Item1 == null)
+                {
+                    // we are at the end. 
+                    parent.IsLeaf = true;
+                    parent.IsMatch = preComputedBranch.Item2;
+                }
+                else
+                {
+                    // we aren't at the end. 
+
+                    parent.Question = preComputedBranch.Item1;
+
+                    if (preComputedBranch.Item2) // go left. 
+                    {
+                        parent.LeftBranch = new DecisionTreeNode();
+                        PrefillTree(parent.LeftBranch, preComputedBranches, level + 1);
+                    }
+                    else // go right. 
+                    {
+                        parent.RightBranch = new DecisionTreeNode();
+                        PrefillTree(parent.RightBranch, preComputedBranches, level + 1);
+                    }
+                }
+            }
+        }
+
         private static PropertyInfo[] _propInfoCache;
 
         public DecisionTree Train(List<RecordPair> trainingData,
             SplittingQuestion[] splittingQuestions, double subsamplingPercentage,
-            double minGain, int maximumEditDistance)
+            double minGain, int maximumEditDistance, List<Tuple<SplittingQuestion, bool>> preComputedBranches)
         {
             //PropertyInfo property = recordType.GetProperty(question.Field.ToString());
             //TODO: do this better. major hack. 
@@ -582,8 +535,13 @@ namespace DecisionTreeLearner.Tree
             DecisionTree tree = new DecisionTree();
             tree.Root = new DecisionTreeNode();
 
+            if (preComputedBranches != null)
+            {
+                PrefillTree(tree.Root, preComputedBranches, 0);
+            }
+
             RecurseAndPartition(tree.Root, splittingQuestions, trainingData.ToArray(),
-                0, subsamplingPercentage, minGain, new Stack<Tuple<SplittingQuestion,bool>>());
+                0, subsamplingPercentage, minGain, new Stack<Tuple<SplittingQuestion, bool>>());
 
             return tree;
         }

@@ -71,8 +71,42 @@ namespace DecisionTreeLearner
                 SplittingQuestion[] splittingQuestions = DecisionTreeBuilder.GenerateSplittingQuestions(maximumEditDistance);
 
                 DecisionTreeBuilder treeBuilder = new DecisionTreeBuilder();
+
+
+                List<Tuple<SplittingQuestion, bool>> preComputedQuestions = new List<Tuple<SplittingQuestion, bool>>();
+
+                preComputedQuestions.Add(new Tuple<SplittingQuestion, bool>(
+                    new SplittingQuestion
+                    {
+                        Field = FieldEnum.DOB,
+                        MatchType = MatchTypeEnum.EditDistance,
+                        MaximumEditDistance = 0,
+                    }, false));
+                preComputedQuestions.Add(new Tuple<SplittingQuestion, bool>(
+                    new SplittingQuestion
+                    {
+                        Field = FieldEnum.MRN,
+                        MatchType = MatchTypeEnum.MRNDistance,
+                        MRNMaxDistance = 100,
+                    }, false));
+                preComputedQuestions.Add(new Tuple<SplittingQuestion, bool>(
+                    new SplittingQuestion
+                    {
+                        Field = FieldEnum.LastName,
+                        MatchType = MatchTypeEnum.EditDistance,
+                        MaximumEditDistance = 1
+                    }, false));
+                preComputedQuestions.Add(new Tuple<SplittingQuestion, bool>(
+                    new SplittingQuestion
+                    {
+                        Field = FieldEnum.DOB,
+                        MatchType = MatchTypeEnum.EditDistance,
+                        MaximumEditDistance = 1,
+                    }, false));
+                preComputedQuestions.Add(new Tuple<SplittingQuestion, bool>(null, false));
+
                 DecisionTree tree = treeBuilder.Train(trainingDataSubset, splittingQuestions,
-                    subsamplingPercentage, minGain, maximumEditDistance);
+                    subsamplingPercentage, minGain, maximumEditDistance, preComputedQuestions);
 
                 BinaryFormatter bf = new BinaryFormatter();
                 using (FileStream fout = File.Create(Path.Combine(outputDirectory, $"tree{c}.dat")))
