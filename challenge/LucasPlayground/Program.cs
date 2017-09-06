@@ -17,52 +17,6 @@ namespace LucasPlayground
         private static string[] _badAddresses = new string[0];
         private static DateTime[] _badDOBs = new DateTime[0];
 
-        static void DoBen()
-        {
-            // get all lines
-            var lines = GetLines();
-            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
-            var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
-
-            string[] linesInClosedSetFile = File.ReadAllLines(@"C:\repos\MitchMatch\closedsets.txt");
-
-            using (StreamWriter sw = File.CreateText("c:/users/ben/desktop/alternatives.txt"))
-            {
-                foreach (string line in linesInClosedSetFile)
-                {
-                    int[] eids = line.Split(',').Select(n => int.Parse(n)).ToArray();
-
-                    List<row> rows = new List<row>();
-                    for (int d = 0; d < eids.Length; d++)
-                    {
-                        for (int c = 0; c < data.Length; c++)
-                        {
-                            if (data[c].EnterpriseID == eids[d])
-                            {
-                                rows.Add(data[c]);
-                                break;
-                            }
-                        }
-                    }
-
-                    List<int> otherEids = new List<int>();
-                    foreach (row row in rows)
-                    {
-                        foreach (row otherRow in data)
-                        {
-                            if (EasiestAgreementCount(row, otherRow) > 2)
-                            {
-                                otherEids.Add(otherRow.EnterpriseID);
-                            }
-                        }
-                    }
-
-                    string toAppend = string.Join(",", otherEids.ToArray());
-                    sw.WriteLine(toAppend);
-                }
-            }
-        }
-
         static void Main(string[] args)
         {
             //DoBen();
@@ -76,26 +30,21 @@ namespace LucasPlayground
 
             // Clean Data
             _badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
-            _badDOBs = new DateTime[] { new DateTime(1900, 1, 1) };
+            _badDOBs = new DateTime[] { new DateTime(1900, 1, 1) };  //Josh Code Review : Not sure all of these are fake, but if they match anyway, that's good enough for me.
+            //Josh Code Review : Actually, _badDOBs is not being cleaned
             _badPhones = data.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
             _badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ') && g.Count() > 2).Select(g => g.Key).ToArray();
 
-
             CleanData(ref data);
-
-            var bob = allData.GroupBy(r => r.EMAIL + r.FIRST + r.LAST + r.GENDER + r.DOB).Where(g => g.Count() >= 2 && g.Key.Contains("@") && !g.Key.Contains("1/1/0001 12:00:00 AM")).OrderBy(g => -g.Count()).ToArray();
-            Console.WriteLine(bob.Count(g => g.Any(r => r.EnterpriseID < 15374761)));
+            //DisplayPossibleMatches(data);
 
             //Create a dictionary for quick lookup
             Dictionary<int, row> enterpriseIdToRow = new Dictionary<int, row>();
             foreach (var r in data)
                 enterpriseIdToRow[r.EnterpriseID] = r;
 
-            //DisplayPossibleMatches(data);
-
-
             // Process Data
-            Console.WriteLine(lines.Count() + " total rows"); // >= 15374761
+            Console.WriteLine(lines.Count() + " total rows");
             row[] remainingRows = data;
             Console.WriteLine("Remaining: " + remainingRows.Length);
 
@@ -160,7 +109,7 @@ namespace LucasPlayground
                 DOB = true,
             }));
 
-            AddMatches("DOB + PHONE (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
+            AddMatches("DOB + PHONE (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions 
             {
                 First = true,
                 DOB = true,
@@ -169,7 +118,8 @@ namespace LucasPlayground
             {
                 SSN = true,
                 First = true,
-            }));
+            }));  // Josh Code Review : This only matches on First, DOB, and Phone : If it gets past the hard match, it will pass the softmatch
+
             AddMatches("DOB + ADDRESS (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
             {
                 DOB = true,
@@ -196,11 +146,11 @@ namespace LucasPlayground
                 SSN = true
             }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
-                Name = true,
+                Name = true, // Josh Code Review : Note that softmatching on Name returns at least 1 if ONE of First, Last soft matches.
                 Phone = true,
                 DOB = true,
                 Address = true,
-            }));
+            })); // Josh Code Review : Makes many of the SSN matches above redundant.
 
             //******************  PROBABLY SOLID MATCHES   ******************//
 
@@ -229,7 +179,7 @@ namespace LucasPlayground
             {
                 Last = true,
                 Address = true,
-            }));
+            })); //Josh Code Review : This is actually a stronger match than one of the matches in the SOLID match block.  Also, it doesn't allow twins.
             AddMatches("DOB + ADDRESS (twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
             {
                 Address = true,
@@ -288,7 +238,7 @@ namespace LucasPlayground
                 First = true,
                 DOB = true,
                 Phone = true,
-            }));
+            }));  //Josh code review : This could match on address, first name, and DOB.  Maybe it should go in the weaker matches category?
 
 
             //******************  WEAKER MATCHES   ******************//
@@ -409,7 +359,7 @@ namespace LucasPlayground
                 }
             }
 
-            SaveSets(possibleBadSets, @"C:/users/jbrownkramer/desktop/closedsets.txt");
+            //SaveSets(possibleBadSets, @"C:/users/jbrownkramer/desktop/closedsets.txt");
 
             List<List<int>> autoPassedSets = new List<List<int>>();
             int c = 0;
@@ -419,7 +369,7 @@ namespace LucasPlayground
                 row[] r = badSet.Select(eid => enterpriseIdToRow[eid]).ToArray();
 
                 //Check the mrns
-                if (ActuallyAGoodSet(r, data))
+                if (ActuallyAGoodSet(r, data, enterpriseIdToRow))
                     autoPassedSets.Add(badSet);
 
                 Console.Write($"\r{++c}/{possibleBadSets.Count()}");
@@ -428,9 +378,8 @@ namespace LucasPlayground
 
             Console.WriteLine(autoPassedSets.Count());
 
-            SaveSets(autoPassedSets, @"C:/users/jbrownkramer/desktop/autoPassed.txt");
+            //SaveSets(autoPassedSets, @"C:/users/jbrownkramer/desktop/autoPassed.txt");
 
-            //SaveSets(possibleBadSets, @"C:/users/lsabalka/desktop/closedsets.txt");
 
 
             PrintAnalysis(matches, data);
@@ -455,6 +404,52 @@ namespace LucasPlayground
             //SaveResults(matches, data);
 
             Console.ReadLine();
+        }
+
+        static void DoBen()
+        {
+            // get all lines
+            var lines = GetLines();
+            var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
+            var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
+
+            string[] linesInClosedSetFile = File.ReadAllLines(@"C:\repos\MitchMatch\closedsets.txt");
+
+            using (StreamWriter sw = File.CreateText("c:/users/ben/desktop/alternatives.txt"))
+            {
+                foreach (string line in linesInClosedSetFile)
+                {
+                    int[] eids = line.Split(',').Select(n => int.Parse(n)).ToArray();
+
+                    List<row> rows = new List<row>();
+                    for (int d = 0; d < eids.Length; d++)
+                    {
+                        for (int c = 0; c < data.Length; c++)
+                        {
+                            if (data[c].EnterpriseID == eids[d])
+                            {
+                                rows.Add(data[c]);
+                                break;
+                            }
+                        }
+                    }
+
+                    List<int> otherEids = new List<int>();
+                    foreach (row row in rows)
+                    {
+                        foreach (row otherRow in data)
+                        {
+                            if (EasiestAgreementCount(row, otherRow) > 2)
+                            {
+                                otherEids.Add(otherRow.EnterpriseID);
+                            }
+                        }
+                    }
+
+                    string toAppend = string.Join(",", otherEids.ToArray());
+                    sw.WriteLine(toAppend);
+                }
+            }
         }
 
         static void Rectify(string path)
@@ -486,7 +481,7 @@ namespace LucasPlayground
             }
         }
 
-        static bool ActuallyAGoodSet(row[] r, row[] data)
+        static bool ActuallyAGoodSet(row[] r, row[] data, Dictionary<int, row> enterpriseIdToRow)
         {
             if (TrueForEveryPair(r, MRNsClose))
                 return true;
@@ -500,15 +495,18 @@ namespace LucasPlayground
             if (TrueForEveryPair(r, LucasAutoPass))
                 return true;
 
-            if (OnlyPossiblePair(r, data))
+            if (CorrectByDominance(r, data))
                 return true;
 
             return false;
         }
 
-        static bool OnlyPossiblePair(row[] component, row[] data)
+        static bool CorrectByDominance(row[] component, row[] data)
         {
-            if (component.Count() >= 3) //I am skipping this for now, since the exact condition I want is eluding me
+            if (component.Count() > 3)
+                return false;
+
+            if (component.Count() == 3) //I am skipping this for now, since the exact condition I want is eluding me
             {
                 //Sanity check to ensure that everything in component is a neighbor of everything else in component in the very fuzzy match graph
                 var neighbors = component.Select(r => VerySoftMatches(r, data)).ToArray();
@@ -517,15 +515,25 @@ namespace LucasPlayground
                 return !neighbors.Any(n => n.Count() > 2);
             }
 
-            foreach(row r in component)
+            var a = component[0];
+            var b = component[1];
+
+            bool toReturn = AStrictlyDominatesAllNeighborsOfB(a, b, data) || AStrictlyDominatesAllNeighborsOfB(b, a, data);
+
+            return toReturn;
+        }
+
+        static bool AStrictlyDominatesAllNeighborsOfB(row a, row b, row[] data)
+        {
+            var neighbors = VerySoftMatches(b, data);
+
+            foreach (var neighbor in neighbors)
             {
-                if (VerySoftMatches(r,data).Count() <= 1)
-                {
-                    return true;
-                }
+                if (neighbor != a && !StrictlyDominates(a, neighbor, b))
+                    return false;
             }
 
-            return false;
+            return true;
         }
 
         static List<row> VerySoftMatches(row r, row[] data)
@@ -681,7 +689,7 @@ namespace LucasPlayground
 
         static bool CleanAddressButNotExactAddressMatch(row r1, row r2)
         {
-            if (r1.ADDRESS1 == r2.ADDRESS2)
+            if (r1.ADDRESS1 == r2.ADDRESS1) //Josh code review : Fuck.  Was comparing r1.ADDRESS1 == r2.ADDRESS2
                 return false;
 
             string clean1 = DecisionTreeLearner.NLP.DataCleaner.CleanAddress(r1.ADDRESS1);
@@ -706,7 +714,7 @@ namespace LucasPlayground
 
         static bool Address2Evidence(row r1, row r2)
         {
-            if (challenge.Program.FuzzyAddressMatch(r1, r2) && r1.ADDRESS1 != "" && r1.ADDRESS2 == r2.ADDRESS2)
+            if (challenge.Program.FuzzyAddressMatch(r1, r2) && r1.ADDRESS2 != "" && r1.ADDRESS2 == r2.ADDRESS2)  //Josh Code Review : I made a mistake on this auto pass.  Before it would let through anything where address1 properly fuzzy matched and address2 matched even if it was blank
                 return true;
 
             return false;
@@ -1042,7 +1050,7 @@ namespace LucasPlayground
 
 
         #region Printing
-        private static bool _printLargeGroupValues = false;
+        private static bool _printLargeGroupValues = true;
         private static bool _printErrors = false;
         private static bool _printActuals = false;
         private static bool _printModifieds = false;
@@ -1161,7 +1169,7 @@ namespace LucasPlayground
 
         #region Soft Matching
 
-        public static int SoftMatchCount(row a, row b, FieldInclusions toInclude)
+        public static int SoftMatchCount(row a, row b, FieldInclusions toInclude) //Josh Code Review : In hardmatch, it is easier to match on Name than one of {First,Last}.  In softmatch it is easier
         {
             int toReturn = 0;
             if (toInclude.SSN && FuzzySSNMatch(a.SSN, b.SSN))
@@ -1176,7 +1184,7 @@ namespace LucasPlayground
                 toReturn++;
             if (toInclude.Address && FuzzyAddressMatchEditDistance(a, b))
                 toReturn++;
-            if (toInclude.SSNSoft && FuzzySSNNoConflict(a.SSN, b.SSN))
+            if (toInclude.SSNSoft && FuzzySSNNoConflict(a.SSN, b.SSN)) // Counts SSN carrying no information as a match.
                 toReturn++;
             if (toInclude.AddressSoft && challenge.Program.FuzzyAddressMatch(a, b))
                 toReturn++;
@@ -1404,7 +1412,6 @@ namespace LucasPlayground
 
             List<List<row>> groupsAdded = new List<List<row>>();
             var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
-            //Pair off and make a soft check on field to verify sameness
             for (int i = 0; i < fourMillion.Count(); i += 2)
             {
                 var r = fourMillion[i];
@@ -1454,7 +1461,7 @@ namespace LucasPlayground
             int modifiedCounter = 0;
             foreach (var group in grouped)
             {
-                if (group.Count() >= 5) //These are all garbage
+                if (group.Count() >= 5) //These are all garbage.  //Josh Code Review : There are actually good matches that we throw out because of this check.  e.g. There are lots of valid names that get thrown out when grouping by names.
                 {
                     if (_printLargeGroupValues)
                     {
@@ -1466,8 +1473,8 @@ namespace LucasPlayground
                 {
                     continue;
                 }
-
-
+                 
+                //Josh Code Review : The next time we do this, we should just just softmatch all the pairs in a group  and take the ones that match.
                 if (group.Any(r => softEquals(r, group.First()) < softEqualsCount))
                 {
                     if (_printErrors)
@@ -1482,7 +1489,7 @@ namespace LucasPlayground
                     bool addedGroup = group.Any(row => !matchesCopy.ContainsKey(row.EnterpriseID));
                     bool isGroupModified = false;
 
-                    int beforeCount = 0;
+                    int beforeCount = 0;  //Josh Code Review : Will end up being the smallest nonzero degree in the group before adding the group members.  Or zero if everything has degree 0.
                     foreach (var r in group)
                     {
                         if (matches.ContainsKey(r.EnterpriseID) && (beforeCount == 0 || beforeCount > matches[r.EnterpriseID].Count))
@@ -1499,6 +1506,9 @@ namespace LucasPlayground
                                 challenge.Program.Add(r, s, ref matches);
                         }
                     }
+
+                    //Josh review : This is not equivalent to some matches being modified.  Both clauses are problematic.  The first one is very problematic.  We are not reporting weak softmatches where the weak softmatch is the first match for every element in the set.  I think that's probably most softmatches.  The second clause ultimately is OK but only because of the special nature of our data set.  It is not triggered when
+                    //It ought to be if the first element in the group had the smallest initial degree, was already connected to everything in the group, and some things in the group weren't already connected.  Luckily, in a graph with components of size <= 3, I don't think that can happen.  Ah, but now I see that addedGroup means there are some degree 0 elements.  So if modified, we add everything to toReturn either because there is a degree 0 vertex, or because special graph theory considerations save the day.
                     if (beforeCount != 0 && beforeCount != matches[group.First().EnterpriseID].Count)
                     {
                         isGroupModified = true;
