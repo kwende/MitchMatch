@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DecisionTreeLearner.Tree;
 using DecisionTreeLearner.DataTypes.MySQL;
+using DecisionTreeLearner.ForJosh;
 
 namespace DecisionTreeLearner
 {
@@ -85,9 +86,22 @@ namespace DecisionTreeLearner
             Console.WriteLine($"Whole operation took {sw.ElapsedMilliseconds / 1000.0 / 60.0} minutes");
         }
 
+        static void DoJoshInThe(List<List<int>> butt)
+        {
+            AutoPasser.DoIt(butt);
+        }
+
 
         static void Main(string[] args)
         {
+            //List<List<int>> butt = new List<List<int>>();
+
+            //butt.Add(new List<int>(new int[] { 15924699, 15998364, 15776341 }));
+            //butt.Add(new List<int>(new int[] { 15409759, 15719372, 15603834 }));
+            //butt.Add(new List<int>(new int[] { 15605703, 15666227, 15436724 }));
+
+            //DoJoshInThe(butt);
+
             //using (FileStream fin = File.OpenRead(@"D:\allNodes\b65b18fb8ef84d25b1dc4737666ea719"))
             //{
             //    byte[] buffer = new byte[1024];

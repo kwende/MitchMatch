@@ -39,6 +39,16 @@ namespace DecisionTreeLearner.Data
             return ret;
         }
 
+        internal void WipeAutoPassStatusFromAllSets()
+        {
+            using (MySqlCommand command = _connection.CreateCommand())
+            {
+                command.CommandText = "update app_set set AutoPassed = False, Checked = False " +
+                    "where id in (select id from (select* from app_set) as something where AutoPassed = True)";
+                command.ExecuteNonQuery();
+            }
+        }
+
         public void ClearMLFoundExtraSetMemberTable()
         {
             using (MySqlCommand command = _connection.CreateCommand())
@@ -78,19 +88,52 @@ namespace DecisionTreeLearner.Data
             }
         }
 
+        internal void SetSetMembersState(int setId, bool isGood)
+        {
+            using (MySqlCommand command = _connection.CreateCommand())
+            {
+                command.CommandText = "update app_setmember set IsGood = @isGood where SetId_id = @setId";
+                command.Parameters.AddWithValue("isGood", isGood);
+                command.Parameters.AddWithValue("setId", setId);
+                command.ExecuteNonQuery();
+            }
+        }
+
+        internal void SetSetsState(int setId, bool checkedState, bool autoPassedState)
+        {
+            using (MySqlCommand command = _connection.CreateCommand())
+            {
+                command.CommandText = "update app_set set Checked = @checkedState, AutoPassed = @autoPassedState where id = @setId";
+                command.Parameters.AddWithValue("checkedState", checkedState);
+                command.Parameters.AddWithValue("autoPassedState", autoPassedState);
+                command.Parameters.AddWithValue("setId", setId);
+                command.ExecuteNonQuery();
+            }
+        }
+
         public int GetSetIdForSetGivenMember(Record member)
+        {
+            return GetSetIdForSetGivenMembersEnterpriseId(member.EnterpriseId);
+        }
+
+        public int GetSetIdForSetGivenMembersEnterpriseId(int enterpriseId)
         {
             using (MySqlCommand command = _connection.CreateCommand())
             {
                 command.CommandText = "(select setid_id from app_setmember where recordid_id = " +
                             "(select id from app_record where enterpriseid = @enterpriseId))";
-                command.Parameters.AddWithValue("enterpriseId", member.EnterpriseId);
+                command.Parameters.AddWithValue("enterpriseId", enterpriseId);
 
                 return (int)command.ExecuteScalar();
             }
         }
 
         public List<Record> GetRecordsForSetGivenMember(Record setMember)
+        {
+            return GetSetFromEnterpriseIdOfMember(setMember.EnterpriseId);
+        }
+
+        public List<Record> GetSetFromEnterpriseIdOfMember(int enterpriseId)
         {
             List<Record> ret = new List<Record>();
 
@@ -101,7 +144,7 @@ namespace DecisionTreeLearner.Data
                     "(select recordid_id from app_setmember where setid_id = " +
                         "(select setid_id from app_setmember where recordid_id = " +
                             "(select id from app_record where enterpriseid = @enterpriseId)))";
-                command.Parameters.AddWithValue("enterpriseId", setMember.EnterpriseId);
+                command.Parameters.AddWithValue("enterpriseId", enterpriseId);
 
                 using (MySqlDataReader reader = command.ExecuteReader())
                 {

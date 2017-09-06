@@ -61,6 +61,7 @@
     <Compile Include="Data\LargeResidenceFileLoader.cs" />
     <Compile Include="Data\MySQLConnector.cs" />
     <Compile Include="Data\MySQLToObjectReader.cs" />
+    <Compile Include="ForJosh\AutoPasser.cs" />
     <Compile Include="NLP\DataCleaner.cs" />
     <Compile Include="NLP\EditDistance.cs" />
     <Compile Include="NLP\MatchTypeMatcher.cs" />
