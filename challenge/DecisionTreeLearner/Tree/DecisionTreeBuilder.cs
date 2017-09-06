@@ -243,7 +243,8 @@ namespace DecisionTreeLearner.Tree
         }
 
         private void RecurseAndPartition(DecisionTreeNode parentNode, SplittingQuestion[] splittingQuestions,
-            RecordPair[] allPairs, int level, double subsamplingPercentage, double minGainToBreak)
+            RecordPair[] allPairs, int level, double subsamplingPercentage, double minGainToBreak,
+            Stack<Tuple<SplittingQuestion, bool>> splittingQuestionsThatGotUsHere)
         {
             Console.WriteLine($"Level {level}. {splittingQuestions.Length} splitting questions on {allPairs.Length} record pairs.");
             double currentEntropy = ComputeShannonEntropy(allPairs);
@@ -416,6 +417,18 @@ namespace DecisionTreeLearner.Tree
                     parentNode.IsMatch = false;
                 }
 
+                StringBuilder sb = new StringBuilder(1024);
+                sb.AppendLine($"Level {level}, IsMatch {parentNode.IsMatch}");
+                sb.AppendLine("Questions:");
+                foreach (Tuple<SplittingQuestion, bool> questionAnswer in splittingQuestionsThatGotUsHere)
+                {
+                    sb.AppendLine($"\t{questionAnswer.Item1}:{questionAnswer.Item2}");
+                }
+                sb.AppendLine($"match: {matchCount}, nomatch: {noMatchCount}");
+                File.WriteAllText(
+                    $"c:/users/brush/desktop/treeresults/{Guid.NewGuid().ToString().Replace("-", "")}",
+                    sb.ToString());
+
                 //using (StreamWriter sw = File.CreateText($"D:/allNodes/{Guid.NewGuid().ToString().Replace("-", "")}"))
                 //{
                 //    foreach (RecordPair pair in allPairs)
@@ -481,10 +494,15 @@ namespace DecisionTreeLearner.Tree
                 parentNode.LeftBranch = new DecisionTreeNode();
                 parentNode.RightBranch = new DecisionTreeNode();
 
+                splittingQuestionsThatGotUsHere.Push(new Tuple<SplittingQuestion, bool>(bestQuestion, true));
                 RecurseAndPartition(parentNode.LeftBranch, splittingQuestions, bestLeftBucket.ToArray(),
-                    level + 1, subsamplingPercentage, minGainToBreak);
+                    level + 1, subsamplingPercentage, minGainToBreak, splittingQuestionsThatGotUsHere);
+                splittingQuestionsThatGotUsHere.Pop();
+
+                splittingQuestionsThatGotUsHere.Push(new Tuple<SplittingQuestion, bool>(bestQuestion, false));
                 RecurseAndPartition(parentNode.RightBranch, splittingQuestions, bestRightBucket.ToArray(),
-                    level + 1, subsamplingPercentage, minGainToBreak);
+                    level + 1, subsamplingPercentage, minGainToBreak, splittingQuestionsThatGotUsHere);
+                splittingQuestionsThatGotUsHere.Pop();
             }
         }
 
@@ -565,7 +583,7 @@ namespace DecisionTreeLearner.Tree
             tree.Root = new DecisionTreeNode();
 
             RecurseAndPartition(tree.Root, splittingQuestions, trainingData.ToArray(),
-                0, subsamplingPercentage, minGain);
+                0, subsamplingPercentage, minGain, new Stack<Tuple<SplittingQuestion,bool>>());
 
             return tree;
         }

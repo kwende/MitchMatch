@@ -126,31 +126,31 @@ namespace DecisionTreeLearner.Data
             return ret;
         }
 
-        public static bool PassesBigBucketFilter(RecordPair pair, double percentageOfBigBucketToAllow = .25)
+        public static bool PassesBigBucketFilter(RecordPair pair, double percentageOfBigBucketToAllow = .5)
         {
             Random rand = new Random();
-            bool passesBigBucketFilter = true;
-            int dobEditDistance = EditDistance.Compute(pair.Record1.DOB, pair.Record2.DOB);
-            if (dobEditDistance > 0)
+            bool fallsIntoBigBucket = false;
+            if (!(EditDistance.Compute(pair.Record1.DOB, pair.Record2.DOB) <= 0))
             {
-                if (System.Math.Abs(pair.Record1.MRN - pair.Record2.MRN) > 100)
+                if (!(System.Math.Abs(pair.Record1.MRN - pair.Record2.MRN) <= 100))
                 {
-                    if (EditDistance.Compute(pair.Record1.LastName, pair.Record2.LastName) > 1)
+                    if (!(EditDistance.Compute(pair.Record1.LastName, pair.Record2.LastName) <= 1))
                     {
-                        if (dobEditDistance > 1)
+                        if (!(EditDistance.Compute(pair.Record1.FirstName, pair.Record2.FirstName) <= 1))
                         {
-                            passesBigBucketFilter = false;
+                            fallsIntoBigBucket = true;
                         }
                     }
                 }
             }
 
-            if (!passesBigBucketFilter)
+            bool shouldBeUsed = true;
+            if (fallsIntoBigBucket)
             {
-                passesBigBucketFilter = rand.NextDouble() <= percentageOfBigBucketToAllow;
+                shouldBeUsed = rand.NextDouble() <= percentageOfBigBucketToAllow;
             }
 
-            return passesBigBucketFilter;
+            return shouldBeUsed;
         }
 
         public static List<RecordPair> BuildTrainingData(string inputFilePath,

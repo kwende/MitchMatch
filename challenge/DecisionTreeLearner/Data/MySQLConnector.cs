@@ -70,10 +70,10 @@ namespace DecisionTreeLearner.Data
                     command.CommandText = "insert into app_mlfoundextrasetmember (ReviewedStatus, CorrespondingRecord_id, CorrespondingSet_id) " +
                            " values (0, @recordId, @setId)";
                     command.Parameters.AddWithValue("recordId", recordId);
-                    command.Parameters.AddWithValue("setId", setId); 
+                    command.Parameters.AddWithValue("setId", setId);
                     command.ExecuteNonQuery();
 
-                    command.Parameters.Clear(); 
+                    command.Parameters.Clear();
                 }
             }
         }
