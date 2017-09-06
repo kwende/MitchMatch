@@ -1,5 +1,5 @@
 ﻿using DecisionTreeLearner.Data;
-using DecisionTreeLearner.Tree;
+using DecisionTreeLearner.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -205,7 +205,14 @@ namespace DecisionTreeLearner.NLP
             {
                 input.LivesInLargeResidence = true;
             }
+
             ///////////////////////////////////////////////
+
+            /////////////// ALIAS /////////////////////
+            input.Alias = Regex.Replace(input.Alias, " +", " ", RegexOptions.None); 
+
+
+            //////////////////////////////////////////
 
 
             return input;

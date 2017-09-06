@@ -1,12 +1,13 @@
 ﻿using DecisionTreeLearner.Data;
 using DecisionTreeLearner.NLP;
-using DecisionTreeLearner.Tree;
+using DecisionTreeLearner.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DecisionTreeLearner.Tree;
 
 namespace DecisionTreeLearner.Testers
 {
@@ -42,7 +43,7 @@ namespace DecisionTreeLearner.Testers
 
                         DecisionTree[] forest = DataLoader.LoadForestFromDirectory("C:/users/brush/desktop/forest");
 
-                        bool isMatch = DecisionTreeBuilder.IsMatch(pair, forest, false);
+                        bool isMatch = DecisionTreeBuilder.IsMatch(pair, forest, null);
 
                         if (isMatch)
                         {
@@ -96,7 +97,7 @@ namespace DecisionTreeLearner.Testers
                                     Record2 = comparisonRecord,
                                 };
 
-                                bool isMatch = DecisionTreeBuilder.IsMatch(pair, forest, false);
+                                bool isMatch = DecisionTreeBuilder.IsMatch(pair, forest, null);
 
                                 if (isMatch)
                                 {

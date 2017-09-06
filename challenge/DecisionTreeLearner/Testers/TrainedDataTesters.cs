@@ -1,4 +1,5 @@
 ﻿using DecisionTreeLearner.Data;
+using DecisionTreeLearner.DataTypes;
 using DecisionTreeLearner.Tree;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,9 @@ namespace DecisionTreeLearner.Testers
         public static void SearchForFalseNegatives(string closedSetPath, string finalDataSetPath,
             string forestDirectory, string outputFile, string stateFile)
         {
+            MySQLConnector connector = MySQLConnector.Connect();
+            connector.ClearMLFoundExtraSetMemberTable();
+
             Console.Write("Loading final dataset...");
             List<Record> finalDataSet = DataLoader.LoadFinalDataSet(finalDataSetPath);
             Console.WriteLine("...done");
@@ -30,10 +34,10 @@ namespace DecisionTreeLearner.Testers
 
             Console.Write("Reading state file...");
             int startIndex = 0;
-            if (File.Exists(stateFile))
-            {
-                startIndex = int.Parse(File.ReadAllText(stateFile));
-            }
+            //if (File.Exists(stateFile))
+            //{
+            //    startIndex = int.Parse(File.ReadAllText(stateFile));
+            //}
             Console.WriteLine($"...done. Starting at {startIndex}.");
 
             Console.WriteLine("Starting....");
@@ -44,7 +48,7 @@ namespace DecisionTreeLearner.Testers
                     Console.WriteLine($"Working on set {c + 1} of {closedSets.Count}");
                     List<Record> closedSet = closedSets[c];
 
-                    List<Record> extraSetMembersFound = new List<Record>(); 
+                    List<Record> extraSetMembersFound = new List<Record>();
                     foreach (Record record in closedSet)
                     {
                         Parallel.ForEach(finalDataSet, otherRecord =>
@@ -56,13 +60,13 @@ namespace DecisionTreeLearner.Testers
                                 {
                                     Record1 = record,
                                     Record2 = otherRecord
-                                }, forest, false))
+                                }, forest, null))
                                 {
                                     lock (extraSetMembersFound)
                                     {
                                         // is this NOT a set member and have we not added it yet...
-                                        if(!extraSetMembersFound.Any(n=>n.EnterpriseId == otherRecord.EnterpriseId) && 
-                                            !closedSet.Any(n=>n.EnterpriseId == otherRecord.EnterpriseId))
+                                        if (!extraSetMembersFound.Any(n => n.EnterpriseId == otherRecord.EnterpriseId) &&
+                                            !closedSet.Any(n => n.EnterpriseId == otherRecord.EnterpriseId))
                                         {
                                             extraSetMembersFound.Add(otherRecord);
                                         }
@@ -72,7 +76,13 @@ namespace DecisionTreeLearner.Testers
                         });
                     }
 
-                    string toSave = $"[{string.Join(",", closedSet.Select(n => n.EnterpriseId))}][{string.Join(",", extraSetMembersFound.Select(n => n.EnterpriseId))}]\n"; 
+                    if(extraSetMembersFound.Count > 0)
+                    {
+                        int setId = connector.GetSetIdForSetGivenMember(closedSet.First());
+                        connector.CreateMLFoundExtraRecordsForSet(setId, extraSetMembersFound);
+                    }
+
+                    string toSave = $"[{string.Join(",", closedSet.Select(n => n.EnterpriseId))}][{string.Join(",", extraSetMembersFound.Select(n => n.EnterpriseId))}]\n";
 
                     fout.Write(toSave);
                     fout.Flush();
@@ -85,7 +95,7 @@ namespace DecisionTreeLearner.Testers
 
         public static void TestOnTrainingData()
         {
-            List<RecordPair> trainingData = DataLoader.BuildTrainingData("mrns.csv", "more.csv");
+            List<RecordPair> trainingData = DataLoader.BuildTrainingData("mrns.csv", "more.csv", "rejected.txt");
 
             int consoleLeft = Console.CursorLeft;
             int consoleTop = Console.CursorTop;
@@ -117,7 +127,7 @@ namespace DecisionTreeLearner.Testers
                     Interlocked.Increment(ref numberOfNonMatches);
                 }
 
-                bool guess = DecisionTreeBuilder.IsMatch(pair, forest, false);
+                bool guess = DecisionTreeBuilder.IsMatch(pair, forest, null);
 
                 if (guess == actual)
                 {
@@ -224,7 +234,7 @@ namespace DecisionTreeLearner.Testers
                                         Record2 = recordB
                                     };
 
-                                    bool match = DecisionTreeBuilder.IsMatch(pair, forest, false);
+                                    bool match = DecisionTreeBuilder.IsMatch(pair, forest, null);
 
                                     if (match)
                                     {

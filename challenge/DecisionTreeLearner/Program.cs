@@ -1,7 +1,7 @@
 ﻿using DecisionTreeLearner.Data;
 using DecisionTreeLearner.NLP;
 using DecisionTreeLearner.Testers;
-using DecisionTreeLearner.Tree;
+using DecisionTreeLearner.DataTypes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +12,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using DecisionTreeLearner.Tree;
+using DecisionTreeLearner.DataTypes.MySQL;
 
 namespace DecisionTreeLearner
 {
@@ -32,7 +34,12 @@ namespace DecisionTreeLearner
             List<RecordPair> trainingData = null;
             if (option == 1)
             {
-                trainingData = DataLoader.BuildTrainingData("mrns.csv", "more.csv");
+                trainingData = DataLoader.BuildTrainingData("mrns.csv", "more.csv", "rejected.txt");
+
+                if (trainingData.Any(n => n.Record1 == null || n.Record2 == null))
+                {
+                    Console.WriteLine("YUP, ITS HERE");
+                }
             }
             else if (option == 2)
             {
@@ -81,20 +88,37 @@ namespace DecisionTreeLearner
 
         static void Main(string[] args)
         {
-            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            //using (FileStream fin = File.OpenRead(@"D:\allNodes\b65b18fb8ef84d25b1dc4737666ea719"))
+            //{
+            //    byte[] buffer = new byte[1024];
+            //    fin.Read(buffer, 0, buffer.Length);
+
+            //    string lines = ASCIIEncoding.ASCII.GetString(buffer);
+
+            //    File.WriteAllText("C:/users/brush/desktop/fart.txt",
+            //        lines);
+
+            //}
+
+            //EndNodeMLMatchFinders.Find(); 
+            //string response = Regex.Replace("SCOT   DREYER      5", " + ", " ", RegexOptions.None);
+
+            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
             //TrainedDataTesters.TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
             //Testers.TestSplitDirection.Test();
 
+
+
             //Testers.ListAllMatches.List();
 
-            //Testers.TrainedDataTesters.SearchForFalseNegatives(
-            //    "D:/repos/mitchmatch/closedsets.txt",
-            //    "C:/users/brush/desktop/finaldataset.csv",
-            //    "C:/users/brush/desktop/forest",
-            //    "D:/mitchMatchFalseNegativeSearchResults.txt",
-            //    "D:/mitchMatchFalsenegatievSearchState.txt");
+            Testers.TrainedDataTesters.SearchForFalseNegatives(
+                "D:/repos/mitchmatch/closedsets.txt",
+                "C:/users/brush/desktop/finaldataset.csv",
+                "C:/users/brush/desktop/forest",
+                "D:/mitchMatchFalseNegativeSearchResults.txt",
+                "D:/mitchMatchFalsenegatievSearchState.txt");
         }
     }
 }

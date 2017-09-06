@@ -1,4 +1,5 @@
 ﻿using DecisionTreeLearner.Attributes;
+using DecisionTreeLearner.DataTypes;
 using DecisionTreeLearner.NLP;
 using System;
 using System.Collections.Generic;
@@ -187,6 +188,12 @@ namespace DecisionTreeLearner.Tree
                         });
                     }
                 }
+            }
+
+            Console.WriteLine("I will be asking the following questions:");
+            foreach (SplittingQuestion question in splittingQuestions)
+            {
+                Console.WriteLine("\t" + question);
             }
 
             return splittingQuestions.ToArray();
@@ -387,6 +394,14 @@ namespace DecisionTreeLearner.Tree
 
             if (highestGain <= minGainToBreak)
             {
+                //if (allPairs.Any(n => n.Record1.EnterpriseId == 16027249 && n.Record2.EnterpriseId == 15715830))
+                //{
+                //    foreach (RecordPair pair in allPairs)
+                //    {
+                //        File.AppendAllText("C:/users/brush/desktop/fartsmoke.txt",
+                //            $"{pair}\n");
+                //    }
+                //}
 
                 parentNode.IsLeaf = true;
                 int matchCount = allPairs.Count(n => n.IsMatch);
@@ -401,30 +416,39 @@ namespace DecisionTreeLearner.Tree
                     parentNode.IsMatch = false;
                 }
 
-                if (matchCount > 0 && noMatchCount > 0)
-                {
-                    foreach (RecordPair noHomoPair in allPairs)
-                    {
-                        Console.WriteLine(noHomoPair);
-                        bool goLeft = ComputeSplitDirection(new SplittingQuestion
-                        {
-                            BothFieldValuesAreEmpty = true,
-                            Field = FieldEnum.SSN,
-                            MatchType = MatchTypeEnum.EmptyMatch
-                        }, noHomoPair);
-                        Console.WriteLine("\t\tGo left: " + goLeft.ToString());
-                    }
+                //using (StreamWriter sw = File.CreateText($"D:/allNodes/{Guid.NewGuid().ToString().Replace("-", "")}"))
+                //{
+                //    foreach (RecordPair pair in allPairs)
+                //    {
+                //        sw.WriteLine($"{pair.IsMatch},{pair.Record1.EnterpriseId},{pair.Record2.EnterpriseId}");
+                //    }
+                //}
 
-                    Console.WriteLine("\tNOHOMO!");
-                    StringBuilder sb = new StringBuilder();
-                    foreach (RecordPair pair in allPairs)
-                    {
-                        sb.AppendLine(pair.ToString());
-                    }
 
-                    File.AppendAllText($"C:/users/brush/desktop/nohomo/{Guid.NewGuid().ToString().Replace("-", "")}.csv",
-                        sb.ToString());
-                }
+                //if (matchCount > 0 && noMatchCount > 0)
+                //{
+                //    foreach (RecordPair noHomoPair in allPairs)
+                //    {
+                //        Console.WriteLine(noHomoPair);
+                //        bool goLeft = ComputeSplitDirection(new SplittingQuestion
+                //        {
+                //            BothFieldValuesAreEmpty = true,
+                //            Field = FieldEnum.SSN,
+                //            MatchType = MatchTypeEnum.EmptyMatch
+                //        }, noHomoPair);
+                //        Console.WriteLine("\t\tGo left: " + goLeft.ToString());
+                //    }
+
+                //    Console.WriteLine("\tNOHOMO!");
+                //    StringBuilder sb = new StringBuilder();
+                //    foreach (RecordPair pair in allPairs)
+                //    {
+                //        sb.AppendLine(pair.ToString());
+                //    }
+
+                //    File.AppendAllText($"C:/users/brush/desktop/nohomo/{Guid.NewGuid().ToString().Replace("-", "")}.csv",
+                //        sb.ToString());
+                //}
 
                 Console.WriteLine("\tGain limit met. Anything reaching this leaf will be labeled as " + (parentNode.IsMatch ? "match." : "no match"));
             }
@@ -464,38 +488,63 @@ namespace DecisionTreeLearner.Tree
             }
         }
 
-        private static bool RecurseAndCheckIsMatch(DecisionTreeNode parentNode, RecordPair pair, bool debug)
+        private static bool RecurseAndCheckIsMatch(DecisionTreeNode parentNode, RecordPair pair, TreeLogger logger)
         {
             if (parentNode.IsLeaf)
             {
+                if (logger != null)
+                {
+                    logger.FinalResultIsMatch = parentNode.IsMatch;
+                    Console.WriteLine($"Is Match {parentNode.IsMatch}");
+                }
+
                 return parentNode.IsMatch;
             }
             else
             {
                 bool goesLeft = ComputeSplitDirection(parentNode.Question, pair);
 
-                if (debug)
+                if (logger != null)
                 {
                     Console.WriteLine($"Question: {parentNode.Question} Answer: {goesLeft}.");
+                    logger.SplittingQuestionsToTheBottom.Add(new Tuple<SplittingQuestion, bool>(parentNode.Question, goesLeft));
                 }
 
                 if (goesLeft)
                 {
-                    return RecurseAndCheckIsMatch(parentNode.LeftBranch, pair, debug);
+                    return RecurseAndCheckIsMatch(parentNode.LeftBranch, pair, logger);
                 }
                 else
                 {
-                    return RecurseAndCheckIsMatch(parentNode.RightBranch, pair, debug);
+                    return RecurseAndCheckIsMatch(parentNode.RightBranch, pair, logger);
                 }
             }
         }
 
-        public static bool IsMatch(RecordPair pair, DecisionTree[] forest, bool debug)
+        public static bool ReplayDecision(RecordPair pair, List<Tuple<SplittingQuestion, bool>> rules)
+        {
+            bool good = true;
+
+            foreach (Tuple<SplittingQuestion, bool> rule in rules)
+            {
+                bool response = ComputeSplitDirection(rule.Item1, pair);
+
+                if (response != rule.Item2)
+                {
+                    good = false;
+                    break;
+                }
+            }
+
+            return good;
+        }
+
+        public static bool IsMatch(RecordPair pair, DecisionTree[] forest, TreeLogger logger)
         {
             int positives = 0;
             foreach (DecisionTree tree in forest)
             {
-                if (RecurseAndCheckIsMatch(tree.Root, pair, debug))
+                if (RecurseAndCheckIsMatch(tree.Root, pair, logger))
                     positives++;
             }
 
