@@ -118,6 +118,23 @@ namespace DecisionTreeLearner.NLP
 
         public static Record CleanRecord(Record input)
         {
+            //////////////// FIRSTNAME/LASTNAME ///////////////
+            if (input.FirstName == "MALE")
+            {
+                input.FirstName = "";
+            }
+            else if (input.FirstName == "FEMALE")
+            {
+                input.FirstName = "";
+            }
+
+            if (input.LastName == "UNKNOWN")
+            {
+                input.LastName = "";
+            }
+            ///////////////////////////////////////////////////
+
+
             ////////////////// CITY //////////////////
             if (input.City == "BKLYN")
             {
@@ -206,9 +223,15 @@ namespace DecisionTreeLearner.NLP
 
             /////////////// ALIAS /////////////////////
             input.Alias = Regex.Replace(input.Alias, " +", " ", RegexOptions.None);
-
-
             //////////////////////////////////////////
+
+
+            ///////////////////////ADDRESS1 ////////////////////////
+            if (input.Address1.StartsWith("UNKNO"))
+            {
+                input.Address1 = "";
+            }
+            ////////////////////////////////////////////////////////
 
 
             return input;
