@@ -1,5 +1,6 @@
 ﻿using challenge;
 using challenge.Ben;
+using DecisionTreeLearner.ForJosh;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +17,30 @@ namespace LucasPlayground
         private static long[] _badPhones = new long[0];
         private static string[] _badAddresses = new string[0];
         private static DateTime[] _badDOBs = new DateTime[0];
+        private static Dictionary<int, row> _enterpriseIdToRow;
+        private static Dictionary<int, List<row>> _eidToAlternatives;
+
+        static Dictionary<int,List<row>> EIdToAlternatives()
+        {
+            Dictionary<int, List<row>> toReturn = new Dictionary<int, List<row>>();
+
+            var path = @"C:\workspaces\GitHub\MitchMatch\alternatives.txt";
+            var lines = System.IO.File.ReadAllLines(path);
+
+            foreach(var line in lines)
+            {
+                var tokens = line.Split(',');
+                var eid = int.Parse(tokens[0]);
+                List<row> alternatives = new List<row>();
+                for(int i = 1; i < tokens.Length; i++)
+                {
+                    alternatives.Add(_enterpriseIdToRow[int.Parse(tokens[i])]);
+                }
+                toReturn[eid] = alternatives;
+            }
+
+            return toReturn;
+        }
 
         static void Main(string[] args)
         {
@@ -27,6 +52,7 @@ namespace LucasPlayground
             var lines = GetLines();
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
+            
 
             // Clean Data
             _badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
@@ -38,10 +64,13 @@ namespace LucasPlayground
             CleanData(ref data);
             //DisplayPossibleMatches(data);
 
-            //Create a dictionary for quick lookup
-            Dictionary<int, row> enterpriseIdToRow = new Dictionary<int, row>();
+            //Create dictionaries for quick lookup
+            Console.WriteLine("Creating fast data structures...");
+            _enterpriseIdToRow = new Dictionary<int, row>();
             foreach (var r in data)
-                enterpriseIdToRow[r.EnterpriseID] = r;
+                _enterpriseIdToRow[r.EnterpriseID] = r;
+
+            _eidToAlternatives = EIdToAlternatives();
 
             // Process Data
             Console.WriteLine(lines.Count() + " total rows");
@@ -366,14 +395,15 @@ namespace LucasPlayground
             foreach(var badSet in possibleBadSets)
             {
                 //Express as rows
-                row[] r = badSet.Select(eid => enterpriseIdToRow[eid]).ToArray();
+                row[] r = badSet.Select(eid => _enterpriseIdToRow[eid]).ToArray();
 
                 //Check the mrns
-                if (ActuallyAGoodSet(r, data, enterpriseIdToRow))
+                if (ActuallyAGoodSet(r))
                     autoPassedSets.Add(badSet);
 
                 Console.Write($"\r{++c}/{possibleBadSets.Count()}");
             }
+            //AutoPasser.DoIt(autoPassedSets);
             Console.WriteLine();
 
             Console.WriteLine(autoPassedSets.Count());
@@ -481,7 +511,7 @@ namespace LucasPlayground
             }
         }
 
-        static bool ActuallyAGoodSet(row[] r, row[] data, Dictionary<int, row> enterpriseIdToRow)
+        static bool ActuallyAGoodSet(row[] r)
         {
             if (TrueForEveryPair(r, MRNsClose))
                 return true;
@@ -495,45 +525,72 @@ namespace LucasPlayground
             if (TrueForEveryPair(r, LucasAutoPass))
                 return true;
 
-            if (CorrectByDominance(r, data))
+            if (CorrectByDominance(r))
                 return true;
 
             return false;
         }
 
-        static bool CorrectByDominance(row[] component, row[] data)
+        static bool AIsDefinitelyANeighborOfBorC(row a, row b, row c)
+        {
+            return AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(new row[] { b, c }, a) ||
+                AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(a, b) ||
+                AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(a, c);
+        }
+
+        static bool CorrectByDominance(row[] component)
         {
             if (component.Count() > 3)
                 return false;
 
-            if (component.Count() == 3) //I am skipping this for now, since the exact condition I want is eluding me
+            if (component.Count() == 3)
             {
-                //Sanity check to ensure that everything in component is a neighbor of everything else in component in the very fuzzy match graph
-                var neighbors = component.Select(r => VerySoftMatches(r, data)).ToArray();
-
-                //Graph structure check
-                return !neighbors.Any(n => n.Count() > 2);
+                return
+                AIsDefinitelyANeighborOfBorC(component[0], component[1], component[2]) &&
+                AIsDefinitelyANeighborOfBorC(component[1], component[0], component[2]) &&
+                AIsDefinitelyANeighborOfBorC(component[2], component[0], component[1]);
             }
 
             var a = component[0];
             var b = component[1];
 
-            bool toReturn = AStrictlyDominatesAllNeighborsOfB(a, b, data) || AStrictlyDominatesAllNeighborsOfB(b, a, data);
+            bool toReturn = AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(a, b) || 
+                AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(b, a);
 
             return toReturn;
         }
 
-        static bool AStrictlyDominatesAllNeighborsOfB(row a, row b, row[] data)
+        static bool AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(row a, row b)
         {
-            var neighbors = VerySoftMatches(b, data);
+            return AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(new row[] { a }, b);
+        }
 
-            foreach (var neighbor in neighbors)
+        static bool AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(IEnumerable<row> A, row b)
+        {
+            var neighbors = _eidToAlternatives[b.EnterpriseID];
+
+            foreach(var neighbor in neighbors)
             {
-                if (neighbor != a && !StrictlyDominates(a, neighbor, b))
+                if (A.Contains(neighbor))
+                    continue;
+
+                if (!AStrictlyDominatesBAsAMatchForC(A, neighbor, b))
                     return false;
             }
 
             return true;
+        }
+
+        //True if one element of A strictly dominates
+        static bool AStrictlyDominatesBAsAMatchForC(IEnumerable<row> A, row b, row c)
+        {
+            foreach(var a in A)
+            {
+                if (AStrictlyDominatesBAsAMatchForC(a, b, c))
+                    return true;
+            }
+
+            return false;
         }
 
         static List<row> VerySoftMatches(row r, row[] data)
@@ -573,7 +630,7 @@ namespace LucasPlayground
             return matchNumber >= 2;
         }
 
-        static bool StrictlyDominates(row a, row b, row c)
+        static bool AStrictlyDominatesBAsAMatchForC(row a, row b, row c)
         {
             return InclusivelyDominates(a, b, c) && !InclusivelyDominates(b, a, c);
         }
