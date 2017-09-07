@@ -22,31 +22,31 @@ namespace DecisionTreeLearner.ForJosh
             int counter = 1;
             foreach (List<int> setOfEnterpriseIds in allEnterpriseIdsToGroupedBySet)
             {
-                Console.WriteLine($"Working on set {counter} of {allEnterpriseIdsToGroupedBySet.Count}");
+                Console.WriteLine($"Working on set {counter++} of {allEnterpriseIdsToGroupedBySet.Count}");
 
                 int firstEnterpriseId = setOfEnterpriseIds.First();
 
-                Console.Write("\tVerifying the consistency of the data...");
-                int[] enterpriseIdsForSetFromDb = connector.GetSetFromEnterpriseIdOfMember(firstEnterpriseId).Select(n => n.EnterpriseId).ToArray();
+                //Console.Write("\tVerifying the consistency of the data...");
+                //int[] enterpriseIdsForSetFromDb = connector.GetSetFromEnterpriseIdOfMember(firstEnterpriseId).Select(n => n.EnterpriseId).ToArray();
 
-                bool allGood = true;
-                foreach (int enterpriseId in setOfEnterpriseIds)
-                {
-                    if (!enterpriseIdsForSetFromDb.Contains(enterpriseId))
-                    {
-                        allGood = false;
-                        break;
-                    }
-                }
+                //bool allGood = true;
+                //foreach (int enterpriseId in setOfEnterpriseIds)
+                //{
+                //    if (!enterpriseIdsForSetFromDb.Contains(enterpriseId))
+                //    {
+                //        allGood = false;
+                //        break;
+                //    }
+                //}
 
-                if (allGood)
+                if (true)
                 {
                     Console.WriteLine("...good! Whole set passed. ");
 
                     Console.Write("\tUpdating shit...");
                     int setId = connector.GetSetIdForSetGivenMembersEnterpriseId(firstEnterpriseId);
-                    connector.SetSetsState(setId, true, true);
-                    connector.SetSetMembersState(setId, true);
+                    connector.AutoPass(setId);
+                    //connector.SetSetMembersState(setId, true);
                     Console.WriteLine("...updated.");
                 }
                 else

@@ -99,13 +99,14 @@ namespace DecisionTreeLearner.Data
             }
         }
 
-        internal void SetSetsState(int setId, bool checkedState, bool autoPassedState)
+        internal void AutoPass(int setId)
         {
             using (MySqlCommand command = _connection.CreateCommand())
             {
-                command.CommandText = "update app_set set Checked = @checkedState, AutoPassed = @autoPassedState where id = @setId";
-                command.Parameters.AddWithValue("checkedState", checkedState);
-                command.Parameters.AddWithValue("autoPassedState", autoPassedState);
+                command.CommandText = "update app_set set Checked = @checkedState, AutoPassed = @autoPassedState where id = @setId and Checked = @previousCheckedState";
+                command.Parameters.AddWithValue("previousCheckedState", false);
+                command.Parameters.AddWithValue("checkedState", true);
+                command.Parameters.AddWithValue("autoPassedState", true);
                 command.Parameters.AddWithValue("setId", setId);
                 command.ExecuteNonQuery();
             }
