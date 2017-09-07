@@ -106,7 +106,7 @@ namespace DecisionTreeLearner
                 preComputedQuestions.Add(new Tuple<SplittingQuestion, bool>(null, false));
 
                 DecisionTree tree = treeBuilder.Train(trainingDataSubset, splittingQuestions,
-                    subsamplingPercentage, minGain, maximumEditDistance, preComputedQuestions);
+                    subsamplingPercentage, minGain, null);
 
                 BinaryFormatter bf = new BinaryFormatter();
                 using (FileStream fout = File.Create(Path.Combine(outputDirectory, $"tree{c}.dat")))
@@ -151,7 +151,9 @@ namespace DecisionTreeLearner
             //EndNodeMLMatchFinders.Find(); 
             //string response = Regex.Replace("SCOT   DREYER      5", " + ", " ", RegexOptions.None);
 
-            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            //IterativeLearner.DoIt("misfits.txt", "mrns.csv", "more.csv", "rejected.txt");
+
+            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
             //TrainedDataTesters.TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
@@ -161,12 +163,12 @@ namespace DecisionTreeLearner
 
             //Testers.ListAllMatches.List();
 
-            Testers.TrainedDataTesters.SearchForFalseNegatives(
-                "D:/repos/mitchmatch/closedsets.txt",
-                "C:/users/brush/desktop/finaldataset.csv",
-                "C:/users/brush/desktop/forest",
-                "D:/mitchMatchFalseNegativeSearchResults.txt",
-                "D:/mitchMatchFalsenegatievSearchState.txt");
+            //Testers.TrainedDataTesters.SearchForFalseNegatives(
+            //    "D:/repos/mitchmatch/closedsets.txt",
+            //    "C:/users/brush/desktop/finaldataset.csv",
+            //    "C:/users/brush/desktop/forest",
+            //    "D:/mitchMatchFalseNegativeSearchResults.txt",
+            //    "D:/mitchMatchFalsenegatievSearchState.txt");
         }
     }
 }

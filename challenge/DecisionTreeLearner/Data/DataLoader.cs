@@ -108,6 +108,11 @@ namespace DecisionTreeLearner.Data
             return ret;
         }
 
+        public static List<RecordPair> GetPairsFromMisfitsFile(string misfitsFilePath)
+        {
+            return new List<RecordPair>();
+        }
+
         public static List<RecordPair> LoadTrainingDataFromNoHomoFile(string noHomoFilePath)
         {
             List<RecordPair> ret = new List<RecordPair>();
@@ -128,40 +133,36 @@ namespace DecisionTreeLearner.Data
 
         public static bool PassesBigBucketFilter(RecordPair pair, double percentageOfBigBucketToAllow = .5)
         {
-            Random rand = new Random();
-            bool fallsIntoBigBucket = false;
-            int dobEditDistance = EditDistance.Compute(pair.Record1.DOB, pair.Record2.DOB);
-            if (!(dobEditDistance <= 0))
-            {
-                if (!(System.Math.Abs(pair.Record1.MRN - pair.Record2.MRN) <= 100))
-                {
-                    if (!(EditDistance.Compute(pair.Record1.LastName, pair.Record2.LastName) <= 1))
-                    {
-                        if (!(dobEditDistance <= 1))
-                        {
-                            fallsIntoBigBucket = true;
-                        }
-                    }
-                }
-            }
+            return true;
+            //Random rand = new Random();
+            //bool fallsIntoBigBucket = false;
+            //int dobEditDistance = EditDistance.Compute(pair.Record1.DOB, pair.Record2.DOB);
+            //if (!(dobEditDistance <= 0))
+            //{
+            //    if (!(System.Math.Abs(pair.Record1.MRN - pair.Record2.MRN) <= 100))
+            //    {
+            //        if (!(EditDistance.Compute(pair.Record1.LastName, pair.Record2.LastName) <= 1))
+            //        {
+            //            if (!(dobEditDistance <= 1))
+            //            {
+            //                fallsIntoBigBucket = true;
+            //            }
+            //        }
+            //    }
+            //}
 
-            bool shouldBeUsed = true;
-            if (fallsIntoBigBucket)
-            {
-                shouldBeUsed = rand.NextDouble() <= percentageOfBigBucketToAllow;
-            }
+            //bool shouldBeUsed = true;
+            //if (fallsIntoBigBucket)
+            //{
+            //    shouldBeUsed = rand.NextDouble() <= percentageOfBigBucketToAllow;
+            //}
 
-            return shouldBeUsed;
+            //return shouldBeUsed;
         }
 
-        public static List<RecordPair> BuildTrainingData(string inputFilePath,
-            string inputMoreFilePath, string rejectedFilePath)
+        public static List<Record> GetCleanedRecordsFromMRNFile(string mrnFilePath)
         {
-            List<RecordPair> trainingData = new List<RecordPair>();
-
-            Console.Write("Reading training file...");
-            string[] lines = File.ReadAllLines(inputFilePath);
-            Console.WriteLine("...done");
+            string[] lines = File.ReadAllLines(mrnFilePath);
 
             List<Record> allRecords = new List<Record>();
             for (int c = 0; c < lines.Length; c += 3)
@@ -170,64 +171,132 @@ namespace DecisionTreeLearner.Data
                 allRecords.Add(Record.FromString(lines[c + 1]));
             }
 
-            allRecords = DataCleaner.CleanRecordPairs(allRecords);
+            return DataCleaner.CleanRecordPairs(allRecords);
+        }
 
-            Console.WriteLine("Building training data...");
-            //for (int c = 0; c < allRecords.Count; c += 2)
+        public static List<RecordPair> GetPositivesFromMRNData(string inputFilePath)
+        {
+            List<RecordPair> trainingData = new List<RecordPair>();
 
-            Console.Write("\tBuilding MRN-based data...");
-            Parallel.For(0, allRecords.Count() / 2, c =>
+            List<Record> mrnRecords = GetCleanedRecordsFromMRNFile(inputFilePath);
+
+            for (int c = 0; c < mrnRecords.Count; c += 2)
             {
-                c *= 2;
-
                 trainingData.Add(new RecordPair
                 {
                     IsMatch = true,
-                    Record1 = allRecords[c],
-                    Record2 = allRecords[c + 1],
+                    Record1 = mrnRecords[c],
+                    Record2 = mrnRecords[c + 1],
                 });
+            }
 
-                //Random rand = new Random();
-                for (int d = 0; d < allRecords.Count; d += 2)
+            return trainingData;
+        }
+
+        public static List<RecordPair> GetRandomPairsForMRNData(string inputFilePath)
+        {
+            List<RecordPair> trainingData = new List<RecordPair>();
+
+            List<Record> mrnRecords = GetCleanedRecordsFromMRNFile(inputFilePath);
+
+            Parallel.For(0, mrnRecords.Count() / 2, c =>
+            {
+                c *= 2;
+
+                lock (trainingData)
                 {
-                    //if (rand.Next() % 10 == 0)
+                    trainingData.Add(new RecordPair
+                    {
+                        IsMatch = true,
+                        Record1 = mrnRecords[c],
+                        Record2 = mrnRecords[c + 1],
+                    });
+                }
+
+                Random rand = new Random();
+                for (int d = 0; d < mrnRecords.Count; d += 2)
+                {
                     {
                         if (c != d)
                         {
-                            //if (rand.Next() % 2 == 0)
-                            RecordPair pair = new RecordPair
+                            if (rand.Next() % 2 == 0)
                             {
-                                IsMatch = false,
-                                Record1 = allRecords[c],
-                                Record2 = allRecords[d]
-                            };
-                            if (PassesBigBucketFilter(pair))
-                            {
-                                lock (trainingData)
+                                RecordPair pair = new RecordPair
                                 {
-                                    trainingData.Add(pair);
+                                    IsMatch = false,
+                                    Record1 = mrnRecords[c],
+                                    Record2 = mrnRecords[d]
+                                };
+                                if (PassesBigBucketFilter(pair))
+                                {
+                                    lock (trainingData)
+                                    {
+                                        trainingData.Add(pair);
+                                    }
                                 }
                             }
-                            pair = new RecordPair
+                            else
                             {
-                                IsMatch = false,
-                                Record1 = allRecords[c + 1],
-                                Record2 = allRecords[d]
-                            };
-                            if (PassesBigBucketFilter(pair))
-                            {
-                                lock (trainingData)
+                                RecordPair pair = new RecordPair
                                 {
-                                    trainingData.Add(pair);
+                                    IsMatch = false,
+                                    Record1 = mrnRecords[c + 1],
+                                    Record2 = mrnRecords[d]
+                                };
+                                if (PassesBigBucketFilter(pair))
+                                {
+                                    lock (trainingData)
+                                    {
+                                        trainingData.Add(pair);
+                                    }
                                 }
                             }
+
                         }
                     }
                 }
             });
-            Console.WriteLine("...done");
 
-            Console.Write("\tBuilding hand-tagged data...");
+            return trainingData;
+        }
+
+        public static IEnumerable<RecordPair> GetAllNegativeRecordPairsForMRNData(string mrnRecordPath)
+        {
+            List<RecordPair> trainingData = new List<RecordPair>();
+            List<Record> mrnRecords = GetCleanedRecordsFromMRNFile(mrnRecordPath);
+
+            for (int c = 0; c < mrnRecords.Count(); c += 2)
+            {
+                for (int d = 0; d < mrnRecords.Count; d += 2)
+                {
+                    if (c != d)
+                    {
+                        RecordPair nonMatchPair1 = new RecordPair
+                        {
+                            IsMatch = false,
+                            Record1 = mrnRecords[c],
+                            Record2 = mrnRecords[d]
+                        };
+
+                        yield return nonMatchPair1;
+
+                        RecordPair nonMatchPair2 = new RecordPair
+                        {
+                            IsMatch = false,
+                            Record1 = mrnRecords[c + 1],
+                            Record2 = mrnRecords[d]
+                        };
+
+                        yield return nonMatchPair2;
+                    }
+                }
+            }
+        }
+
+        public static List<RecordPair> GetHandPassedSets(string inputMoreFilePath)
+        {
+            List<RecordPair> trainingData = new List<RecordPair>();
+
             string[] extraLines = File.ReadAllLines(inputMoreFilePath);
             List<Record[]> moreGroups = new List<Record[]>();
 
@@ -301,11 +370,14 @@ namespace DecisionTreeLearner.Data
                     }
                 }
             }
-            Console.WriteLine("...done");
 
+            return trainingData;
+        }
 
-            string[] rejectedLines = File.ReadAllLines(rejectedFilePath);
-            Console.Write($"\tBuilding {rejectedLines.Length / 3} rejected data...");
+        public static List<RecordPair> GetRejectedRecordPairs(string rejectFile)
+        {
+            List<RecordPair> trainingData = new List<RecordPair>();
+            string[] rejectedLines = File.ReadAllLines(rejectFile);
             for (int c = 0; c < rejectedLines.Length; c += 3)
             {
                 string line1 = rejectedLines[c];
@@ -320,6 +392,28 @@ namespace DecisionTreeLearner.Data
                     trainingData.Add(failurePair);
                 }
             }
+
+            return trainingData;
+        }
+
+        public static List<RecordPair> BuildTrainingData(string inputFilePath,
+            string handTaggedData, string rejectedFilePath)
+        {
+            List<RecordPair> trainingData = new List<RecordPair>();
+
+            Console.WriteLine("Building training data...");
+            //for (int c = 0; c < allRecords.Count; c += 2)
+
+            Console.Write("\tBuilding MRN-based data...");
+            trainingData.AddRange(GetRandomPairsForMRNData(inputFilePath));
+            Console.WriteLine("...done");
+
+            Console.Write("\tBuilding hand-tagged data...");
+            trainingData.AddRange(GetHandPassedSets(handTaggedData));
+            Console.WriteLine("...done");
+
+            Console.Write("\tBuilding rejected data...");
+            trainingData.AddRange(GetRejectedRecordPairs(rejectedFilePath));
             Console.WriteLine("...done");
 
             Console.WriteLine("...done");

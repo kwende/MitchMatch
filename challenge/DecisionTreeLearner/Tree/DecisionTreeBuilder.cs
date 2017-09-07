@@ -526,7 +526,7 @@ namespace DecisionTreeLearner.Tree
 
         public DecisionTree Train(List<RecordPair> trainingData,
             SplittingQuestion[] splittingQuestions, double subsamplingPercentage,
-            double minGain, int maximumEditDistance, List<Tuple<SplittingQuestion, bool>> preComputedBranches)
+            double minGain, List<Tuple<SplittingQuestion, bool>> preComputedBranches)
         {
             //PropertyInfo property = recordType.GetProperty(question.Field.ToString());
             //TODO: do this better. major hack. 

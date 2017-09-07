@@ -48,13 +48,11 @@ namespace DecisionTreeLearner.NLP
 
         public static List<Record> CleanRecordPairs(List<Record> records)
         {
-            Console.Write("Cleaning data...");
             //for(int c=0;c<pairs.Count;c++)
             Parallel.For(0, records.Count, c =>
             {
                 records[c] = CleanRecord(records[c]);
             });
-            Console.WriteLine("...done");
 
             return records;
         }
@@ -62,13 +60,11 @@ namespace DecisionTreeLearner.NLP
         public static List<RecordPair> CleanRecordPairs(List<RecordPair> pairs,
             string streetSuffixesFile)
         {
-            Console.Write("Cleaning data...");
             //for(int c=0;c<pairs.Count;c++)
             Parallel.For(0, pairs.Count, c =>
             {
                 pairs[c] = CleanRecordPair(pairs[c], streetSuffixesFile);
             });
-            Console.WriteLine("...done");
 
             return pairs;
         }
@@ -209,7 +205,7 @@ namespace DecisionTreeLearner.NLP
             ///////////////////////////////////////////////
 
             /////////////// ALIAS /////////////////////
-            input.Alias = Regex.Replace(input.Alias, " +", " ", RegexOptions.None); 
+            input.Alias = Regex.Replace(input.Alias, " +", " ", RegexOptions.None);
 
 
             //////////////////////////////////////////

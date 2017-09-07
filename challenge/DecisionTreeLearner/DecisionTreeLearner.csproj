@@ -68,6 +68,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Testers\EndNodeMLMatchFinders.cs" />
+    <Compile Include="Testers\IterativeLearner.cs" />
     <Compile Include="Testers\ListAllMatches.cs" />
     <Compile Include="Testers\TestSplitDirection.cs" />
     <Compile Include="Testers\TrainedDataTesters.cs" />
