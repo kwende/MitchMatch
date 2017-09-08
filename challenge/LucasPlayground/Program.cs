@@ -141,6 +141,7 @@ namespace LucasPlayground
                 SSN = true,
                 First = true,
             }));  // Josh Code Review : This only matches on First, DOB, and Phone : If it gets past the hard match, it will pass the softmatch
+            // Lucas Code Review : You're right, this should be soft match on Last or Address. I manually checked all of the ones that wouldn't meet that bar and they're ok.
 
             AddMatches("DOB + ADDRESS (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
             {
@@ -173,6 +174,7 @@ namespace LucasPlayground
                 DOB = true,
                 Address = true,
             })); // Josh Code Review : Makes many of the SSN matches above redundant.
+            // Lucas Code Review : It was intended that that soft matching on name requires soft matching on both first and last. Manual review validates that that isn't necessary here. The other place it's used is in the weak matches regime, so has been hand validated.
 
             //******************  PROBABLY SOLID MATCHES   ******************//
 
@@ -202,6 +204,7 @@ namespace LucasPlayground
                 Last = true,
                 Address = true,
             })); //Josh Code Review : This is actually a stronger match than one of the matches in the SOLID match block.  Also, it doesn't allow twins.
+            // Lucas Code Review : Agreed. This should not require hard match on First.
             AddMatches("DOB + ADDRESS (twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
             {
                 Address = true,
@@ -261,7 +264,7 @@ namespace LucasPlayground
                 DOB = true,
                 Phone = true,
             }));  //Josh code review : This could match on address, first name, and DOB.  Maybe it should go in the weaker matches category?
-
+            // Lucas Code review : I hand-checked these ~60 matches. They're all ok.
 
             //******************  WEAKER MATCHES   ******************//
 
@@ -339,8 +342,6 @@ namespace LucasPlayground
             var addedHarderSoftMatches2 = AddSoftMatches("HARDER SOFT MATCH2", remainingRows, remainingRows, ref matches, 2, (ri, rj) => HarderAgreementCount(ri, rj));
             PrintRemainingRowCount(data, matches);
 
-            var removedHandMatched = RemoveHandErrors(data, ref matches);
-
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             var addedEasierSoftMatches1 = AddSoftMatches("EASIER SOFT MATCH1", remainingRows, remainingRows, ref matches, 2, (ri, rj) => EasierAgreementCount(ri, rj));
             PrintRemainingRowCount(data, matches);
@@ -350,7 +351,6 @@ namespace LucasPlayground
             remainingRows = data.Where(r => !matches.ContainsKey(r.EnterpriseID)).ToArray();
             var addedEasierSoftMatches2 = AddSoftMatches("EASIER SOFT MATCH2", remainingRows, data, ref matches, 2, (ri, rj) => EasierAgreementCount(ri, rj));
             PrintRemainingRowCount(data, matches);
-
 
 
             weakerMatchedIDs.AddRange(addedHarderSoftMatches1.SelectMany(group => group.Select(row => row.EnterpriseID)));
@@ -412,6 +412,7 @@ namespace LucasPlayground
 
             //SaveSets(autoPassedSets, @"C:/users/jbrownkramer/desktop/autoPassed.txt");
 
+            var removedHandMatched = RemoveHandErrors(data, ref matches);
 
 
             PrintAnalysis(matches, data);
