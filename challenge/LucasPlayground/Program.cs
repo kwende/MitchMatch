@@ -20,19 +20,19 @@ namespace LucasPlayground
         private static Dictionary<int, row> _enterpriseIdToRow;
         private static Dictionary<int, List<row>> _eidToAlternatives;
 
-        static Dictionary<int,List<row>> EIdToAlternatives()
+        static Dictionary<int, List<row>> EIdToAlternatives()
         {
             Dictionary<int, List<row>> toReturn = new Dictionary<int, List<row>>();
 
-            var path = @"C:\workspaces\GitHub\MitchMatch\alternatives.txt";
+            var path = @"..\..\..\..\..\alternatives.txt";
             var lines = System.IO.File.ReadAllLines(path);
 
-            foreach(var line in lines)
+            foreach (var line in lines)
             {
                 var tokens = line.Split(',');
                 var eid = int.Parse(tokens[0]);
                 List<row> alternatives = new List<row>();
-                for(int i = 1; i < tokens.Length; i++)
+                for (int i = 1; i < tokens.Length; i++)
                 {
                     alternatives.Add(_enterpriseIdToRow[int.Parse(tokens[i])]);
                 }
@@ -52,7 +52,7 @@ namespace LucasPlayground
             var lines = GetLines();
             var allData = lines.Skip(1).Select(l => RowLibrary.ParseRow(l)).ToArray();
             var data = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
-            
+
 
             // Clean Data
             _badSSNs = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
@@ -64,13 +64,6 @@ namespace LucasPlayground
             CleanData(ref data);
             //DisplayPossibleMatches(data);
 
-            //Create dictionaries for quick lookup
-            Console.WriteLine("Creating fast data structures...");
-            _enterpriseIdToRow = new Dictionary<int, row>();
-            foreach (var r in data)
-                _enterpriseIdToRow[r.EnterpriseID] = r;
-
-            _eidToAlternatives = EIdToAlternatives();
 
             // Process Data
             Console.WriteLine(lines.Count() + " total rows");
@@ -138,7 +131,7 @@ namespace LucasPlayground
                 DOB = true,
             }));
 
-            AddMatches("DOB + PHONE (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions 
+            AddMatches("DOB + PHONE (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
             {
                 First = true,
                 DOB = true,
@@ -359,6 +352,7 @@ namespace LucasPlayground
             PrintRemainingRowCount(data, matches);
 
 
+
             weakerMatchedIDs.AddRange(addedHarderSoftMatches1.SelectMany(group => group.Select(row => row.EnterpriseID)));
             weakerMatchedIDs.AddRange(addedHarderSoftMatches2.SelectMany(group => group.Select(row => row.EnterpriseID)));
             weakerMatchedIDs.AddRange(addedEasierSoftMatches1.SelectMany(group => group.Select(row => row.EnterpriseID)));
@@ -390,9 +384,17 @@ namespace LucasPlayground
 
             //SaveSets(possibleBadSets, @"C:/users/jbrownkramer/desktop/closedsets.txt");
 
+            //Create dictionaries for quick lookup
+            Console.WriteLine("Creating fast data structures...");
+            _enterpriseIdToRow = new Dictionary<int, row>();
+            foreach (var r in data)
+                _enterpriseIdToRow[r.EnterpriseID] = r;
+
+            _eidToAlternatives = EIdToAlternatives();
+
             List<List<int>> autoPassedSets = new List<List<int>>();
             int c = 0;
-            foreach(var badSet in possibleBadSets)
+            foreach (var badSet in possibleBadSets)
             {
                 //Express as rows
                 row[] r = badSet.Select(eid => _enterpriseIdToRow[eid]).ToArray();
@@ -516,7 +518,7 @@ namespace LucasPlayground
             if (TrueForEveryPair(r, MRNsClose))
                 return true;
 
-            if (TrueForEveryPair(r,Address2Evidence))
+            if (TrueForEveryPair(r, Address2Evidence))
                 return true;
 
             if (TrueForEveryPair(r, CleanAddressButNotExactAddressMatch))
@@ -554,7 +556,7 @@ namespace LucasPlayground
             var a = component[0];
             var b = component[1];
 
-            bool toReturn = AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(a, b) || 
+            bool toReturn = AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(a, b) ||
                 AStrictlyDominatesAllOtherNeighborsOfBAsAMatchForB(b, a);
 
             return toReturn;
@@ -569,7 +571,7 @@ namespace LucasPlayground
         {
             var neighbors = _eidToAlternatives[b.EnterpriseID];
 
-            foreach(var neighbor in neighbors)
+            foreach (var neighbor in neighbors)
             {
                 if (A.Contains(neighbor))
                     continue;
@@ -584,7 +586,7 @@ namespace LucasPlayground
         //True if one element of A strictly dominates
         static bool AStrictlyDominatesBAsAMatchForC(IEnumerable<row> A, row b, row c)
         {
-            foreach(var a in A)
+            foreach (var a in A)
             {
                 if (AStrictlyDominatesBAsAMatchForC(a, b, c))
                     return true;
@@ -597,9 +599,9 @@ namespace LucasPlayground
         {
             List<row> toReturn = new List<row>();
 
-            foreach(var datum in data)
+            foreach (var datum in data)
             {
-                if (EasiestAgreementCount(datum,r) >= 2 && datum.EnterpriseID != r.EnterpriseID)
+                if (EasiestAgreementCount(datum, r) >= 2 && datum.EnterpriseID != r.EnterpriseID)
                 {
                     toReturn.Add(datum);
                 }
@@ -638,13 +640,13 @@ namespace LucasPlayground
 
         static bool InclusivelyDominates(row a, row b, row c)
         {
-            if (!StringDominates(a,b,c,r => r.ADDRESS1, challenge.Program.FuzzyAddressMatch))
+            if (!StringDominates(a, b, c, r => r.ADDRESS1, challenge.Program.FuzzyAddressMatch))
                 return false;
 
             if (!StringDominates(a, b, c, r => r.ADDRESS2))
                 return false;
 
-            if (!StringDominates(a,b,c,r => r.ALIAS))
+            if (!StringDominates(a, b, c, r => r.ALIAS))
                 return false;
 
             if (!StringDominates(a, b, c, r => r.CITY))
@@ -697,7 +699,7 @@ namespace LucasPlayground
             return StringDominates(ra, rb, rc, fieldSelector, StringHardMatch);
         }
 
-        static bool StringDominates(row ra, row rb, row rc, Func<row,string> fieldSelector, Func<string,string,bool> softMatch)
+        static bool StringDominates(row ra, row rb, row rc, Func<row, string> fieldSelector, Func<string, string, bool> softMatch)
         {
             return Dominates(ra, rb, rc, fieldSelector, StringHardMatch, softMatch);
         }
@@ -1107,7 +1109,7 @@ namespace LucasPlayground
 
 
         #region Printing
-        private static bool _printLargeGroupValues = true;
+        private static bool _printLargeGroupValues = false;
         private static bool _printErrors = false;
         private static bool _printActuals = false;
         private static bool _printModifieds = false;
@@ -1530,7 +1532,7 @@ namespace LucasPlayground
                 {
                     continue;
                 }
-                 
+
                 //Josh Code Review : The next time we do this, we should just just softmatch all the pairs in a group  and take the ones that match.
                 if (group.Any(r => softEquals(r, group.First()) < softEqualsCount))
                 {
@@ -1682,7 +1684,6 @@ namespace LucasPlayground
                 new int[] { 15795257, 15459635 },
                 //new int[] { 15784375, 15468600 },
                 //new int[] { 15784375, 15692153 },
-
             };
 
             List<List<row>> addedThisTime = new List<List<row>>();
@@ -1735,8 +1736,14 @@ namespace LucasPlayground
 
             List<int[]> groups = new List<int[]>
             {
-                new int[] { 15976198, 15988294, 15477018, 15922527 },
-                ////new int[] { 15943042, 15624558, 15836726, 15861073 },
+                new int[] { 15976198, 15988294, 15477018, 15922527 }, // Jackson/Collins
+                new int[] { 15943042, 15624558, 15836726, 15861073 }, // Maria Wilson
+                new int[] { 15795826, 15663014, 15471624 }, // Dawn Pesci/Lilypearl Pesce
+                new int[] { 15734573, 15668362, 15949753 }, // Tonia Campbell/Everett Campbell
+                new int[] { 16021041, 15484455, 15561017 }, // Giovanna Pesci/Giovanna Workman
+                new int[] { 15592155, 15624943, 15829197 }, // Brianna Mora/Mandy Sosa
+                new int[] { 15815879, 15945693, 15419890 }, // Rebecca Weiss/Rebecca Johnson
+                
                 //new int[] { 15736643, 15696925, 15884622, 15795257 },
                 //new int[] { 15755689, 15943418, 15455018, 15784375 },
                 //new int[] { 15567009, 15807734, 15799555, 15429342 },
@@ -1749,14 +1756,19 @@ namespace LucasPlayground
                 row a = data.Where(r => r.EnterpriseID == row[0]).FirstOrDefault();
                 row b = data.Where(r => r.EnterpriseID == row[1]).FirstOrDefault();
                 row c = data.Where(r => r.EnterpriseID == row[2]).FirstOrDefault();
-                row d = data.Where(r => r.EnterpriseID == row[3]).FirstOrDefault();
 
                 Remove(a, b, ref matches);
                 Remove(a, c, ref matches);
-                Remove(a, d, ref matches);
                 Remove(b, c, ref matches);
-                Remove(b, d, ref matches);
-                Remove(c, d, ref matches);
+
+                if (row.Length == 4)
+                {
+                    row d = data.Where(r => r.EnterpriseID == row[3]).FirstOrDefault();
+
+                    Remove(a, d, ref matches);
+                    Remove(b, d, ref matches);
+                    Remove(c, d, ref matches);
+                }
             }
 
 
@@ -1764,6 +1776,38 @@ namespace LucasPlayground
             {
                 new int[] { 15976198, 15988294 },
                 new int[] { 15477018, 15922527 },
+
+
+
+                new int[] { 15976198, 15988294 }, // Jackson
+                new int[] { 15477018, 15922527 }, // Collins
+
+                new int[] { 15943042, 15624558 }, // Maria Wilson
+                new int[] { 15836726, 15861073 }, // Maria Wilson
+
+                new int[] { 15795826, 15471624 }, // Lilypearl Pesce
+                new int[] { 15663014, 15484455 }, // Dawn Pesci, Giovanna Pesci
+                new int[] { 15663014, 15561017 }, // Dawn Pesci, Giovanna Pesci
+                new int[] { 15484455, 15561017 }, // Dawn Pesci, Giovanna Pesci
+                new int[] { 16021041, 15537569 }, // Giovanna Workman, Lorretta Workman
+                new int[] { 16021041, 15746079 }, // Giovanna Workman, Lorretta Workman
+                new int[] { 15537569, 15746079 }, // Giovanna Workman, Lorretta Workman
+
+                new int[] { 15734573, 15949753 }, // Tonia Campbell
+                new int[] { 15668362, 15802253 }, // Everett Campbell, William Campbell
+                new int[] { 15668362, 15771793 }, // Everett Campbell, William Campbell
+                new int[] { 15802253, 15771793 }, // Everett Campbell, William Campbell
+
+                new int[] { 15624943, 15829197 }, // Brianna Mora
+                new int[] { 15592155, 15515767 }, // Mandy Sosa, Regina Sosa
+                new int[] { 15592155, 15863935 }, // Mandy Sosa, Regina Sosa
+                new int[] { 15515767, 15863935 }, // Mandy Sosa, Regina Sosa
+
+                new int[] { 15945693, 15419890 }, // Rebecca Weiss
+                new int[] { 15815879, 16007836 }, // Rebecca Johnson, Dorothy Johnson
+                new int[] { 15815879, 15799577 }, // Rebecca Johnson, Dorothy Johnson
+                new int[] { 15799577, 16007836 }, // Rebecca Johnson, Dorothy Johnson
+
 
                 //new int[] { 15943042, 15624558, 15836726, 15861073 },
 
