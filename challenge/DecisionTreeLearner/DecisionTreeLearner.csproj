@@ -93,7 +93,9 @@
     <None Include="StreetSuffixes.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="tree.dat" />
+    <None Include="tree.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="docs\MySqlCommand.xml" />
@@ -107,7 +109,9 @@
     <Content Include="docs\MySqlParameter.xml" />
     <Content Include="docs\MySqlParameterCollection.xml" />
     <Content Include="docs\MySqlTransaction.xml" />
-    <Content Include="misfits.txt" />
+    <Content Include="misfits.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="rejected.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
