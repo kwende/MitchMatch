@@ -23,7 +23,7 @@ namespace DecisionTreeLearner.Testers
             pair.Record1 = Record.FromString(line1);
             pair.Record2 = Record.FromString(line2);
 
-            DecisionTree[] forest = DataLoader.LoadForestFromDirectory("C:/users/brush/desktop/forest");
+            DecisionTree[] forest = DataLoader.LoadForestFromDirectory(".");
 
             TreeLogger logger = new TreeLogger();
             bool isMatch = DecisionTreeBuilder.IsMatch(pair, forest, logger);
@@ -41,7 +41,13 @@ namespace DecisionTreeLearner.Testers
             {
                 using (StreamWriter sw = File.AppendText("c:/users/brush/desktop/gothere.txt"))
                 {
-                    List<RecordPair> pairs = DataLoader.BuildTrainingData("mrns.csv", "more.csv", "rejected.txt");
+                    List<RecordPair> pairs = new List<RecordPair>();
+                    Console.Write("Loading training data for this iteration...");
+                    pairs.AddRange(DataLoader.GetPositivesFromMRNData("mrns.csv"));
+                    pairs.AddRange(DataLoader.GetHandPassedSets("more.csv"));
+                    pairs.AddRange(DataLoader.GetRejectedRecordPairs("rejected.txt"));
+                    pairs.AddRange(DataLoader.GetPairsFromMisfitsFile("misfits.txt"));
+                    Console.WriteLine("...done");
 
                     Parallel.ForEach(pairs, p =>
                     {
