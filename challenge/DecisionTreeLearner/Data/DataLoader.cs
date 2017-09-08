@@ -110,7 +110,24 @@ namespace DecisionTreeLearner.Data
 
         public static List<RecordPair> GetPairsFromMisfitsFile(string misfitsFilePath)
         {
-            return new List<RecordPair>();
+            string[] lines = File.ReadAllLines(misfitsFilePath);
+
+            List<RecordPair> ret = new List<RecordPair>(); 
+
+            for (int c = 0; c < lines.Length; c += 4)
+            {
+                if (!string.IsNullOrEmpty(lines[c]))
+                {
+                    RecordPair pair = new RecordPair();
+                    pair.IsMatch = bool.Parse(lines[c]);
+                    pair.Record1 = Record.FromString(lines[c + 1]);
+                    pair.Record2 = Record.FromString(lines[c + 2]);
+
+                    ret.Add(pair); 
+                }
+            }
+
+            return ret ; 
         }
 
         public static List<RecordPair> LoadTrainingDataFromNoHomoFile(string noHomoFilePath)

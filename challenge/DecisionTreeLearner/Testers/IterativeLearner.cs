@@ -55,13 +55,16 @@ namespace DecisionTreeLearner.Testers
                 bool allDoneTraining = true;
                 Parallel.ForEach(DataLoader.GetAllNegativeRecordPairsForMRNData(mrnInputFile), pair =>
                 {
-                    if (DecisionTreeBuilder.IsMatch(pair, new DecisionTree[] { trainedTree }, null) != pair.IsMatch)
+                    if (misFits.Count() < 100000)
                     {
-                        lock (misFits)
+                        if (DecisionTreeBuilder.IsMatch(pair, new DecisionTree[] { trainedTree }, null) != pair.IsMatch)
                         {
-                            misFits.Add(pair);
+                            lock (misFits)
+                            {
+                                misFits.Add(pair);
+                            }
+                            allDoneTraining = false;
                         }
-                        allDoneTraining = false;
                     }
                 });
                 Console.WriteLine($"..done. {misFits.Count} misfits found.");

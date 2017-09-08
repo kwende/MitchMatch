@@ -41,6 +41,7 @@ namespace DecisionTreeLearner.Testers
             Console.WriteLine($"...done. Starting at {startIndex}.");
 
             Console.WriteLine("Starting....");
+            int extraSetMembersFoundCount = 0; 
             using (StreamWriter fout = File.AppendText(outputFile))
             {
                 for (int c = startIndex; c < closedSets.Count;)
@@ -78,6 +79,8 @@ namespace DecisionTreeLearner.Testers
 
                     if(extraSetMembersFound.Count > 0)
                     {
+                        extraSetMembersFoundCount += extraSetMembersFound.Count;
+                        Console.WriteLine($"\tFound {extraSetMembersFoundCount} found so far."); 
                         int setId = connector.GetSetIdForSetGivenMember(closedSet.First());
                         connector.CreateMLFoundExtraRecordsForSet(setId, extraSetMembersFound);
                     }

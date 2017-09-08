@@ -128,47 +128,26 @@ namespace DecisionTreeLearner
 
         static void Main(string[] args)
         {
-            //List<List<int>> butt = new List<List<int>>();
-
-            //butt.Add(new List<int>(new int[] { 15924699, 15998364, 15776341 }));
-            //butt.Add(new List<int>(new int[] { 15409759, 15719372, 15603834 }));
-            //butt.Add(new List<int>(new int[] { 15605703, 15666227, 15436724 }));
-
-            //DoJoshInThe(butt);
-
-            //using (FileStream fin = File.OpenRead(@"D:\allNodes\b65b18fb8ef84d25b1dc4737666ea719"))
-            //{
-            //    byte[] buffer = new byte[1024];
-            //    fin.Read(buffer, 0, buffer.Length);
-
-            //    string lines = ASCIIEncoding.ASCII.GetString(buffer);
-
-            //    File.WriteAllText("C:/users/brush/desktop/fart.txt",
-            //        lines);
-
-            //}
-
             //EndNodeMLMatchFinders.Find(); 
-            //string response = Regex.Replace("SCOT   DREYER      5", " + ", " ", RegexOptions.None);
 
-            //IterativeLearner.DoIt("misfits.txt", "mrns.csv", "more.csv", "rejected.txt");
+           // IterativeLearner.DoIt("misfits.txt", "mrns.csv", "more.csv", "rejected.txt");
 
             //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
             //TrainedDataTesters.TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
-            //Testers.TestSplitDirection.Test();
+            Testers.TestSplitDirection.Test();
 
 
 
             //Testers.ListAllMatches.List();
 
-            Testers.TrainedDataTesters.SearchForFalseNegatives(
-                "D:/repos/mitchmatch/closedsets.txt",
-                "C:/users/brush/desktop/finaldataset.csv",
-                "C:/users/brush/desktop/forest",
-                "D:/mitchMatchFalseNegativeSearchResults.txt",
-                "D:/mitchMatchFalsenegatievSearchState.txt");
+            //Testers.TrainedDataTesters.SearchForFalseNegatives(
+            //    "D:/repos/mitchmatch/closedsets.txt",
+            //    "C:/users/brush/desktop/finaldataset.csv",
+            //    "C:/users/brush/desktop/forest",
+            //    "D:/mitchMatchFalseNegativeSearchResults.txt",
+            //    "D:/mitchMatchFalsenegatievSearchState.txt");
         }
     }
 }
