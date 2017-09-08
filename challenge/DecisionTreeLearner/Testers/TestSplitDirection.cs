@@ -1,5 +1,6 @@
 ﻿using DecisionTreeLearner.Data;
 using DecisionTreeLearner.DataTypes;
+using DecisionTreeLearner.NLP;
 using DecisionTreeLearner.Tree;
 using System;
 using System.Collections.Generic;
@@ -20,8 +21,8 @@ namespace DecisionTreeLearner.Testers
             string line2 = Console.ReadLine();
 
             RecordPair pair = new RecordPair();
-            pair.Record1 = Record.FromString(line1);
-            pair.Record2 = Record.FromString(line2);
+            pair.Record1 = DataCleaner.CleanRecord(Record.FromString(line1));
+            pair.Record2 = DataCleaner.CleanRecord(Record.FromString(line2)); 
 
             DecisionTree[] forest = DataLoader.LoadForestFromDirectory(".");
 

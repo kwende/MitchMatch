@@ -41,7 +41,7 @@ namespace DecisionTreeLearner.Testers
             Console.WriteLine($"...done. Starting at {startIndex}.");
 
             Console.WriteLine("Starting....");
-            int extraSetMembersFoundCount = 0; 
+            int extraSetMembersFoundCount = 0;
             using (StreamWriter fout = File.AppendText(outputFile))
             {
                 for (int c = startIndex; c < closedSets.Count;)
@@ -77,18 +77,32 @@ namespace DecisionTreeLearner.Testers
                         });
                     }
 
-                    if(extraSetMembersFound.Count > 0)
+                    if (extraSetMembersFound.Count > 0)
                     {
-                        extraSetMembersFoundCount += extraSetMembersFound.Count;
-                        Console.WriteLine($"\tFound {extraSetMembersFoundCount} found so far."); 
-                        int setId = connector.GetSetIdForSetGivenMember(closedSet.First());
-                        connector.CreateMLFoundExtraRecordsForSet(setId, extraSetMembersFound);
+                        //extraSetMembersFoundCount += extraSetMembersFound.Count;
+                        //Console.WriteLine($"\tFound {extraSetMembersFoundCount} found so far.");
+                        //int setId = connector.GetSetIdForSetGivenMember(closedSet.First());
+                        //connector.CreateMLFoundExtraRecordsForSet(setId, extraSetMembersFound);
+
+                        StringBuilder sb = new StringBuilder(1024);
+                        sb.AppendLine("==========");
+                        foreach (Record record in closedSet)
+                        {
+                            sb.AppendLine(record.ToString());
+                        }
+                        sb.AppendLine();
+                        foreach (Record record in extraSetMembersFound)
+                        {
+                            sb.AppendLine(record.ToString());
+                        }
+                        sb.AppendLine();
+
+
+                        fout.Write(sb.ToString());
+                        fout.Flush();
                     }
 
-                    string toSave = $"[{string.Join(",", closedSet.Select(n => n.EnterpriseId))}][{string.Join(",", extraSetMembersFound.Select(n => n.EnterpriseId))}]\n";
-
-                    fout.Write(toSave);
-                    fout.Flush();
+                    //string toSave = $"[{string.Join(",", closedSet.Select(n => n.EnterpriseId))}][{string.Join(",", extraSetMembersFound.Select(n => n.EnterpriseId))}]\n";
 
                     c++;
                     File.WriteAllText(stateFile, c.ToString());
