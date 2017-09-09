@@ -352,6 +352,8 @@ namespace LucasPlayground
             var addedEasierSoftMatches2 = AddSoftMatches("EASIER SOFT MATCH2", remainingRows, data, ref matches, 2, (ri, rj) => EasierAgreementCount(ri, rj));
             PrintRemainingRowCount(data, matches);
 
+            var removedHandMatched = RemoveHandErrors(data, ref matches);
+
 
             weakerMatchedIDs.AddRange(addedHarderSoftMatches1.SelectMany(group => group.Select(row => row.EnterpriseID)));
             weakerMatchedIDs.AddRange(addedHarderSoftMatches2.SelectMany(group => group.Select(row => row.EnterpriseID)));
@@ -361,6 +363,9 @@ namespace LucasPlayground
             weakerMatchedIDs = weakerMatchedIDs.Distinct().ToList();
 
             TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
+
+            SaveFinalSubmission(tc.ClosedRowSets, @"C:\Users\jbrownkramer\Desktop\submission.csv");
+
             bool[] alreadyTakenCareOf = new bool[weakerMatchedIDs.Count];
             List<List<int>> possibleBadSets = new List<List<int>>();
             for (int i = 0; i < weakerMatchedIDs.Count; i++)
@@ -412,8 +417,6 @@ namespace LucasPlayground
 
             //SaveSets(autoPassedSets, @"C:/users/jbrownkramer/desktop/autoPassed.txt");
 
-            var removedHandMatched = RemoveHandErrors(data, ref matches);
-
 
             PrintAnalysis(matches, data);
 
@@ -437,6 +440,29 @@ namespace LucasPlayground
             //SaveResults(matches, data);
 
             Console.ReadLine();
+        }
+
+        static void SaveFinalSubmission(List<List<int>> sets, string path)
+        {
+            System.IO.File.WriteAllLines(path, FinalSubmissionLines(sets));
+        }
+
+        static List<string> FinalSubmissionLines(List<List<int>> sets)
+        {
+            return sets.SelectMany(s => FinalSubmissionLines(s)).ToList();
+        }
+
+        static List<string> FinalSubmissionLines(List<int> set)
+        {
+            List<string> toReturn = new List<string>();
+            for(int i = 0; i < set.Count; i++)
+                for(int j = i + 1; j < set.Count; j++)
+                {
+                    string line = $"{set[i]},{set[j]},1";
+                    toReturn.Add(line);
+                }
+
+            return toReturn;
         }
 
         static void DoBen()
