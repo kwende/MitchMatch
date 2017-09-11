@@ -132,11 +132,11 @@ namespace DecisionTreeLearner
 
             // IterativeLearner.DoIt("misfits.txt", "mrns.csv", "more.csv", "rejected.txt");
 
-            //Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
+            Train(1, "C:/users/brush/desktop/forest", 1, 0, 3);
             //TestOnTrainingData();
             //TrainedDataTesters.TestOnLucasClosedSets("D:/repos/mitchmatch/closedsets.txt", "C:/users/brush/desktop/finaldataset.csv", "C:/users/brush/desktop/forest");
 
-            Testers.TestSplitDirection.Test();
+            //Testers.TestSplitDirection.Test();
 
 
 
