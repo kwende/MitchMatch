@@ -12,6 +12,93 @@ namespace DecisionTreeLearner.Data
 {
     public static class DataLoader
     {
+        public static IEnumerable<RecordPair> LoadNegativesFromAnswerKey(string answerKeyPath, string finalDataSetPath)
+        {
+            List<RecordPair> positives = LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSetPath);
+
+            // count(eids) choose 2 - # len(positives)
+
+            for (int a = 0; a < positives.Count; a++)
+            {
+                RecordPair matchPair1 = positives[a];
+
+                for (int b = a + 1; b < positives.Count; b++)
+                {
+                    RecordPair matchPair2 = positives[b];
+
+                    if (matchPair1.Record1.EnterpriseId != matchPair2.Record1.EnterpriseId &&
+                        matchPair1.Record1.EnterpriseId != matchPair2.Record2.EnterpriseId &&
+                        matchPair1.Record2.EnterpriseId != matchPair2.Record1.EnterpriseId &&
+                        matchPair1.Record2.EnterpriseId != matchPair2.Record2.EnterpriseId)
+                    {
+                        RecordPair noMatch = new RecordPair
+                        {
+                            IsMatch = false,
+                            Record1 = matchPair1.Record1,
+                            Record2 = matchPair2.Record1
+                        };
+
+                        yield return noMatch;
+
+                        noMatch = new RecordPair
+                        {
+                            IsMatch = false,
+                            Record1 = matchPair1.Record2,
+                            Record2 = matchPair2.Record2,
+                        };
+
+                        yield return noMatch;
+
+                        noMatch = new RecordPair
+                        {
+                            IsMatch = false,
+                            Record1 = matchPair1.Record1,
+                            Record2 = matchPair2.Record2
+                        };
+
+                        yield return noMatch;
+
+                        noMatch = new RecordPair
+                        {
+                            IsMatch = false,
+                            Record1 = matchPair1.Record2,
+                            Record2 = matchPair2.Record1
+                        };
+
+                        yield return noMatch;
+                    }
+                }
+            }
+        }
+
+        public static List<RecordPair> LoadAllPositivesFromAnswerKey(string answerKeyPath, string finalDataSetPath)
+        {
+            List<RecordPair> ret = new List<RecordPair>();
+            List<Record> finalDataSet = LoadFinalDataSet(finalDataSetPath);
+
+            IEnumerable<string> lines = File.ReadLines(answerKeyPath);
+            Parallel.ForEach(lines, line =>
+            {
+                string[] bits = line.Split(',');
+                if (bits.Length == 3)
+                {
+                    Record[] records = bits.Take(2).Select(n => finalDataSet.Where(m => m.EnterpriseId == int.Parse(n)).First()).ToArray();
+                    RecordPair pair = new RecordPair
+                    {
+                        IsMatch = true,
+                        Record1 = records[0],
+                        Record2 = records[1],
+                    };
+                    lock (ret)
+                    {
+                        ret.Add(pair);
+                    }
+
+                }
+            });
+            return ret;
+        }
+
         public static string[] SmartSplit(string csvLine)
         {
             List<int> separatorIndices = new List<int>();
@@ -56,7 +143,7 @@ namespace DecisionTreeLearner.Data
                 else
                 {
                     string[] bits = line.Split(',');
-                    if (bits[0] != "" && int.Parse(bits[0]) > 15374761)
+                    if (bits[0] != "" && int.Parse(bits[0]) >= 15374761)
                     {
                         ret.Add(DataCleaner.CleanRecord(Record.FromFinalDatasetString(line)));
                     }
@@ -102,7 +189,7 @@ namespace DecisionTreeLearner.Data
                     set.Add(preloadedFinalDataSet.First(n => n.EnterpriseId == enterpriseId));
                 }
 
-                
+
 
                 ret.Add(set);
             }
@@ -114,7 +201,7 @@ namespace DecisionTreeLearner.Data
         {
             string[] lines = File.ReadAllLines(misfitsFilePath);
 
-            List<RecordPair> ret = new List<RecordPair>(); 
+            List<RecordPair> ret = new List<RecordPair>();
 
             for (int c = 0; c < lines.Length; c += 4)
             {
@@ -125,11 +212,11 @@ namespace DecisionTreeLearner.Data
                     pair.Record1 = Record.FromString(lines[c + 1]);
                     pair.Record2 = Record.FromString(lines[c + 2]);
 
-                    ret.Add(pair); 
+                    ret.Add(pair);
                 }
             }
 
-            return ret ; 
+            return ret;
         }
 
         public static List<RecordPair> LoadTrainingDataFromNoHomoFile(string noHomoFilePath)

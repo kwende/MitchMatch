@@ -275,7 +275,7 @@ namespace DecisionTreeLearner.DataTypes
                 Phone2,//
                 Address1,
                 Address2,
-                City.Replace("\"", ""),
+                QuoteIfNeeded(City.Replace("\"", "")),
                 State.Replace("\"", ""),
                 Zip,
                 MothersMaidenName,//
@@ -283,6 +283,16 @@ namespace DecisionTreeLearner.DataTypes
                 MRN,
                 EnterpriseId,
                 Alias);
+        }
+
+        private static string QuoteIfNeeded(string input)
+        {
+            if (input.Contains(","))
+            {
+                input = $"\"{input}\"";
+            }
+
+            return input;
         }
 
         public static Record FromFinalDatasetString(string[] bits)
@@ -320,7 +330,7 @@ namespace DecisionTreeLearner.DataTypes
             string[] bits = DataLoader.SmartSplit(csvString);
             if (bits.Length != 19)
             {
-                throw new Exception();
+                new FormatException($"Line of format '{csvString}' is invalid.");
             }
 
             return FromFinalDatasetString(bits);
@@ -329,37 +339,34 @@ namespace DecisionTreeLearner.DataTypes
         public static Record FromString(string csvString)
         {
             Record record = new Record();
-            string[] bits = csvString.Split(',').Select(n => n.Trim()).ToArray();
+            string[] bits = DataLoader.SmartSplit(csvString);
             if (bits.Length != 19)
             {
-                throw new Exception();
+                new FormatException($"Line of format '{csvString}' is invalid.");
             }
 
-            if (bits.Length == 19)
-            {
-                record.Cache = bits;
-                record.FirstName = bits[0];
-                record.MiddleName = bits[1];
-                record.LastName = bits[2];
-                record.Suffix = bits[3];
-                record.Gender = bits[4];
-                record.SSN = bits[5];
-                record.DOB = bits[6];
-                record.Phone1 = bits[7];
-                record.Phone2 = bits[8];
-                record.Address1 = bits[9];
-                record.Address2 = bits[10];
-                record.City = bits[11];
-                record.State = bits[12];
-                record.Zip = bits[13];
-                record.MothersMaidenName = bits[14];
-                record.Email = bits[15];
-                record.Cache[16] = bits[16];
-                record.MRN = bits[16] != "" ? int.Parse(bits[16]) : 0;
-                record.Cache[17] = bits[17];
-                record.EnterpriseId = bits[17] != "" ? int.Parse(bits[17]) : 0; 
-                record.Alias = bits[18];
-            }
+            record.Cache = bits;
+            record.FirstName = bits[0];
+            record.MiddleName = bits[1];
+            record.LastName = bits[2];
+            record.Suffix = bits[3];
+            record.Gender = bits[4];
+            record.SSN = bits[5];
+            record.DOB = bits[6];
+            record.Phone1 = bits[7];
+            record.Phone2 = bits[8];
+            record.Address1 = bits[9];
+            record.Address2 = bits[10];
+            record.City = bits[11];
+            record.State = bits[12];
+            record.Zip = bits[13];
+            record.MothersMaidenName = bits[14];
+            record.Email = bits[15];
+            record.Cache[16] = bits[16];
+            record.MRN = bits[16] != "" ? int.Parse(bits[16]) : 0;
+            record.Cache[17] = bits[17];
+            record.EnterpriseId = bits[17] != "" ? int.Parse(bits[17]) : 0;
+            record.Alias = bits[18];
 
             return record;
         }
