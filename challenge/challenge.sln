@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenLayground", "BenLaygroun
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecisionTreeLearner", "DecisionTreeLearner\DecisionTreeLearner.csproj", "{544315A6-DC64-4D04-992B-DF44FDDE97B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UndressAddress", "UndressAddress\UndressAddress.csproj", "{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,14 @@ Global
 		{544315A6-DC64-4D04-992B-DF44FDDE97B9}.Release|Any CPU.Build.0 = Release|x64
 		{544315A6-DC64-4D04-992B-DF44FDDE97B9}.Release|x64.ActiveCfg = Debug|x64
 		{544315A6-DC64-4D04-992B-DF44FDDE97B9}.Release|x64.Build.0 = Debug|x64
+		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Debug|x64.ActiveCfg = Debug|x64
+		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Debug|x64.Build.0 = Debug|x64
+		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Release|Any CPU.ActiveCfg = Release|x64
+		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Release|Any CPU.Build.0 = Release|x64
+		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Release|x64.ActiveCfg = Debug|x64
+		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Release|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
