@@ -1497,7 +1497,7 @@ namespace LucasPlayground
             Console.WriteLine("MRN");
 
             List<List<row>> groupsAdded = new List<List<row>>();
-            var fourMillion = data.Where(r => r.MRN >= 4000000).ToArray();
+            var fourMillion = data.Where(r => r.MRN >= 4000000 && r.EnterpriseID >= 15374761).ToArray();
             for (int i = 0; i < fourMillion.Count(); i += 2)
             {
                 var r = fourMillion[i];
