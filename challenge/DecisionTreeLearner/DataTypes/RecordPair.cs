@@ -17,5 +17,19 @@ namespace DecisionTreeLearner.DataTypes
         {
             return IsMatch.ToString() + "\n" + Record1.ToString() + "\n" + Record2.ToString() + "\n";
         }
+
+        public override bool Equals(object obj)
+        {
+            bool equals = false;
+            RecordPair other = obj as RecordPair;
+            if (other != null)
+            {
+                return (other.Record1.EnterpriseId == Record1.EnterpriseId ||
+                    other.Record1.EnterpriseId == Record2.EnterpriseId) &&
+                    (other.Record2.EnterpriseId == Record1.EnterpriseId ||
+                    other.Record2.EnterpriseId == Record2.EnterpriseId);
+            }
+            return equals;
+        }
     }
 }

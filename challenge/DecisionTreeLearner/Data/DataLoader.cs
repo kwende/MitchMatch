@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace DecisionTreeLearner.Data
 {
@@ -14,7 +15,7 @@ namespace DecisionTreeLearner.Data
     {
         public static IEnumerable<RecordPair> LoadNegativesFromAnswerKey(List<RecordPair> positives, List<Record> finalDataSet)
         {
-            
+
 
             // count(eids) choose 2 - # len(positives)
 
@@ -74,7 +75,7 @@ namespace DecisionTreeLearner.Data
         public static List<RecordPair> LoadAllPositivesFromAnswerKey(string answerKeyPath, List<Record> finalDataSet)
         {
             List<RecordPair> ret = new List<RecordPair>();
-            
+
 
             IEnumerable<string> lines = File.ReadLines(answerKeyPath);
             Parallel.ForEach(lines, line =>
@@ -215,6 +216,56 @@ namespace DecisionTreeLearner.Data
                     ret.Add(pair);
                 }
             }
+
+            int duplicates = 0;
+            List<RecordPair> cleaned = new List<RecordPair>();
+            //foreach (RecordPair pairA in ret)
+            int counter = 0;
+            //Parallel.ForEach(ret, pairA =>
+            Parallel.For(0, ret.Count, n =>
+            {
+                RecordPair pairA = ret[n];
+
+                Interlocked.Increment(ref counter);
+
+                if (counter % 1000 == 0)
+                {
+                    Console.WriteLine($"{counter.ToString("N0")}/{ret.Count.ToString("N0")}");
+                }
+
+                bool isDuplicate = false;
+                // foreach (RecordPair pairB in ret)
+                for (int c = n + 1; c < ret.Count; c++)
+                {
+                    RecordPair pairB = ret[c];
+
+                    if (pairA != pairB && pairA.Equals(pairB))
+                    {
+                        duplicates++;
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (!isDuplicate)
+                {
+                    lock (cleaned)
+                    {
+                        cleaned.Add(pairA);
+                    }
+                }
+            });
+
+            using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/cleaned.csv"))
+            {
+                foreach (RecordPair pair in cleaned)
+                {
+                    sw.WriteLine($"{pair.Record1.EnterpriseId},{pair.Record2.EnterpriseId}");
+                }
+            }
+
+            Console.WriteLine($"There are {ret} entries. After cleaning there are {cleaned.Count}");
+            Console.ReadLine();
 
             return ret;
         }

@@ -21,6 +21,15 @@ namespace DecisionTreeLearner.Testers
                 File.Create(misfitsFilePath).Close();
             }
 
+            List<RecordPair> trainingData = new List<RecordPair>();
+            Console.Write("Loading training data for this iteration...");
+            //trainingData.AddRange(DataLoader.LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSet));
+            trainingData.AddRange(DataLoader.GetPairsFromMisfitsFile(misfitsFilePath));
+            Console.WriteLine("...done");
+
+            return; 
+
+
             Console.Write("Loading final data set...");
             List<Record> finalDataSet = DataLoader.LoadFinalDataSet(finalDataSetPath);
             Console.WriteLine("...done");
@@ -29,12 +38,7 @@ namespace DecisionTreeLearner.Testers
             List<RecordPair> allPositives = DataLoader.LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSet);
             Console.WriteLine("...done");
 
-            List<RecordPair> trainingData = new List<RecordPair>();
-            Console.Write("Loading training data for this iteration...");
 
-            trainingData.AddRange(DataLoader.LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSet));
-            trainingData.AddRange(DataLoader.GetPairsFromMisfitsFile(misfitsFilePath));
-            Console.WriteLine("...done");
 
             Console.Write("Generating splitting questions for this iteration...");
             int maximumEditDistance = 3;
@@ -58,7 +62,7 @@ namespace DecisionTreeLearner.Testers
                 }
                 Console.WriteLine("...done");
 
-                Console.Write("Now let's test the tree and find the misfits...");
+                Console.WriteLine("Now let's test the tree and find the misfits...");
                 List<RecordPair> misfits = new List<RecordPair>();
                 bool allDoneTraining = true;
                 long runCounter = 0;
