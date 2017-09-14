@@ -12,9 +12,9 @@ namespace DecisionTreeLearner.Data
 {
     public static class DataLoader
     {
-        public static IEnumerable<RecordPair> LoadNegativesFromAnswerKey(string answerKeyPath, string finalDataSetPath)
+        public static IEnumerable<RecordPair> LoadNegativesFromAnswerKey(List<RecordPair> positives, List<Record> finalDataSet)
         {
-            List<RecordPair> positives = LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSetPath);
+            
 
             // count(eids) choose 2 - # len(positives)
 
@@ -71,10 +71,10 @@ namespace DecisionTreeLearner.Data
             }
         }
 
-        public static List<RecordPair> LoadAllPositivesFromAnswerKey(string answerKeyPath, string finalDataSetPath)
+        public static List<RecordPair> LoadAllPositivesFromAnswerKey(string answerKeyPath, List<Record> finalDataSet)
         {
             List<RecordPair> ret = new List<RecordPair>();
-            List<Record> finalDataSet = LoadFinalDataSet(finalDataSetPath);
+            
 
             IEnumerable<string> lines = File.ReadLines(answerKeyPath);
             Parallel.ForEach(lines, line =>

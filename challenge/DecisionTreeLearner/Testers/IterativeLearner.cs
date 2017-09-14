@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DecisionTreeLearner.Testers
@@ -20,9 +21,18 @@ namespace DecisionTreeLearner.Testers
                 File.Create(misfitsFilePath).Close();
             }
 
+            Console.Write("Loading final data set...");
+            List<Record> finalDataSet = DataLoader.LoadFinalDataSet(finalDataSetPath);
+            Console.WriteLine("...done");
+
+            Console.Write("Load all positives from answer key...");
+            List<RecordPair> allPositives = DataLoader.LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSet);
+            Console.WriteLine("...done");
+
             List<RecordPair> trainingData = new List<RecordPair>();
             Console.Write("Loading training data for this iteration...");
-            trainingData.AddRange(DataLoader.LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSetPath));
+
+            trainingData.AddRange(DataLoader.LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSet));
             trainingData.AddRange(DataLoader.GetPairsFromMisfitsFile(misfitsFilePath));
             Console.WriteLine("...done");
 
@@ -51,8 +61,23 @@ namespace DecisionTreeLearner.Testers
                 Console.Write("Now let's test the tree and find the misfits...");
                 List<RecordPair> misfits = new List<RecordPair>();
                 bool allDoneTraining = true;
-                Parallel.ForEach(DataLoader.LoadNegativesFromAnswerKey(answerKeyPath, finalDataSetPath), (pair, state) =>
+                int runCounter = 0;
+                int left = Console.CursorLeft;
+                int top = Console.CursorTop;
+
+                Parallel.ForEach(DataLoader.LoadNegativesFromAnswerKey(allPositives, finalDataSet), (pair, state) =>
                 {
+                    Interlocked.Increment(ref runCounter);
+
+                    if (runCounter % 1000000 == 0)
+                    {
+                        lock (misfits)
+                        {
+                            Console.SetCursorPosition(left, top);
+                            Console.WriteLine($"\tExamined {runCounter} entries thus far. {misfits.Count} misfits found.");
+                        }
+                    }
+
                     if (misfits.Count() < 100000)
                     {
                         if (DecisionTreeBuilder.IsMatch(pair, new DecisionTree[] { trainedTree }, null) != pair.IsMatch)
@@ -60,7 +85,6 @@ namespace DecisionTreeLearner.Testers
                             lock (misfits)
                             {
                                 misfits.Add(pair);
-                                Console.WriteLine($"\t{misfits.Count} misfits found so far...");
                             }
                             allDoneTraining = false;
                         }
