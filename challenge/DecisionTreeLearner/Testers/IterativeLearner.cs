@@ -61,7 +61,7 @@ namespace DecisionTreeLearner.Testers
                 Console.Write("Now let's test the tree and find the misfits...");
                 List<RecordPair> misfits = new List<RecordPair>();
                 bool allDoneTraining = true;
-                int runCounter = 0;
+                long runCounter = 0;
                 int left = Console.CursorLeft;
                 int top = Console.CursorTop;
 
