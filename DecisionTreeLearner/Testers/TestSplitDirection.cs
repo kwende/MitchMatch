@@ -47,7 +47,7 @@ namespace DecisionTreeLearner.Testers
                     pairs.AddRange(DataLoader.GetPositivesFromMRNData("mrns.csv"));
                     pairs.AddRange(DataLoader.GetHandPassedSets("more.csv"));
                     pairs.AddRange(DataLoader.GetRejectedRecordPairs("rejected.txt"));
-                    pairs.AddRange(DataLoader.GetPairsFromMisfitsFile("misfits.txt"));
+                    //pairs.AddRange(DataLoader.GetPairsFromMisfitsFile("misfits.txt"));
                     Console.WriteLine("...done");
 
                     Parallel.ForEach(pairs, p =>
