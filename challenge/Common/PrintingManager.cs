@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LucasPlayground2
+namespace challenge
 {
-    class PrintingManager
+    public class PrintingManager
     {
         private static int _printCount = 0;
 
