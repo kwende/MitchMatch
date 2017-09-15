@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace LucasPlayground2
+namespace challenge
 {
     public class DataCleaningManager
     {
@@ -72,22 +72,22 @@ namespace LucasPlayground2
 
         private static string AddSpacesBetweenNumbersAndLetters(string str)
         {
-            string numberSpaceLetter =  Regex.Replace(str, @"(\d)([a-zA-Z])", "$1 $2", RegexOptions.None);
-            string letterSpaceNumber =  Regex.Replace(numberSpaceLetter, @"([a-zA-Z])(\d)", "$1 $2", RegexOptions.None);
+            string numberSpaceLetter = Regex.Replace(str, @"(\d)([a-zA-Z])", "$1 $2", RegexOptions.None);
+            string letterSpaceNumber = Regex.Replace(numberSpaceLetter, @"([a-zA-Z])(\d)", "$1 $2", RegexOptions.None);
             return letterSpaceNumber;
         }
 
         private static string TakeCareOfHomelessAddresses(string str)
         {
-            if (str.StartsWith("UNKNO") || 
+            if (str.StartsWith("UNKNO") ||
                 str.StartsWith("HOM") ||
                 str.StartsWith("UND") ||
                 str.StartsWith("INDOM") ||
                 str.StartsWith("NONDOM") ||
-                str.StartsWith("H O M") || 
-                str.StartsWith("H-O-M") || 
-                str.StartsWith("H.O.M") || 
-                str == "UDOMICILED" || 
+                str.StartsWith("H O M") ||
+                str.StartsWith("H-O-M") ||
+                str.StartsWith("H.O.M") ||
+                str == "UDOMICILED" ||
                 str == "UNSOMICILED" ||
                 str == "SHELTER" ||
                 str == "NONE" ||
@@ -211,10 +211,10 @@ namespace LucasPlayground2
 
                 row.ADDRESS1 = TakeCareOfUnknownAddresses(row.ADDRESS1);
                 row.ADDRESS2 = TakeCareOfUnknownAddresses(row.ADDRESS2);
-                
-                if(row.ADDRESS1 != "HOMELESS" && row.ADDRESS1 != "" && !row.ADDRESS1.Contains(' '))
+
+                if (row.ADDRESS1 != "HOMELESS" && row.ADDRESS1 != "" && !row.ADDRESS1.Contains(' '))
                 {
-                    if(Regex.Matches(row.ADDRESS2,@"\d [a-zA-Z]").Count > 0 && Regex.Matches(row.ADDRESS1, @"\d\d\d-\d\d-\d\d\d\d").Count > 0)
+                    if (Regex.Matches(row.ADDRESS2, @"\d [a-zA-Z]").Count > 0 && Regex.Matches(row.ADDRESS1, @"\d\d\d-\d\d-\d\d\d\d").Count > 0)
                     {
                         //Console.WriteLine($"{row.SSN} {row.ADDRESS1} {row.ADDRESS2}");
                         int output;

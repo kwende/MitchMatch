@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LucasPlayground2
+namespace challenge
 {
     public class ClosedSets
     {
@@ -44,7 +44,7 @@ namespace LucasPlayground2
                 int oldCounts = 0;
                 List<Row> closedSet = match.SelectMany(row => _rowToClosedRowSet[_eidToRowIndex[row.EnterpriseID]]).Distinct().OrderBy(row => row.EnterpriseID).ToList();
                 bool[] counted = new bool[closedSet.Count];
-                for(int i = 0; i < closedSet.Count; i++)
+                for (int i = 0; i < closedSet.Count; i++)
                 {
                     Row row = closedSet[i];
                     int rowIndex = _eidToRowIndex[row.EnterpriseID];
@@ -54,9 +54,9 @@ namespace LucasPlayground2
                         int oldLength = oldSet.Count;
                         oldCounts += (oldLength * (oldLength - 1)) / 2;
                         counted[i] = true;
-                        for(int j = i+1; j < closedSet.Count; j++)
+                        for (int j = i + 1; j < closedSet.Count; j++)
                         {
-                            if(oldSet.Contains(closedSet[j]))
+                            if (oldSet.Contains(closedSet[j]))
                             {
                                 counted[j] = true;
                             }
@@ -91,6 +91,25 @@ namespace LucasPlayground2
         public int GetRowIndexFromEID(int eid)
         {
             return _eidToRowIndex[eid];
+        }
+
+        public List<List<int>> ClosedRowSets()
+        {
+            List<List<int>> closedRowSets = new List<List<int>>();
+            List<int> traversed = new List<int>();
+            for (int i = 0; i < _allRows.Length; i++)
+            {
+                if (!traversed.Contains(_allRows[i].EnterpriseID))
+                {
+                    List<Row> set = _rowToClosedRowSet[i];
+                    closedRowSets.Add(set.Select(row => row.EnterpriseID).ToList());
+                    foreach (Row row in set)
+                    {
+                        traversed.Add(row.EnterpriseID);
+                    }
+                }
+            }
+            return closedRowSets;
         }
     }
 }

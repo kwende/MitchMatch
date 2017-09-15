@@ -5,15 +5,9 @@ VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "challenge", "challenge\challenge.csproj", "{28561ECC-5344-480E-BAF0-F9F99A51802D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LucasPlayground", "LucasPlayground\LucasPlayground.csproj", "{61508B0E-0A89-4C12-893E-A342A9FD1FE2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenLayground", "BenLayground\BenLayground.csproj", "{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecisionTreeLearner", "DecisionTreeLearner\DecisionTreeLearner.csproj", "{544315A6-DC64-4D04-992B-DF44FDDE97B9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UndressAddress", "UndressAddress\UndressAddress.csproj", "{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LucasPlayground2", "LucasPlayground2\LucasPlayground2.csproj", "{BCBF897A-3718-4C62-9015-4538CEC43B30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,22 +25,6 @@ Global
 		{28561ECC-5344-480E-BAF0-F9F99A51802D}.Release|Any CPU.Build.0 = Release|x64
 		{28561ECC-5344-480E-BAF0-F9F99A51802D}.Release|x64.ActiveCfg = Debug|x64
 		{28561ECC-5344-480E-BAF0-F9F99A51802D}.Release|x64.Build.0 = Debug|x64
-		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Debug|Any CPU.Build.0 = Debug|x64
-		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Debug|x64.ActiveCfg = Debug|x64
-		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Debug|x64.Build.0 = Debug|x64
-		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Release|Any CPU.ActiveCfg = Release|x64
-		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Release|Any CPU.Build.0 = Release|x64
-		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Release|x64.ActiveCfg = Debug|x64
-		{61508B0E-0A89-4C12-893E-A342A9FD1FE2}.Release|x64.Build.0 = Debug|x64
-		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Debug|x64.Build.0 = Debug|Any CPU
-		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Release|x64.ActiveCfg = Debug|Any CPU
-		{9D3C8FF2-97CC-4DFE-8F67-5F4379B59E72}.Release|x64.Build.0 = Debug|Any CPU
 		{544315A6-DC64-4D04-992B-DF44FDDE97B9}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{544315A6-DC64-4D04-992B-DF44FDDE97B9}.Debug|Any CPU.Build.0 = Debug|x64
 		{544315A6-DC64-4D04-992B-DF44FDDE97B9}.Debug|x64.ActiveCfg = Debug|x64
@@ -63,14 +41,6 @@ Global
 		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Release|Any CPU.Build.0 = Release|x64
 		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Release|x64.ActiveCfg = Debug|x64
 		{DFDFB11D-6B4F-4EEA-A4FC-0D50BD93F97C}.Release|x64.Build.0 = Debug|x64
-		{BCBF897A-3718-4C62-9015-4538CEC43B30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BCBF897A-3718-4C62-9015-4538CEC43B30}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BCBF897A-3718-4C62-9015-4538CEC43B30}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{BCBF897A-3718-4C62-9015-4538CEC43B30}.Debug|x64.Build.0 = Debug|Any CPU
-		{BCBF897A-3718-4C62-9015-4538CEC43B30}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BCBF897A-3718-4C62-9015-4538CEC43B30}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BCBF897A-3718-4C62-9015-4538CEC43B30}.Release|x64.ActiveCfg = Release|Any CPU
-		{BCBF897A-3718-4C62-9015-4538CEC43B30}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

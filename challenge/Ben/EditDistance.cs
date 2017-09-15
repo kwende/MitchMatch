@@ -6,13 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace challenge.Ben
+namespace challenge
 {
     public class EditDistance
     {
-        public static void WriteWorstToDisk<T>(List<IGrouping<T, row>> groups, row[] data, string outputFile, double threshold)
+        public static void WriteWorstToDisk<T>(List<IGrouping<T, Row>> groups, Row[] data, string outputFile, double threshold)
         {
-            List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<T>(groups);
+            List<Tuple<double, int, int>> tuples = ErrorScrubber.ReturnMaxErrorForMatchedGroups<T>(groups);
 
             using (StreamWriter sw = File.CreateText(outputFile))
             {
@@ -28,9 +28,9 @@ namespace challenge.Ben
             }
         }
 
-        public static void GenerateScatterPlot<T>(List<IGrouping<T, row>> groups, row[] data, string outputFile)
+        public static void GenerateScatterPlot<T>(List<IGrouping<T, Row>> groups, Row[] data, string outputFile)
         {
-            List<Tuple<double, int, int>> tuples = challenge.Ben.ErrorScrubber.ReturnMaxErrorForMatchedGroups<T>(groups);
+            List<Tuple<double, int, int>> tuples = ErrorScrubber.ReturnMaxErrorForMatchedGroups<T>(groups);
 
             using (StreamWriter sw = File.CreateText(outputFile))
             {
@@ -41,13 +41,13 @@ namespace challenge.Ben
             }
         }
 
-        public static double ComputeDistanceForRecordPair(row row1, row row2)
+        public static double ComputeDistanceForRecordPair(Row row1, Row row2)
         {
             double distance1 = ComputeNormalized(row1.LAST, row2.LAST);
             double distance2 = ComputeNormalized(row1.FIRST, row2.FIRST);
             double distance3 = ComputeNormalized(row1.SSN.ToString(), row2.SSN.ToString());
-            double distance4 = ComputeNormalized(row1.DOB.ToShortDateString(), row2.DOB.ToShortDateString()); 
-            return (distance1 + distance2 + distance3 + distance4) / 4.0; 
+            double distance4 = ComputeNormalized(row1.DOB.ToShortDateString(), row2.DOB.ToShortDateString());
+            return (distance1 + distance2 + distance3 + distance4) / 4.0;
         }
 
         public static double ComputeNormalized(string first, string second)
@@ -55,7 +55,7 @@ namespace challenge.Ben
             int editDistance = Compute(first, second);
             int maxLength = first.Length > second.Length ? first.Length : second.Length;
 
-            return editDistance / (maxLength * 1.0);  
+            return editDistance / (maxLength * 1.0);
         }
 
         public static int Compute(string first, string second)

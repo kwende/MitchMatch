@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LucasPlayground2
+namespace challenge
 {
     public class FileManager
     {
@@ -134,7 +134,7 @@ namespace LucasPlayground2
             {
                 var eidsAsStrings = line.Split(',');
                 List<int> eids = new List<int>();
-                for(int i = 0; i < eidsAsStrings.Length - 1; i++)
+                for (int i = 0; i < eidsAsStrings.Length - 1; i++)
                 {
                     int eid;
                     int.TryParse(eidsAsStrings[i], out eid);
@@ -144,6 +144,29 @@ namespace LucasPlayground2
             }
 
             return closedSets;
+        }
+
+        private static List<string> FinalSubmissionLines(List<int> set)
+        {
+            List<string> toReturn = new List<string>();
+            for (int i = 0; i < set.Count; i++)
+                for (int j = i + 1; j < set.Count; j++)
+                {
+                    string line = $"{set[i]},{set[j]},1";
+                    toReturn.Add(line);
+                }
+
+            return toReturn;
+        }
+
+        private static List<string> FinalSubmissionLines(List<List<int>> sets)
+        {
+            return sets.SelectMany(s => FinalSubmissionLines(s)).ToList();
+        }
+
+        public static void SaveFinalSubmission(List<List<int>> sets, string path)
+        {
+            System.IO.File.WriteAllLines(path, FinalSubmissionLines(sets));
         }
     }
 }

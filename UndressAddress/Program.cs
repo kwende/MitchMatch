@@ -27,19 +27,19 @@ namespace UndressAddress
                 {
                     string[] bits = line.Split(',').Select(n => n.Trim()).ToArray();
                     string streetName = bits[3];
-                    string originalStreetName = streetName; 
+                    string originalStreetName = streetName;
                     if (!streets.Contains(originalStreetName))
                     {
                         foreach (string abbreviation in abbreviations)
                         {
                             int removeAt = streetName.IndexOf(" " + abbreviation);
-                            if(removeAt != -1)
+                            if (removeAt != -1)
                             {
                                 streetName = streetName.Substring(0, removeAt);
                             }
                         }
                         streets.Add(originalStreetName);
-                        shortenedStreets.Add(streetName); 
+                        shortenedStreets.Add(streetName);
                     }
                 }
             }

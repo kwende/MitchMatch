@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LucasPlayground2
+namespace challenge
 {
     public class Row
     {
