@@ -364,7 +364,8 @@ namespace LucasPlayground
 
             TransitiveClosure tc = TransitiveClosure.Compute(matches, data);
 
-            SaveFinalSubmission(tc.ClosedRowSets, @"C:\Users\jbrownkramer\Desktop\submission.csv");
+            //SaveFinalSubmission(tc.ClosedRowSets, @"C:\Users\jbrownkramer\Desktop\submission.csv");
+            //SaveResults(matches, data);
 
             bool[] alreadyTakenCareOf = new bool[weakerMatchedIDs.Count];
             List<List<int>> possibleBadSets = new List<List<int>>();
@@ -437,8 +438,6 @@ namespace LucasPlayground
             //    }
             //}
 
-            //SaveResults(matches, data);
-
             Console.ReadLine();
         }
 
@@ -455,8 +454,8 @@ namespace LucasPlayground
         static List<string> FinalSubmissionLines(List<int> set)
         {
             List<string> toReturn = new List<string>();
-            for(int i = 0; i < set.Count; i++)
-                for(int j = i + 1; j < set.Count; j++)
+            for (int i = 0; i < set.Count; i++)
+                for (int j = i + 1; j < set.Count; j++)
                 {
                     string line = $"{set[i]},{set[j]},1";
                     toReturn.Add(line);
