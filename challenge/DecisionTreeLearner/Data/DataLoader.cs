@@ -13,12 +13,8 @@ namespace DecisionTreeLearner.Data
 {
     public static class DataLoader
     {
-        public static IEnumerable<RecordPair> LoadNegativesFromAnswerKey(List<RecordPair> positives, List<Record> finalDataSet)
+        public static IEnumerable<RecordPair> LoadNegativesFromAnswerKey(List<RecordPair> positives)
         {
-
-
-            // count(eids) choose 2 - # len(positives)
-
             for (int a = 0; a < positives.Count; a++)
             {
                 RecordPair matchPair1 = positives[a];
@@ -72,10 +68,9 @@ namespace DecisionTreeLearner.Data
             }
         }
 
-        public static List<RecordPair> LoadAllPositivesFromAnswerKey(string answerKeyPath, List<Record> finalDataSet)
+        public static List<RecordPair> LoadAllPositivesFromAnswerKey(string answerKeyPath, Dictionary<int, Record> finalDataSet)
         {
             List<RecordPair> ret = new List<RecordPair>();
-
 
             IEnumerable<string> lines = File.ReadLines(answerKeyPath);
             Parallel.ForEach(lines, line =>
@@ -83,7 +78,7 @@ namespace DecisionTreeLearner.Data
                 string[] bits = line.Split(',');
                 if (bits.Length == 3)
                 {
-                    Record[] records = bits.Take(2).Select(n => finalDataSet.Where(m => m.EnterpriseId == int.Parse(n)).First()).ToArray();
+                    Record[] records = bits.Take(2).Select(n => finalDataSet[int.Parse(n)]).ToArray();
                     RecordPair pair = new RecordPair
                     {
                         IsMatch = true,
@@ -130,9 +125,9 @@ namespace DecisionTreeLearner.Data
             return ret;
         }
 
-        public static List<Record> LoadFinalDataSet(string finalDataSetPath)
+        public static Dictionary<int, Record> LoadFinalDataSet(string finalDataSetPath)
         {
-            List<Record> ret = new List<Record>();
+            Dictionary<int, Record> ret = new Dictionary<int, Record>();
             IEnumerable<string> lines = File.ReadLines(finalDataSetPath);
             bool encounteredHeader = false;
             foreach (string line in lines)
@@ -146,7 +141,8 @@ namespace DecisionTreeLearner.Data
                     string[] bits = line.Split(',');
                     if (bits[0] != "" && int.Parse(bits[0]) >= 15374761)
                     {
-                        ret.Add(DataCleaner.CleanRecord(Record.FromFinalDatasetString(line)));
+                        Record cleanedRecord = DataCleaner.CleanRecord(Record.FromFinalDatasetString(line));
+                        ret.Add(cleanedRecord.EnterpriseId, cleanedRecord);
                     }
                 }
 
@@ -154,11 +150,11 @@ namespace DecisionTreeLearner.Data
             return ret;
         }
 
-        public static List<List<Record>> LoadClosedSets(string closedSetPath, string finalDataSetPath)
-        {
-            List<Record> finalDataSet = LoadFinalDataSet(finalDataSetPath);
-            return LoadClosedSets(closedSetPath, finalDataSet);
-        }
+        //public static List<List<Record>> LoadClosedSets(string closedSetPath, string finalDataSetPath)
+        //{
+        //    List<Record> finalDataSet = LoadFinalDataSet(finalDataSetPath);
+        //    return LoadClosedSets(closedSetPath, finalDataSet);
+        //}
 
         public static DecisionTree[] LoadForestFromDirectory(string forestDirectory)
         {
@@ -198,74 +194,80 @@ namespace DecisionTreeLearner.Data
             return ret;
         }
 
-        public static List<RecordPair> GetPairsFromMisfitsFile(string misfitsFilePath)
+        public static List<RecordPair> GetPairsFromMisfitsFile(string misfitsFilePath, Dictionary<int, Record> finalDataSet)
         {
             string[] lines = File.ReadAllLines(misfitsFilePath);
 
             List<RecordPair> ret = new List<RecordPair>();
 
-            for (int c = 0; c < lines.Length; c += 4)
+            //for (int c = 0; c < lines.Length; c++)
+            Parallel.For(0, lines.Length, c =>
             {
                 if (!string.IsNullOrEmpty(lines[c]))
                 {
+                    int[] enterpriseIds = lines[c].Split(',').Select(n => int.Parse(n)).ToArray();
+
                     RecordPair pair = new RecordPair();
-                    pair.IsMatch = bool.Parse(lines[c]);
-                    pair.Record1 = Record.FromString(lines[c + 1]);
-                    pair.Record2 = Record.FromString(lines[c + 2]);
+                    pair.IsMatch = false;
+                    pair.Record1 = finalDataSet[enterpriseIds[0]]; 
+                    pair.Record2 = finalDataSet[enterpriseIds[1]];
 
-                    ret.Add(pair);
-                }
-            }
-
-            int duplicates = 0;
-            List<RecordPair> cleaned = new List<RecordPair>();
-            //foreach (RecordPair pairA in ret)
-            int counter = 0;
-            //Parallel.ForEach(ret, pairA =>
-            Parallel.For(0, ret.Count, n =>
-            {
-                RecordPair pairA = ret[n];
-
-                Interlocked.Increment(ref counter);
-
-                if (counter % 1000 == 0)
-                {
-                    Console.WriteLine($"{counter.ToString("N0")}/{ret.Count.ToString("N0")}");
-                }
-
-                bool isDuplicate = false;
-                // foreach (RecordPair pairB in ret)
-                for (int c = n + 1; c < ret.Count; c++)
-                {
-                    RecordPair pairB = ret[c];
-
-                    if (pairA != pairB && pairA.Equals(pairB))
+                    lock(ret)
                     {
-                        duplicates++;
-                        isDuplicate = true;
-                        break;
-                    }
-                }
-
-                if (!isDuplicate)
-                {
-                    lock (cleaned)
-                    {
-                        cleaned.Add(pairA);
+                        ret.Add(pair);
                     }
                 }
             });
 
-            using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/cleaned.csv"))
-            {
-                foreach (RecordPair pair in cleaned)
-                {
-                    sw.WriteLine($"{pair.Record1.EnterpriseId},{pair.Record2.EnterpriseId}");
-                }
-            }
+            //int duplicates = 0;
+            //List<RecordPair> cleaned = new List<RecordPair>();
+            ////foreach (RecordPair pairA in ret)
+            //int counter = 0;
+            ////Parallel.ForEach(ret, pairA =>
+            //Parallel.For(0, ret.Count, n =>
+            //{
+            //    RecordPair pairA = ret[n];
 
-            Console.WriteLine($"There are {ret} entries. After cleaning there are {cleaned.Count}");
-            Console.ReadLine();
+            //    Interlocked.Increment(ref counter);
+
+            //    if (counter % 1000 == 0)
+            //    {
+            //        Console.WriteLine($"{counter.ToString("N0")}/{ret.Count.ToString("N0")}");
+            //    }
+
+            //    bool isDuplicate = false;
+            //    // foreach (RecordPair pairB in ret)
+            //    for (int c = n + 1; c < ret.Count; c++)
+            //    {
+            //        RecordPair pairB = ret[c];
+
+            //        if (pairA != pairB && pairA.Equals(pairB))
+            //        {
+            //            duplicates++;
+            //            isDuplicate = true;
+            //            break;
+            //        }
+            //    }
+
+            //    if (!isDuplicate)
+            //    {
+            //        lock (cleaned)
+            //        {
+            //            cleaned.Add(pairA);
+            //        }
+            //    }
+            //});
+
+            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/cleaned.csv"))
+            //{
+            //    foreach (RecordPair pair in cleaned)
+            //    {
+            //        sw.WriteLine($"{pair.Record1.EnterpriseId},{pair.Record2.EnterpriseId}");
+            //    }
+            //}
+
+            //Console.WriteLine($"There are {ret} entries. After cleaning there are {cleaned.Count}");
+            //Console.ReadLine();
 
             return ret;
         }

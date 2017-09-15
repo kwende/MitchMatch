@@ -21,23 +21,18 @@ namespace DecisionTreeLearner.Testers
                 File.Create(misfitsFilePath).Close();
             }
 
-            List<RecordPair> trainingData = new List<RecordPair>();
-            Console.Write("Loading training data for this iteration...");
-            //trainingData.AddRange(DataLoader.LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSet));
-            trainingData.AddRange(DataLoader.GetPairsFromMisfitsFile(misfitsFilePath));
-            Console.WriteLine("...done");
-
-            return; 
-
-
             Console.Write("Loading final data set...");
-            List<Record> finalDataSet = DataLoader.LoadFinalDataSet(finalDataSetPath);
+            Dictionary<int,Record> finalDataSet = DataLoader.LoadFinalDataSet(finalDataSetPath);
             Console.WriteLine("...done");
 
-            Console.Write("Load all positives from answer key...");
+            List<RecordPair> trainingData = new List<RecordPair>();
+            Console.Write("Getting positive training data...");
             List<RecordPair> allPositives = DataLoader.LoadAllPositivesFromAnswerKey(answerKeyPath, finalDataSet);
+            trainingData.AddRange(allPositives);
             Console.WriteLine("...done");
-
+            Console.Write("Getting negative training data (misfits)...");
+            trainingData.AddRange(DataLoader.GetPairsFromMisfitsFile(misfitsFilePath, finalDataSet));
+            Console.WriteLine("...done");
 
 
             Console.Write("Generating splitting questions for this iteration...");
@@ -51,6 +46,9 @@ namespace DecisionTreeLearner.Testers
                 DecisionTreeBuilder builder = new DecisionTreeBuilder();
 
                 Console.Write("Training...");
+                int positiveCount = trainingData.Count(n => n.IsMatch);
+                int negativeCount = trainingData.Count(n => !n.IsMatch);
+                Console.WriteLine($"\tThere are {positiveCount} positive instances and {negativeCount} negative instances in the data...");
                 DecisionTree trainedTree = builder.Train(trainingData, splittingQuestions, 1, 0, null);
                 Console.WriteLine("...done.");
 
@@ -69,7 +67,7 @@ namespace DecisionTreeLearner.Testers
                 int left = Console.CursorLeft;
                 int top = Console.CursorTop;
 
-                Parallel.ForEach(DataLoader.LoadNegativesFromAnswerKey(allPositives, finalDataSet), (pair, state) =>
+                Parallel.ForEach(DataLoader.LoadNegativesFromAnswerKey(allPositives), (pair, state) =>
                 {
                     Interlocked.Increment(ref runCounter);
 
@@ -78,7 +76,7 @@ namespace DecisionTreeLearner.Testers
                         lock (misfits)
                         {
                             Console.SetCursorPosition(left, top);
-                            Console.WriteLine($"\tExamined {runCounter} entries thus far. {misfits.Count} misfits found.");
+                            Console.WriteLine($"\tExamined {runCounter.ToString("N0")} entries thus far. {misfits.Count.ToString("N0")} misfits found.");
                         }
                     }
 
@@ -107,13 +105,20 @@ namespace DecisionTreeLearner.Testers
                 else
                 {
                     Console.Write("Writing misfits to disk...");
-                    using (StreamWriter sw = File.AppendText(misfitsFilePath))
+                    //using (StreamWriter outputForThisRound = File.AppendText($"c:/users/brush/desktop/misfits/{DateTime.Now.ToString()}.txt"))
                     {
-                        foreach (RecordPair misfit in misfits)
+                        using (StreamWriter sw = File.AppendText(misfitsFilePath))
                         {
-                            sw.WriteLine(misfit);
+                            foreach (RecordPair misfit in misfits)
+                            {
+                                string toWrite = $"{misfit.Record1.EnterpriseId},{misfit.Record2.EnterpriseId}";
+
+                                sw.WriteLine(toWrite);
+                                //outputForThisRound.WriteLine(toWrite);
+                            }
                         }
                     }
+
                     Console.WriteLine("...done");
 
                     Console.Write("Adding misfits to training data...");
