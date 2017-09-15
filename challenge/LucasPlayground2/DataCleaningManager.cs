@@ -11,6 +11,7 @@ namespace LucasPlayground2
     {
         private static int[] BadSSNs =
         {
+            -1,
             000000000,
             999999999,
             123456789,
@@ -44,6 +45,7 @@ namespace LucasPlayground2
 
         private static long[] BadPhones =
         {
+            -1,
             0000000000,
             1111111111,
             2222222222,
@@ -63,14 +65,33 @@ namespace LucasPlayground2
             return str.Replace(" ", String.Empty);
         }
 
+        private static string StripStNdRdTh(string str)
+        {
+            return Regex.Replace(str, @"( |[a-zA-Z])(\d+)(ST|ND|RD|TH)( |[a-zA-Z])", "$1$2$4", RegexOptions.None);
+        }
+
         private static string AddSpacesBetweenNumbersAndLetters(string str)
         {
-            return str;
+            string numberSpaceLetter =  Regex.Replace(str, @"(\d)([a-zA-Z])", "$1 $2", RegexOptions.None);
+            string letterSpaceNumber =  Regex.Replace(numberSpaceLetter, @"([a-zA-Z])(\d)", "$1 $2", RegexOptions.None);
+            return letterSpaceNumber;
         }
 
         private static string TakeCareOfHomelessAddresses(string str)
         {
-            if (str.StartsWith("UNKNO") || str.StartsWith("HOM") || str.StartsWith("UND") || str == "H O M E L E S S" || str == "SHELTER")
+            if (str.StartsWith("UNKNO") || 
+                str.StartsWith("HOM") ||
+                str.StartsWith("UND") ||
+                str.StartsWith("INDOM") ||
+                str.StartsWith("NONDOM") ||
+                str.StartsWith("H O M") || 
+                str.StartsWith("H-O-M") || 
+                str.StartsWith("H.O.M") || 
+                str == "UDOMICILED" || 
+                str == "UNSOMICILED" ||
+                str == "SHELTER" ||
+                str == "NONE" ||
+                str == "NON")
             {
                 return "HOMELESS";
             }
@@ -79,7 +100,11 @@ namespace LucasPlayground2
 
         private static string TakeCareOfUnknownAddresses(string str)
         {
-            if (str.StartsWith("UNK") || str.StartsWith("UKN") || str == "UNABLE TO OBTAIN")
+            if (str == "UNKN3146 86TH STREE")
+            {
+                str = "3146 86 ST";
+            }
+            else if (str.StartsWith("UNK") || str.StartsWith("UKN") || str == "UNABLE TO OBTAIN")
             {
                 return "";
             }
@@ -91,7 +116,6 @@ namespace LucasPlayground2
 
             //////////////// SSNs ///////////////
             //var badSSNs = realData.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
-            //var badSSNs2 = data.GroupBy(r => r.SSN).Where(g => g.Count() >= 4).Select(g => g.Key).ToArray();
             foreach (Row row in data)
             {
                 if (BadSSNs.Contains(row.SSN))
@@ -156,7 +180,6 @@ namespace LucasPlayground2
 
             ///////////////// PHONE1 ////////////////////
             //var badPhones = realData.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
-            //var badPhones2 = data.GroupBy(r => r.PHONE).Where(g => g.Count() >= 5).Select(g => g.Key).ToArray();
             foreach (Row row in data)
             {
                 if (BadPhones.Contains(row.PHONE))
@@ -176,16 +199,41 @@ namespace LucasPlayground2
 
 
             ////////////// ADDRESS /////////////////////
-            //var badAddresses = realData.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ') && g.Count() > 2).Select(g => g.Key).ToArray();
+            var groups = data.GroupBy(r => r.ADDRESS1);
+            var bad1 = groups.Where(g => g.Key.StartsWith("UNKNO") || g.Key.StartsWith("HOM") || g.Key.StartsWith("UND") || g.Key == "H O M E L E S S" || g.Key == "SHELTER").Select(g => g.Key).ToArray();
+            var bad2 = groups.Where(g => g.Key.StartsWith("UNK") || g.Key.StartsWith("UKN") || g.Key == "UNABLE TO OBTAIN").Select(g => g.Key).ToArray();
             foreach (Row row in data)
             {
+                row.ADDRESS1 = StripStNdRdTh(row.ADDRESS1);
                 row.ADDRESS1 = AddSpacesBetweenNumbersAndLetters(row.ADDRESS1);
 
                 row.ADDRESS1 = TakeCareOfHomelessAddresses(row.ADDRESS1);
 
                 row.ADDRESS1 = TakeCareOfUnknownAddresses(row.ADDRESS1);
                 row.ADDRESS2 = TakeCareOfUnknownAddresses(row.ADDRESS2);
+                
+                if(row.ADDRESS1 != "HOMELESS" && row.ADDRESS1 != "" && !row.ADDRESS1.Contains(' '))
+                {
+                    if(Regex.Matches(row.ADDRESS2,@"\d [a-zA-Z]").Count > 0 && Regex.Matches(row.ADDRESS1, @"\d\d\d-\d\d-\d\d\d\d").Count > 0)
+                    {
+                        //Console.WriteLine($"{row.SSN} {row.ADDRESS1} {row.ADDRESS2}");
+                        int output;
+                        int.TryParse(Regex.Replace(row.ADDRESS1, "-", "", RegexOptions.None), out output);
+                        row.SSN = output;
+                        row.ADDRESS1 = row.ADDRESS2;
+                        row.ADDRESS2 = "";
+                    }
+                    else
+                    {
+                        //Console.WriteLine($"{row.ADDRESS1} {row.ADDRESS2}");
+                        row.ADDRESS1 = "";
+                        row.ADDRESS2 = "";
+
+                    }
+                }
             }
+            var badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ')).Select(g => g.Key).ToArray();
+            Console.WriteLine(badAddresses.Count() + bad1.Count() + bad2.Count());
 
             ///////////////////////////////////////////////
 
