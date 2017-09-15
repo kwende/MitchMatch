@@ -262,7 +262,7 @@ namespace DecisionTreeLearner.Tree
                 double highestGain = 0.0;
                 double currentEntropy = ComputeShannonEntropy(allPairs);
 
-                //Console.WriteLine("Parallel mode...."); 
+                //Console.WriteLine("F mode...."); 
                 //foreach (SplittingQuestion splittingQuestion in splittingQuestions)
                 Parallel.ForEach(splittingQuestions, splittingQuestion =>
                 {
