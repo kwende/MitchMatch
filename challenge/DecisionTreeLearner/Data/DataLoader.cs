@@ -122,7 +122,7 @@ namespace DecisionTreeLearner.Data
             }
             ret[ret.Length - 1] = csvLine.Substring(startIndex);
 
-            return ret;
+            return ret.Select(n=>n.Trim()).ToArray();
         }
 
         public static Dictionary<int, Record> LoadFinalDataSet(string finalDataSetPath)

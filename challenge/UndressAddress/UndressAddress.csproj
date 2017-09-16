@@ -71,5 +71,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DecisionTreeLearner\DecisionTreeLearner.csproj">
+      <Project>{544315a6-dc64-4d04-992b-df44fdde97b9}</Project>
+      <Name>DecisionTreeLearner</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
