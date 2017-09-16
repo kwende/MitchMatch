@@ -165,6 +165,16 @@ namespace UndressAddress
             {
                 matchesAddressFormat = true;
             }
+            else if(addressBits.Length == 2 && addressBits[1] == "POB" 
+                && IsNumber(addressBits[1]))
+            {
+                matchesAddressFormat = true; 
+            }
+            else if(line.Contains(" W ") || line.Contains(" E ") ||
+                line.Contains(" N ") || line.Contains(" S "))
+            {
+                matchesAddressFormat = true; 
+            }
             else
             {
                 foreach (string suffix in streetSuffixes)
