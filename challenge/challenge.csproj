@@ -83,5 +83,8 @@
     <Folder Include="Josh\" />
     <Folder Include="Lucas\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Address12Replace.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

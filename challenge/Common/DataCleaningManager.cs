@@ -199,6 +199,10 @@ namespace challenge
 
 
             ////////////// ADDRESS /////////////////////
+
+
+
+
             var groups = data.GroupBy(r => r.ADDRESS1);
             var bad1 = groups.Where(g => g.Key.StartsWith("UNKNO") || g.Key.StartsWith("HOM") || g.Key.StartsWith("UND") || g.Key == "H O M E L E S S" || g.Key == "SHELTER").Select(g => g.Key).ToArray();
             var bad2 = groups.Where(g => g.Key.StartsWith("UNK") || g.Key.StartsWith("UKN") || g.Key == "UNABLE TO OBTAIN").Select(g => g.Key).ToArray();
