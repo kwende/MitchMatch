@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -96,6 +97,44 @@ namespace challenge
                 return "HOMELESS";
             }
             return str;
+        }
+
+        private static object _lockObject = new object();
+        private static Dictionary<string, string> _suffixReplacementKey = null;
+        public static string TakeCareOfAddress1Suffix(string address1Line)
+        {
+            throw new Exception("DONT USE YET."); 
+
+            lock (_lockObject)
+            {
+                if (_suffixReplacementKey == null)
+                {
+                    _suffixReplacementKey = new Dictionary<string, string>();
+                    string[] allLines = File.ReadAllLines("SuffixReplacementKey.txt");
+
+                    foreach (string line in allLines)
+                    {
+                        string[] parts = line.Split(',');
+                        if (parts.Length == 2 && !_suffixReplacementKey.ContainsKey(parts[0]))
+                        {
+                            _suffixReplacementKey.Add(parts[0], parts[1]);
+                        }
+                    }
+                }
+            }
+            string[] address1Bits = address1Line.Split(' ');
+
+            for (int c = address1Bits.Length - 1; c >= 0; c--)
+            {
+                string address1Bit = address1Bits[c];
+                if (_suffixReplacementKey.ContainsKey(address1Bit))
+                {
+                    address1Bits[c] = _suffixReplacementKey[address1Bit];
+                    break;
+                }
+            }
+
+            return string.Join(" ", address1Bits);
         }
 
         private static string TakeCareOfUnknownAddresses(string str)

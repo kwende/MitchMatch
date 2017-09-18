@@ -84,7 +84,7 @@
     <Folder Include="Lucas\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Address12Replace.txt" />
+    <Content Include="SuffixReplacementKey.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

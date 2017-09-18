@@ -72,10 +72,19 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\challenge\challenge.csproj">
+      <Project>{28561ecc-5344-480e-baf0-f9f99a51802d}</Project>
+      <Name>challenge</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DecisionTreeLearner\DecisionTreeLearner.csproj">
       <Project>{544315a6-dc64-4d04-992b-df44fdde97b9}</Project>
       <Name>DecisionTreeLearner</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SuffixReplacementKey.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

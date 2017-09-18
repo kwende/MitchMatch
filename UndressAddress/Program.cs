@@ -103,8 +103,137 @@ namespace UndressAddress
             return allSuffixes;
         }
 
-        static List<string> GetCleanedNYStreetList(List<string> validSuffixes)
+        static List<string> GetCleanedNYStreetList2()
         {
+            string[] lines = File.ReadAllLines(@"C:\Users\ben\Desktop\city_of_new_york.csv");
+            string[] allSuffixes = File.ReadAllLines("StreetSuffixes.csv").SelectMany(n => n.Split(',')).ToArray();
+
+            List<string> uniques = new List<string>();
+            for (int c = 1; c < lines.Length; c++)
+            {
+                if (c % 1000 == 0)
+                {
+                    Console.WriteLine($"{c}:{uniques.Count}");
+                }
+
+                // get the street name portion. 
+                string streetName = DataLoader.SmartSplit(lines[c])[3];
+
+                // does it end with a suffix? if so, remove it. 
+                for (int s = 0; s < allSuffixes.Length; s++)
+                {
+                    if (streetName.EndsWith(" " + allSuffixes[s]))
+                    {
+                        int suffixIndex = streetName.LastIndexOf(allSuffixes[s]);
+                        streetName = streetName.Substring(0, suffixIndex).Trim(); 
+                        // don't break early,continue trimming if you can. 
+                    }
+                }
+
+                // trim what's left.  
+                streetName = streetName.Trim();
+
+                if(streetName == "12 ST")
+                {
+                    return null; 
+                }
+
+                // is it a number and do we have it already? 
+                if (!uniques.Contains(streetName) 
+                    && !IsNumber(streetName) 
+                    && streetName.Length > 3 
+                    && streetName != ""
+                    && streetName != "WEST"
+                    && streetName != "EAST"
+                    && streetName != "NORTH"
+                    && streetName != "SOUTH")
+                {
+                    // no? add it
+                    uniques.Add(streetName);
+                }
+            }
+
+            string[] allLines = File.ReadAllLines("c:/users/ben/desktop/finaldataset.csv");
+
+            int exactMatches = 0;
+            int editDistanceMatches = 0;
+            //for (int c = 1; c < allLines.Length; c++)
+            int iterations = 0;
+            Parallel.For(1, allLines.Length, c =>
+            {
+                Interlocked.Increment(ref iterations);
+                if (iterations % 1000 == 0)
+                {
+                    Console.WriteLine($"{iterations}/{allLines.Length}:{exactMatches}:{editDistanceMatches}");
+                }
+
+                string[] parts = DataLoader.SmartSplit(allLines[c]);
+                string address1 = parts[8];
+                if (address1.Length != 0)
+                {
+                    bool exactMatchFound = false, partialMatchFound = false;
+                    string matched = null;
+
+                    foreach (string unique in uniques)
+                    {
+                        if (address1 == unique ||
+                            address1.Contains(" " + unique + " ") ||
+                            address1.EndsWith(" " + unique) ||
+                            address1.StartsWith(unique + " "))
+                        {
+                            exactMatchFound = true;
+                            matched = unique;
+                            break;
+                        }
+                    }
+
+                    //if (!exactMatchFound)
+                    //{
+                    //    string[] partsOfAddress1 = address1.Split(' ');
+                    //    int bestEditDistance = int.MaxValue;
+
+                    //    for (int d = 0; d < partsOfAddress1.Length && !exactMatchFound; d++)
+                    //    {
+                    //        string partOfAddress = partsOfAddress1[d];
+                    //        if (partOfAddress.Length >= 3 && !IsNumber(partOfAddress) && !allSuffixes.Contains(partOfAddress))
+                    //        {
+                    //            for (int e = 0; e < uniques.Count; e++)
+                    //            {
+                    //                string unique = uniques[e];
+
+                    //                int editDistance = EditDistance.Compute(partOfAddress, unique);
+                    //                if (((partOfAddress.Length <= 5 && editDistance == 1) ||
+                    //                    (partsOfAddress1.Length > 5 && editDistance <= 2)) && editDistance < bestEditDistance)
+                    //                {
+                    //                    partialMatchFound = true;
+                    //                    matched = unique;
+                    //                    bestEditDistance = editDistance;
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+                    //}
+
+
+                    if (exactMatchFound)
+                    {
+                        exactMatches++;
+                    }
+                    else if (partialMatchFound)
+                    {
+                        editDistanceMatches++;
+                    }
+                }
+            });
+
+            Console.WriteLine($"Exact matches: {exactMatches}, edit distance matches: {editDistanceMatches}");
+
+            return null;
+        }
+
+        static List<string> GetCleanedNYStreetList()
+        {
+            List<string> validSuffixes = GetValidStreetSuffixes();
             IEnumerable<string> lines = File.ReadLines(@"C:\Users\ben\Desktop\city_of_new_york.csv");
 
             List<string> streets = new List<string>(), shortenedStreets = new List<string>();
@@ -121,7 +250,12 @@ namespace UndressAddress
                     string[] bits = line.Split(',').Select(n => n.Trim()).ToArray();
                     string streetName = bits[3];
                     string originalStreetName = streetName;
-                    if (!streets.Contains(originalStreetName))
+                    bool hasStreet = false;
+                    lock (streets)
+                    {
+                        hasStreet = streets.Contains(originalStreetName);
+                    }
+                    if (!hasStreet)
                     {
                         foreach (string suffix in validSuffixes)
                         {
@@ -210,7 +344,7 @@ namespace UndressAddress
         static void BadAddressFinder()
         {
             List<string> allSuffixes = GetValidStreetSuffixes();
-            List<string> shortenedStreets = GetCleanedNYStreetList(allSuffixes);
+            List<string> shortenedStreets = GetCleanedNYStreetList();
 
             IEnumerable<string> allLines = File.ReadLines("c:/users/ben/desktop/finaldataset.csv");
 
@@ -474,23 +608,23 @@ namespace UndressAddress
 
             foreach (string file in Directory.GetFiles(@"C:\Users\Ben\Desktop\files"))
             {
-                string fileName = Path.GetFileNameWithoutExtension(file); 
+                string fileName = Path.GetFileNameWithoutExtension(file);
                 string[] all = File.ReadAllLines(file);
 
                 List<string> unique = new List<string>();
                 foreach (string a in all)
                 {
                     string secondPart = a.Split(',')[1];
-                    if(!unique.Contains(secondPart))
+                    if (!unique.Contains(secondPart))
                     {
-                        unique.Add(secondPart); 
+                        unique.Add(secondPart);
                     }
                 }
                 using (StreamWriter sw2 = File.CreateText($"C:/users/ben/desktop/processed/{fileName}.txt"))
                 {
-                    foreach(string u in unique)
+                    foreach (string u in unique)
                     {
-                        sw2.WriteLine(u +"," + fileName); 
+                        sw2.WriteLine(u + "," + fileName);
                     }
                 }
             }
@@ -498,10 +632,82 @@ namespace UndressAddress
             return ret.ToArray();
         }
 
+        static void ReplacementCount()
+        {
+            int counts = 0;
+            IEnumerable<string> allLines = File.ReadLines("c:/users/ben/desktop/finaldataset.csv");
+            List<string> replaced = new List<string>();
+            //foreach (string line in allLines)
+
+            using (StreamWriter fout = File.CreateText("c:/users/ben/desktop/replaced.txt"))
+            {
+                Parallel.ForEach(allLines, line =>
+                {
+                    string[] bits = DataLoader.SmartSplit(line);
+                    string address1 = bits[8];
+
+                    string newAddress1Line = challenge.DataCleaningManager.TakeCareOfAddress1Suffix(address1);
+
+                    if (newAddress1Line != address1)
+                    {
+                        Interlocked.Increment(ref counts);
+                        lock (replaced)
+                        {
+                            replaced.Add(address1);
+                            fout.WriteLine($"{address1}=>{newAddress1Line}");
+                        }
+                    }
+                });
+            }
+        }
+
+        static void HowManyMatchNewYorkDatabase()
+        {
+            List<string> streets = GetCleanedNYStreetList().Where(n => !IsNumber(n)).ToList();
+            IEnumerable<string> allLines = File.ReadLines("c:/users/ben/desktop/finaldataset.csv");
+
+            int matches = 0, noMatches = 0, count = 0;
+            Parallel.ForEach(allLines, line =>
+            {
+                Interlocked.Increment(ref count);
+
+                if (count % 10000 == 0)
+                {
+                    Console.WriteLine(count);
+                }
+                string address1 = DataLoader.SmartSplit(line)[8];
+                bool matched = false;
+                string matchedStreetName = null;
+                foreach (string street in streets)
+                {
+                    if (address1.EndsWith(" " + street) || address1.Contains(" " + street + " "))
+                    {
+                        matched = true;
+                        matchedStreetName = street;
+                        break;
+                    }
+                }
+
+                if (matched)
+                {
+                    Interlocked.Increment(ref matches);
+                }
+                else
+                {
+                    Interlocked.Increment(ref noMatches);
+                }
+            });
+
+            Console.WriteLine($"Matched {(matches / (noMatches + matches * 1.0f)) * 100}%");
+        }
+
         static void Main(string[] args)
         {
             //StreetSuffixVariationFinder();
-            Summarize();
+            //Summarize();
+            //ReplacementCount();
+            //HowManyMatchNewYorkDatabase();
+            GetCleanedNYStreetList2();
         }
     }
 }
