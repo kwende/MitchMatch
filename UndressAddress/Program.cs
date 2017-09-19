@@ -103,62 +103,388 @@ namespace UndressAddress
             return allSuffixes;
         }
 
-        static List<string> GetCleanedNYStreetList2()
+        static List<string> GetCleanedCities()
         {
-            string[] lines = File.ReadAllLines(@"C:\Users\ben\Desktop\city_of_new_york.csv");
-            string[] allSuffixes = File.ReadAllLines("StreetSuffixes.csv").SelectMany(n => n.Split(',')).ToArray();
+            IEnumerable<string> nyStateAddresses = File.ReadLines("C:/users/brush/desktop/NYState.csv");
 
-            List<string> uniques = new List<string>();
-            for (int c = 1; c < lines.Length; c++)
+            List<string> allNewYorkStateCities = new List<string>();
+            bool header = false;
+            Console.Write("Loading cities...");
+            foreach (string address in nyStateAddresses)
             {
-                if (c % 1000 == 0)
+                if (!header)
                 {
-                    Console.WriteLine($"{c}:{uniques.Count}");
+                    header = true;
                 }
-
-                // get the street name portion. 
-                string streetName = DataLoader.SmartSplit(lines[c])[3];
-
-                // does it end with a suffix? if so, remove it. 
-                for (int s = 0; s < allSuffixes.Length; s++)
+                else
                 {
-                    if (streetName.EndsWith(" " + allSuffixes[s]))
+                    try
                     {
-                        int suffixIndex = streetName.LastIndexOf(allSuffixes[s]);
-                        streetName = streetName.Substring(0, suffixIndex).Trim(); 
-                        // don't break early,continue trimming if you can. 
+                        string city = DataLoader.SmartSplit(address)[5].ToUpper();
+                        if (!allNewYorkStateCities.Contains(city))
+                        {
+                            allNewYorkStateCities.Add(city);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        Console.Write("!");
                     }
                 }
+            }
+            Console.WriteLine("..done");
 
-                // trim what's left.  
-                streetName = streetName.Trim();
+            Console.WriteLine($"There are {allNewYorkStateCities.Count} known cities. ");
 
-                if(streetName == "12 ST")
+            Console.Write("Finding how many match...");
+            IEnumerable<string> allRecords = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv").Skip(1);
+            int matches = 0, total = 0;
+            //foreach (string record in allRecords)
+            List<string> dontMatch = new List<string>();
+            Parallel.ForEach(allRecords, record =>
+            {
+                string[] parts = DataLoader.SmartSplit(record);
+                string city = parts[13];
+
+                if (city != "")
                 {
-                    return null; 
+                    if (allNewYorkStateCities.Contains(city))
+                    {
+                        Interlocked.Increment(ref matches);
+                    }
+                    else
+                    {
+                        lock (dontMatch)
+                        {
+                            if (!dontMatch.Contains(city))
+                            {
+                                dontMatch.Add(city);
+                            }
+                        }
+                    }
+                    Interlocked.Increment(ref total);
                 }
 
-                // is it a number and do we have it already? 
-                if (!uniques.Contains(streetName) 
-                    && !IsNumber(streetName) 
-                    && streetName.Length > 3 
-                    && streetName != ""
-                    && streetName != "WEST"
-                    && streetName != "EAST"
-                    && streetName != "NORTH"
-                    && streetName != "SOUTH")
+            });
+            Console.WriteLine($"...{matches}/{total}");
+
+            using (StreamWriter sw = File.CreateText("C:/Users/brush/desktop/citiesThatDontMatch.csv"))
+            {
+                foreach (string city in dontMatch)
                 {
-                    // no? add it
-                    uniques.Add(streetName);
+                    sw.WriteLine(city);
                 }
             }
 
-            string[] allLines = File.ReadAllLines("c:/users/ben/desktop/finaldataset.csv");
+            return null;
+        }
 
+        static void GenerateSummaryFile(string sourceAddressFile, string outputFile)
+        {
+            List<string> beforeChangedAddress = new List<string>();
+            Parallel.ForEach(lines, line =>
+            {
+                counter++;
+                if (counter % 10000 == 0)
+                {
+                    Console.WriteLine($"{counter.ToString("N0")}:{uniques.Count.ToString("N0")}");
+                }
+
+                // get the street name portion. 
+                string[] bits = DataLoader.SmartSplit(line);
+                if (bits.Length == 11)
+                {
+                    string streetName = bits[3].ToUpper();
+
+                    // trim what's left.  
+                    streetName = streetName.Trim();
+
+                    lock (uniques)
+                    {
+                        // is it a number and do we have it already? 
+                        string beforeChangeStreetName = streetName;
+                        if (!beforeChangedAddress.Contains(beforeChangeStreetName))
+                        {
+                            // no? add it
+
+                            // normalize the suffix. 
+                            for (int d = 0; d < longSuffixes.Length; d++)
+                            {
+                                if (streetName.EndsWith(" " + shortSuffixes[d]))
+                                {
+                                    streetName = streetName.Replace(" " + shortSuffixes[d], " " + longSuffixes[d]);
+                                }
+                            }
+
+                            //if (streetName)
+
+                            uniques.Add(streetName);
+                            beforeChangedAddress.Add(beforeChangeStreetName);
+
+                            //// insert both the short and long versions of the suffix. 
+                            for (int d = 0; d < longSuffixes.Length; d++)
+                            {
+                                if (streetName.EndsWith(" " + longSuffixes[d]))
+                                {
+                                    uniques.Add(streetName.Replace(" " + longSuffixes[d], " " + shortSuffixes[d]));
+                                }
+                                else if (streetName.EndsWith(" " + shortSuffixes[d]))
+                                {
+                                    uniques.Add(streetName.Replace(" " + shortSuffixes[d], " " + longSuffixes[d]));
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/uniques.csv"))
+            {
+                foreach (string unique in uniques)
+                {
+                    fout.WriteLine(unique);
+                }
+            }
+        }
+
+        static List<string> GetCleanedNYStreetList2()
+        {
+            string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
+
+            string[] shortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
+            string[] longSuffixes = streetSuffixLines.Select(n => n.Split(',')[0]).ToArray();
+
+            string[] allLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
+
+            //string[] lines = File.ReadAllLines(@"C:\Users\brush\Desktop\city_of_new_york.csv").Skip(1).ToArray();
+            //IEnumerable<string> newYorkStateStreets = File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv").Skip(1);
+            //IEnumerable<string> newYorkCityStreets = File.ReadAllLines("C:/users/brush/desktop/NewYorkCityStreets.csv").Skip(1);
+
+            List<string> uniques = new List<string>();
+
+            string[] streetNames = File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv").Skip(1).ToArray();
+            uniques.AddRange(File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv").Skip(1));
+
+            //string[] newYorkCityStreetLines = File.ReadAllLines("C:/users/brush/desktop/NewYorkCityStreets.csv").Skip(1).ToArray();
+            //uniques.AddRange(newYorkCityStreetLines);
+
+            //foreach (string newYorkCityStreetLine in newYorkCityStreetLines)
+            Parallel.ForEach(streetNames, newYorkCityStreetLine =>
+            {
+                for (int c = 0; c < longSuffixes.Length; c++)
+                {
+                    string longSuffix = longSuffixes[c];
+                    if (newYorkCityStreetLine.EndsWith(" " + longSuffix))
+                    {
+                        int index = newYorkCityStreetLine.LastIndexOf(" " + longSuffix);
+                        string shortened = newYorkCityStreetLine.Substring(0, index) + " " + shortSuffixes[c];
+
+                        if(shortened != newYorkCityStreetLine)
+                        {
+                            lock (uniques)
+                            {
+                                uniques.Add(shortened);
+                            }
+                        }
+                    }
+                }
+            }); 
+
+            #region HackCode
+            //List<string> missingStreets = new List<string>();
+            ////foreach (string newYorkCityStreet in newYorkStateStreets)
+            //Parallel.ForEach(newYorkStateStreets, newYorkCityStreet =>
+            //{
+            //    bool found = false;
+            //    foreach (string newYorkStateStreet in newYorkStateStreets)
+            //    {
+            //        if (newYorkStateStreet == newYorkCityStreet)
+            //        {
+            //            found = true;
+            //            break; 
+            //        }
+            //    }
+            //    if (!found)
+            //    {
+            //        Console.Write("."); 
+            //        lock(missingStreets)
+            //        {
+            //            missingStreets.Add(newYorkCityStreet);
+            //        }
+            //    }
+            //}); 
+
+            //using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/missing.csv"))
+            //{
+            //    foreach (string missing in missingStreets)
+            //    {
+            //        fout.WriteLine(missing); 
+            //    }
+            //}
+
+            //return null; 
+
+            //int numMatches = 0;
+            ////foreach (string stateLine in nyStateLines)
+            //int count = 0; 
+            //Parallel.ForEach(nyStateLines, stateLine =>
+            //{
+            //    Interlocked.Increment(ref count); 
+
+            //    //if(count %1000 == 0)
+            //    {
+            //        Console.WriteLine($"{count}"); 
+            //    }
+
+            //    string stateLineUpperStreet = stateLine.ToUpper();
+
+            //    for (int c = 0; c < longSuffixes.Length; c++)
+            //    {
+            //        if (stateLineUpperStreet.EndsWith(" " + longSuffixes[c]))
+            //        {
+            //            int index = stateLineUpperStreet.IndexOf(" " + longSuffixes[c]);
+            //            stateLineUpperStreet = stateLineUpperStreet.Substring(0, index) + " " + shortSuffixes[c];
+            //        }
+            //    }
+
+            //    bool exists = false;
+            //    foreach (string nyCityLine in nyCityLines)
+            //    {
+            //        string nyCityStreet = DataLoader.SmartSplit(nyCityLine)[3];
+
+            //        if (nyCityStreet == stateLineUpperStreet)
+            //        {
+            //            exists = true;
+            //            break;
+            //        }
+            //    }
+
+            //    if (exists)
+            //    {
+            //        Interlocked.Increment(ref numMatches); 
+            //    }
+            //}); 
+
+            //Console.WriteLine($"{numMatches} in {nyCityLines.Length}");
+            //Console.ReadLine(); 
+
+            //int counter = 0;
+
+            ////foreach(string line in lines)
+            ////{
+            ////    counter++; 
+            ////}
+
+            ////Console.WriteLine(counter.ToString("N0"));
+            ////Console.ReadLine(); 
+
+
+
+            ////Console.Write("Loading address database...");
+            ////string[] uniquesLines = File.ReadAllLines("c:/users/brush/desktop/uniques.csv");
+            ////foreach (string uniqueLine in uniquesLines)
+            ////{
+            ////    string uniqueLineUpper = uniqueLine.ToUpper();
+
+            ////    //foreach (string longSuffix in longSuffixes)
+            ////    for (int c = 0; c < longSuffixes.Length; c++)
+            ////    {
+            ////        string longSuffix = longSuffixes[c];
+            ////        if (uniqueLineUpper.EndsWith(" " + longSuffix))
+            ////        {
+            ////            int index = uniqueLineUpper.LastIndexOf(" " + longSuffix);
+            ////            if (index >= 0)
+            ////            {
+            ////                string newUnique = uniqueLineUpper.Substring(0, index) + " " + shortSuffixes[c];
+            ////                uniques.Add(newUnique);
+            ////            }
+            ////        }
+            ////    }
+
+            ////    uniques.Add(uniqueLineUpper);
+            ////}
+            ////Console.WriteLine("...done"); 
+
+            ////for (int c = 1; c < lines.Length; c++)
+            //int counter = 0;
+            //////foreach (string line in lines)
+            //List<string> beforeChangedAddress = new List<string>();
+            //Parallel.ForEach(lines, line =>
+            //{
+            //    counter++;
+            //    if (counter % 10000 == 0)
+            //    {
+            //        Console.WriteLine($"{counter.ToString("N0")}:{uniques.Count.ToString("N0")}");
+            //    }
+
+            //    // get the street name portion. 
+            //    string[] bits = DataLoader.SmartSplit(line);
+            //    if (bits.Length == 11)
+            //    {
+            //        string streetName = bits[3].ToUpper();
+
+            //        // trim what's left.  
+            //        streetName = streetName.Trim();
+
+            //        lock (uniques)
+            //        {
+            //            // is it a number and do we have it already? 
+            //            string beforeChangeStreetName = streetName;
+            //            if (!beforeChangedAddress.Contains(beforeChangeStreetName))
+            //            {
+            //                // no? add it
+
+            //                // normalize the suffix. 
+            //                for (int d = 0; d < longSuffixes.Length; d++)
+            //                {
+            //                    if (streetName.EndsWith(" " + shortSuffixes[d]))
+            //                    {
+            //                        streetName = streetName.Replace(" " + shortSuffixes[d], " " + longSuffixes[d]);
+            //                    }
+            //                }
+
+            //                //if (streetName)
+
+            //                uniques.Add(streetName);
+            //                beforeChangedAddress.Add(beforeChangeStreetName);
+
+            //                //// insert both the short and long versions of the suffix. 
+            //                for (int d = 0; d < longSuffixes.Length; d++)
+            //                {
+            //                    if (streetName.EndsWith(" " + longSuffixes[d]))
+            //                    {
+            //                        uniques.Add(streetName.Replace(" " + longSuffixes[d], " " + shortSuffixes[d]));
+            //                    }
+            //                    else if (streetName.EndsWith(" " + shortSuffixes[d]))
+            //                    {
+            //                        uniques.Add(streetName.Replace(" " + shortSuffixes[d], " " + longSuffixes[d]));
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //});
+
+            //using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/uniques.csv"))
+            //{
+            //    foreach (string unique in uniques)
+            //    {
+            //        fout.WriteLine(unique);
+            //    }
+            //}
+
+            //return null;
+            #endregion
+
+            List<string> exactMatchesFound = new List<string>();
+            List<string> notMatched = new List<string>();
+            List<string> notMatchedButFormatIsGood = new List<string>();
             int exactMatches = 0;
             int editDistanceMatches = 0;
+            int nonZeroAddress1 = 0;
             //for (int c = 1; c < allLines.Length; c++)
             int iterations = 0;
+
             Parallel.For(1, allLines.Length, c =>
             {
                 Interlocked.Increment(ref iterations);
@@ -167,25 +493,51 @@ namespace UndressAddress
                     Console.WriteLine($"{iterations}/{allLines.Length}:{exactMatches}:{editDistanceMatches}");
                 }
 
+                // precleaning. 
                 string[] parts = DataLoader.SmartSplit(allLines[c]);
                 string address1 = parts[8];
+                address1 = Regex.Replace(address1, @"(\d)(ST|ND|RD|TH)\b", "$1");
+                if (address1.EndsWith("."))
+                {
+                    address1 = address1.Substring(0, address1.Length - 1);
+                }
+
+                // is there an address left? 
                 if (address1.Length != 0)
                 {
-                    bool exactMatchFound = false, partialMatchFound = false;
+                    // look for matches. 
+                    Interlocked.Increment(ref nonZeroAddress1);
+                    bool exactMatchFound = false, noMatchButFormatSeemsGood = false;
                     string matched = null;
 
                     foreach (string unique in uniques)
                     {
                         if (address1 == unique ||
                             address1.Contains(" " + unique + " ") ||
-                            address1.EndsWith(" " + unique) ||
-                            address1.StartsWith(unique + " "))
+                            address1.EndsWith(" " + unique))
                         {
                             exactMatchFound = true;
                             matched = unique;
                             break;
                         }
                     }
+
+                    if (!exactMatchFound)
+                    {
+                        string[] address1Parts = address1.Split(' ');
+                        if (address1Parts.Length >= 3)
+                        {
+                            string firstPart = address1Parts[0];
+                            string lastPart = address1Parts[address1Parts.Length - 1];
+
+                            if (IsNumber(firstPart) &&
+                                (shortSuffixes.Contains(lastPart) || longSuffixes.Contains(lastPart)))
+                            {
+                                noMatchButFormatSeemsGood = true;
+                            }
+                        }
+                    }
+
 
                     //if (!exactMatchFound)
                     //{
@@ -217,16 +569,45 @@ namespace UndressAddress
 
                     if (exactMatchFound)
                     {
+                        exactMatchesFound.Add($"{address1} => {matched}");
                         exactMatches++;
                     }
-                    else if (partialMatchFound)
+                    else if (noMatchButFormatSeemsGood)
                     {
-                        editDistanceMatches++;
+                        notMatchedButFormatIsGood.Add(address1);
+                    }
+                    else
+                    {
+                        notMatched.Add(address1);
                     }
                 }
             });
 
-            Console.WriteLine($"Exact matches: {exactMatches}, edit distance matches: {editDistanceMatches}");
+            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/matched.txt"))
+            {
+                for (int c = 0; c < exactMatchesFound.Count; c++)
+                {
+                    fout.WriteLine(exactMatchesFound[c]);
+                }
+            }
+
+            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/notmatchedButFormatIsGood.txt"))
+            {
+                for (int c = 0; c < notMatchedButFormatIsGood.Count; c++)
+                {
+                    fout.WriteLine(notMatchedButFormatIsGood[c]);
+                }
+            }
+
+            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/notmatched.txt"))
+            {
+                for (int c = 0; c < notMatched.Count; c++)
+                {
+                    fout.WriteLine(notMatched[c]);
+                }
+            }
+
+            Console.WriteLine($"Exact matches: {exactMatches}/{nonZeroAddress1}");
 
             return null;
         }
@@ -708,6 +1089,8 @@ namespace UndressAddress
             //ReplacementCount();
             //HowManyMatchNewYorkDatabase();
             GetCleanedNYStreetList2();
+
+            //GetCleanedCities();
         }
     }
 }
