@@ -2,6 +2,7 @@
 using DecisionTreeLearner.NLP;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -244,41 +245,46 @@ namespace UndressAddress
 
         static void Main(string[] args)
         {
-            //string cleaned = CleanAddress("1387 STJOHNS PL");
-            //return; 
+            ////string cleaned = CleanAddress("1387 STJOHNS PL");
+            ////return; 
 
-            string[] allAddresses = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood.txt");
+            //string[] allAddresses = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood.txt");
 
-            using (StreamWriter untouched = File.CreateText("c:/users/brush/desktop/untouched.txt"))
-            {
-                foreach (string line in allAddresses)
-                {
-                    string changed = CleanAddress(line);
+            //using (StreamWriter untouched = File.CreateText("c:/users/brush/desktop/untouched.txt"))
+            //{
+            //    foreach (string line in allAddresses)
+            //    {
+            //        string changed = CleanAddress(line);
 
-                    if (changed == line)
-                    {
-                        untouched.WriteLine($"'{line}'");
-                    }
-                }
-            }
-            using (StreamWriter fout = File.CreateText("c:/users/brush/desktop/changed.txt"))
-            {
-                foreach (string line in allAddresses)
-                {
-                    string changed = CleanAddress(line);
+            //        if (changed == line)
+            //        {
+            //            untouched.WriteLine($"'{line}'");
+            //        }
+            //    }
+            //}
+            //using (StreamWriter fout = File.CreateText("c:/users/brush/desktop/changed.txt"))
+            //{
+            //    foreach (string line in allAddresses)
+            //    {
+            //        string changed = CleanAddress(line);
 
-                    if (changed != line)
-                    {
-                        fout.WriteLine($"'{line}' => '{changed}'");
-                    }
-                }
-            }
+            //        if (changed != line)
+            //        {
+            //            fout.WriteLine($"'{line}' => '{changed}'");
+            //        }
+            //    }
+            //}
 
             //StreetSuffixVariationFinder();
             //Summarize();
             //ReplacementCount();
             //HowManyMatchNewYorkDatabase();
-            //GetCleanedNYStreetList2();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            GetCleanedNYStreetList2();
+            sw.Stop();
+
+            Console.WriteLine($"The process took {sw.ElapsedMilliseconds / 1000.0f / 60.0f} minutes");
 
             //GetCleanedCities();
         }
