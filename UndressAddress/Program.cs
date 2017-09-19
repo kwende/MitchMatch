@@ -20,32 +20,6 @@ namespace UndressAddress
             return double.TryParse(input, out tmp);
         }
 
-        static bool IsAlphaNumeric(string input)
-        {
-            bool isAlphaNumeric = false;
-
-            bool foundLetter = false, foundNumber = false;
-            for (int c = 0; c < input.Length; c++)
-            {
-                if (char.IsDigit(input[c]))
-                {
-                    foundNumber = true;
-                }
-                else if (char.IsLetter(input[c]))
-                {
-                    foundLetter = true;
-                }
-
-                if (foundNumber && foundLetter)
-                {
-                    isAlphaNumeric = true;
-                    break;
-                }
-            }
-
-            return isAlphaNumeric;
-        }
-
         static string CleanAddress(string inputAddress1)
         {
             // replace periods at end of the address
@@ -242,6 +216,71 @@ namespace UndressAddress
             return null;
         }
 
+        static void FindStreetNameWithEditDistanceLessThanOne()
+        {
+            string[] streetNames = File.ReadAllLines("c:/users/brush/desktop/untouched.txt");
+            string[] newYorkStateStreetNames = File.ReadAllLines("NewYorkStateStreets.csv");
+
+            Dictionary<string, List<string>> replacements = new Dictionary<string, List<string>>();
+            //foreach (string streetName in streetNames)
+
+            int counter = 0;
+            Parallel.ForEach(streetNames, streetName =>
+            {
+                Match match = Regex.Match(streetName, @"'(\d+) ([A-Z]+) ([A-Z]+)'");
+
+                if (match != null && match.Groups.Count == 4)
+                {
+                    streetName = match.Groups[2].Value;
+                    //streetName = match.Groups[]
+
+                    Interlocked.Increment(ref counter);
+
+                    if (counter % 100 == 0)
+                    {
+                        Console.WriteLine($"{counter} / {streetNames.Length}");
+                    }
+
+                    List<string> alternates = null;
+
+                    lock (replacements)
+                    {
+                        if (replacements.ContainsKey(streetName))
+                        {
+                            alternates = replacements[streetName];
+                        }
+                        else
+                        {
+                            alternates = new List<string>();
+                            replacements.Add(streetName, alternates);
+                        }
+                    }
+
+
+                    foreach (string newYorkStateStreeName in newYorkStateStreetNames)
+                    {
+                        if (streetName.Length >= 7)
+                        {
+                            int distance = EditDistance.Compute(streetName, newYorkStateStreeName);
+                            if (distance == 1)
+                            {
+                                alternates.Add(newYorkStateStreeName);
+                            }
+                        }
+                    }
+                }
+            });
+
+            using (StreamWriter sw = File.CreateText("c:/users/brush/desktop/alternates.txt"))
+            {
+                foreach (string key in replacements.Keys)
+                {
+                    List<string> alternates = replacements[key];
+
+                    sw.WriteLine(key + ":" + string.Join(" && ", alternates));
+                }
+            }
+        }
 
         static void Main(string[] args)
         {
@@ -279,12 +318,14 @@ namespace UndressAddress
             //Summarize();
             //ReplacementCount();
             //HowManyMatchNewYorkDatabase();
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            GetCleanedNYStreetList2();
-            sw.Stop();
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
+            //GetCleanedNYStreetList2();
+            //sw.Stop();
 
-            Console.WriteLine($"The process took {sw.ElapsedMilliseconds / 1000.0f / 60.0f} minutes");
+            FindStreetNameWithEditDistanceLessThanOne();
+
+            //Console.WriteLine($"The process took {sw.ElapsedMilliseconds / 1000.0f / 60.0f} minutes");
 
             //GetCleanedCities();
         }
