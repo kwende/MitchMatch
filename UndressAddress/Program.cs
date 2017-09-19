@@ -249,28 +249,22 @@ namespace UndressAddress
 
         static List<string> GetCleanedNYStreetList2()
         {
+            // read from all the necessary files. 
             string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
+            string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
+            string[] newYorkStateStreetLines = File.ReadAllLines("NewYorkStateStreets.csv").Skip(1).ToArray();
 
+            // process the suffixes into long and short 
             string[] shortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
             string[] longSuffixes = streetSuffixLines.Select(n => n.Split(',')[0]).ToArray();
 
-            string[] allLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
-
-            //string[] lines = File.ReadAllLines(@"C:\Users\brush\Desktop\city_of_new_york.csv").Skip(1).ToArray();
-            //IEnumerable<string> newYorkStateStreets = File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv").Skip(1);
-            //IEnumerable<string> newYorkCityStreets = File.ReadAllLines("C:/users/brush/desktop/NewYorkCityStreets.csv").Skip(1);
-
+            // add all the streetNames
             List<string> uniques = new List<string>();
+            uniques.AddRange(newYorkStateStreetLines);
 
-            string[] streetNames = File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv").Skip(1).ToArray();
-
-            uniques.AddRange(File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv").Skip(1));
-
-            //string[] newYorkCityStreetLines = File.ReadAllLines("C:/users/brush/desktop/NewYorkCityStreets.csv").Skip(1).ToArray();
-            //uniques.AddRange(newYorkCityStreetLines);
-
-            //foreach (string newYorkCityStreetLine in newYorkCityStreetLines)
-            Parallel.ForEach(streetNames, newYorkCityStreetLine =>
+            // go through and identify each street with a long suffix. 
+            // add to it the corresponding short suffix. 
+            Parallel.ForEach(newYorkStateStreetLines, newYorkCityStreetLine =>
             {
                 for (int c = 0; c < longSuffixes.Length; c++)
                 {
@@ -477,25 +471,29 @@ namespace UndressAddress
             //return null;
             #endregion
 
+            // create lists to store exact, no match and near matches. 
             List<string> exactMatchesFound = new List<string>();
             List<string> notMatched = new List<string>();
             List<string> notMatchedButFormatIsGood = new List<string>();
+
+            // counter variables. 
             int exactMatches = 0;
             int editDistanceMatches = 0;
             int nonZeroAddress1 = 0;
-            //for (int c = 1; c < allLines.Length; c++)
             int iterations = 0;
 
-            Parallel.For(1, allLines.Length, c =>
+            // go over each line in the final data set. 
+            Parallel.For(1, finalDataSetLines.Length, c =>
             {
+                // debugging purposes. 
                 Interlocked.Increment(ref iterations);
                 if (iterations % 1000 == 0)
                 {
-                    Console.WriteLine($"{iterations}/{allLines.Length}:{exactMatches}:{editDistanceMatches}");
+                    Console.WriteLine($"{iterations}/{finalDataSetLines.Length}:{exactMatches}:{editDistanceMatches}");
                 }
 
                 // precleaning. 
-                string[] parts = DataLoader.SmartSplit(allLines[c]);
+                string[] parts = DataLoader.SmartSplit(finalDataSetLines[c]);
                 string address1 = parts[8];
                 address1 = Regex.Replace(address1, @"(\d)(ST|ND|RD|TH)\b", "$1");
                 if (address1.EndsWith("."))
@@ -509,20 +507,22 @@ namespace UndressAddress
                     // look for matches. 
                     Interlocked.Increment(ref nonZeroAddress1);
                     bool exactMatchFound = false, noMatchButFormatSeemsGood = false;
-                    string matched = null;
+                    string matched = "";
 
+                    // go through all of the uniques and find the 
+                    // longest match that matches. 
                     foreach (string unique in uniques)
                     {
-                        if (address1 == unique ||
+                        if ((address1 == unique ||
                             address1.Contains(" " + unique + " ") ||
-                            address1.EndsWith(" " + unique))
+                            address1.EndsWith(" " + unique)) && unique.Length > matched.Length)
                         {
                             exactMatchFound = true;
                             matched = unique;
-                            break;
                         }
                     }
 
+                    // if no match found, is the format of this line at least sane? 
                     if (!exactMatchFound)
                     {
                         string[] address1Parts = address1.Split(' ');
@@ -538,35 +538,6 @@ namespace UndressAddress
                             }
                         }
                     }
-
-
-                    //if (!exactMatchFound)
-                    //{
-                    //    string[] partsOfAddress1 = address1.Split(' ');
-                    //    int bestEditDistance = int.MaxValue;
-
-                    //    for (int d = 0; d < partsOfAddress1.Length && !exactMatchFound; d++)
-                    //    {
-                    //        string partOfAddress = partsOfAddress1[d];
-                    //        if (partOfAddress.Length >= 3 && !IsNumber(partOfAddress) && !allSuffixes.Contains(partOfAddress))
-                    //        {
-                    //            for (int e = 0; e < uniques.Count; e++)
-                    //            {
-                    //                string unique = uniques[e];
-
-                    //                int editDistance = EditDistance.Compute(partOfAddress, unique);
-                    //                if (((partOfAddress.Length <= 5 && editDistance == 1) ||
-                    //                    (partsOfAddress1.Length > 5 && editDistance <= 2)) && editDistance < bestEditDistance)
-                    //                {
-                    //                    partialMatchFound = true;
-                    //                    matched = unique;
-                    //                    bestEditDistance = editDistance;
-                    //                }
-                    //            }
-                    //        }
-                    //    }
-                    //}
-
 
                     if (exactMatchFound)
                     {
@@ -1089,37 +1060,9 @@ namespace UndressAddress
             //Summarize();
             //ReplacementCount();
             //HowManyMatchNewYorkDatabase();
-            //GetCleanedNYStreetList2();
+            GetCleanedNYStreetList2();
 
             //GetCleanedCities();
-
-            string[] newYorkStateStreets = File.ReadAllLines("C:/users/ben/desktop/NewYorkStateStreets.csv");
-            string[] newYorkCityStreets = File.ReadAllLines("C:/users/ben/desktop/NewYorkCityStreets.csv");
-
-            List<string> missing = new List<string>();
-            foreach (string newYorkCityStreet in newYorkCityStreets)
-            {
-                bool found = false;
-                foreach (string newYorkStateStreet in newYorkStateStreets)
-                {
-                    if (newYorkCityStreet == newYorkStateStreet)
-                    {
-                        found = true;
-                    }
-                }
-                if (!found)
-                {
-                    missing.Add(newYorkCityStreet);
-                }
-            }
-
-            using (StreamWriter fout = File.AppendText("c:/users/ben/desktop/newyorkstatestreets.csv"))
-            {
-                foreach (string missed in missing)
-                {
-                    fout.WriteLine(missed);
-                }
-            }
         }
     }
 }
