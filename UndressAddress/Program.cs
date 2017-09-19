@@ -179,73 +179,73 @@ namespace UndressAddress
             return null;
         }
 
-        static void GenerateSummaryFile(string sourceAddressFile, string outputFile)
-        {
-            List<string> beforeChangedAddress = new List<string>();
-            Parallel.ForEach(lines, line =>
-            {
-                counter++;
-                if (counter % 10000 == 0)
-                {
-                    Console.WriteLine($"{counter.ToString("N0")}:{uniques.Count.ToString("N0")}");
-                }
+        //static void GenerateSummaryFile(string sourceAddressFile, string outputFile)
+        //{
+        //    List<string> beforeChangedAddress = new List<string>();
+        //    Parallel.ForEach(lines, line =>
+        //    {
+        //        counter++;
+        //        if (counter % 10000 == 0)
+        //        {
+        //            Console.WriteLine($"{counter.ToString("N0")}:{uniques.Count.ToString("N0")}");
+        //        }
 
-                // get the street name portion. 
-                string[] bits = DataLoader.SmartSplit(line);
-                if (bits.Length == 11)
-                {
-                    string streetName = bits[3].ToUpper();
+        //        // get the street name portion. 
+        //        string[] bits = DataLoader.SmartSplit(line);
+        //        if (bits.Length == 11)
+        //        {
+        //            string streetName = bits[3].ToUpper();
 
-                    // trim what's left.  
-                    streetName = streetName.Trim();
+        //            // trim what's left.  
+        //            streetName = streetName.Trim();
 
-                    lock (uniques)
-                    {
-                        // is it a number and do we have it already? 
-                        string beforeChangeStreetName = streetName;
-                        if (!beforeChangedAddress.Contains(beforeChangeStreetName))
-                        {
-                            // no? add it
+        //            lock (uniques)
+        //            {
+        //                // is it a number and do we have it already? 
+        //                string beforeChangeStreetName = streetName;
+        //                if (!beforeChangedAddress.Contains(beforeChangeStreetName))
+        //                {
+        //                    // no? add it
 
-                            // normalize the suffix. 
-                            for (int d = 0; d < longSuffixes.Length; d++)
-                            {
-                                if (streetName.EndsWith(" " + shortSuffixes[d]))
-                                {
-                                    streetName = streetName.Replace(" " + shortSuffixes[d], " " + longSuffixes[d]);
-                                }
-                            }
+        //                    // normalize the suffix. 
+        //                    for (int d = 0; d < longSuffixes.Length; d++)
+        //                    {
+        //                        if (streetName.EndsWith(" " + shortSuffixes[d]))
+        //                        {
+        //                            streetName = streetName.Replace(" " + shortSuffixes[d], " " + longSuffixes[d]);
+        //                        }
+        //                    }
 
-                            //if (streetName)
+        //                    //if (streetName)
 
-                            uniques.Add(streetName);
-                            beforeChangedAddress.Add(beforeChangeStreetName);
+        //                    uniques.Add(streetName);
+        //                    beforeChangedAddress.Add(beforeChangeStreetName);
 
-                            //// insert both the short and long versions of the suffix. 
-                            for (int d = 0; d < longSuffixes.Length; d++)
-                            {
-                                if (streetName.EndsWith(" " + longSuffixes[d]))
-                                {
-                                    uniques.Add(streetName.Replace(" " + longSuffixes[d], " " + shortSuffixes[d]));
-                                }
-                                else if (streetName.EndsWith(" " + shortSuffixes[d]))
-                                {
-                                    uniques.Add(streetName.Replace(" " + shortSuffixes[d], " " + longSuffixes[d]));
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+        //                    //// insert both the short and long versions of the suffix. 
+        //                    for (int d = 0; d < longSuffixes.Length; d++)
+        //                    {
+        //                        if (streetName.EndsWith(" " + longSuffixes[d]))
+        //                        {
+        //                            uniques.Add(streetName.Replace(" " + longSuffixes[d], " " + shortSuffixes[d]));
+        //                        }
+        //                        else if (streetName.EndsWith(" " + shortSuffixes[d]))
+        //                        {
+        //                            uniques.Add(streetName.Replace(" " + shortSuffixes[d], " " + longSuffixes[d]));
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    });
 
-            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/uniques.csv"))
-            {
-                foreach (string unique in uniques)
-                {
-                    fout.WriteLine(unique);
-                }
-            }
-        }
+        //    using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/uniques.csv"))
+        //    {
+        //        foreach (string unique in uniques)
+        //        {
+        //            fout.WriteLine(unique);
+        //        }
+        //    }
+        //}
 
         static List<string> GetCleanedNYStreetList2()
         {
@@ -279,7 +279,7 @@ namespace UndressAddress
                         int index = newYorkCityStreetLine.LastIndexOf(" " + longSuffix);
                         string shortened = newYorkCityStreetLine.Substring(0, index) + " " + shortSuffixes[c];
 
-                        if(shortened != newYorkCityStreetLine)
+                        if (shortened != newYorkCityStreetLine)
                         {
                             lock (uniques)
                             {
@@ -288,7 +288,7 @@ namespace UndressAddress
                         }
                     }
                 }
-            }); 
+            });
 
             #region HackCode
             //List<string> missingStreets = new List<string>();
@@ -1088,9 +1088,29 @@ namespace UndressAddress
             //Summarize();
             //ReplacementCount();
             //HowManyMatchNewYorkDatabase();
-            GetCleanedNYStreetList2();
+            //GetCleanedNYStreetList2();
 
             //GetCleanedCities();
+
+            List<string> noSuffixes = new List<string>(); 
+            string[] fullSuffixes = File.ReadAllLines("StreetSuffixes.csv").Select(n => n.Split(',')[0]).ToArray();
+            foreach (string line in File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv"))
+            {
+                bool hasSuffix = false;
+                foreach (string suffix in fullSuffixes)
+                {
+                    if (line.EndsWith(" " + suffix))
+                    {
+                        hasSuffix = true;
+                        break;
+                    }
+                }
+
+                if (!hasSuffix)
+                {
+
+                }
+            }
         }
     }
 }
