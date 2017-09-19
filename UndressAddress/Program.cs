@@ -116,14 +116,33 @@ namespace UndressAddress
             int nonZeroAddress1 = 0;
             int iterations = 0;
 
+            DateTime lastTime = DateTime.Now;
+            List<double> timeSpans = new List<double>();
             // go over each line in the final data set. 
+            //for (int c = 1; c < finalDataSetLines.Length; c++)
             Parallel.For(1, finalDataSetLines.Length, c =>
             {
                 // debugging purposes. 
                 Interlocked.Increment(ref iterations);
                 if (iterations % 1000 == 0)
                 {
-                    Console.WriteLine($"{iterations}/{finalDataSetLines.Length}:{exactMatches}:{editDistanceMatches}");
+                    DateTime now = DateTime.Now; 
+                    double millisecondsSinceLast = (now - lastTime).TotalMilliseconds;
+                    timeSpans.Add(millisecondsSinceLast);
+
+                    double averageTimeFor1000 = timeSpans.Average();
+                    double numberOf1000sLeft = (finalDataSetLines.Length - iterations) / 1000.0f;
+
+                    double hoursLeft = (averageTimeFor1000 * numberOf1000sLeft) / 1000.0f / 60.0f / 60.0f; 
+
+                    if (timeSpans.Count > 100)
+                    {
+                        timeSpans.RemoveAt(0);
+                    }
+
+                    Console.WriteLine($"{iterations}/{finalDataSetLines.Length}:{exactMatches}:{editDistanceMatches}. {hoursLeft.ToString("0.00")} hours left.");
+
+                    lastTime = now; 
                 }
 
                 // precleaning. 
@@ -164,9 +183,16 @@ namespace UndressAddress
                             if (IsNumber(firstPart) &&
                                 (shortSuffixes.Contains(lastPart) || longSuffixes.Contains(lastPart)))
                             {
+                                string alternative = FindBestMatchedStreetNameWithinEditDistance(1, address1, shortSuffixes, longSuffixes, newYorkStateStreetLines);
 
-
-                                noMatchButFormatSeemsGood = true;
+                                if (!string.IsNullOrEmpty(alternative))
+                                {
+                                    matched = alternative;
+                                }
+                                else
+                                {
+                                    noMatchButFormatSeemsGood = true;
+                                }
                             }
                         }
                     }
@@ -216,55 +242,130 @@ namespace UndressAddress
             return null;
         }
 
+        static string FindBestMatchedStreetNameWithinEditDistance(int maximumEditDistance, string streetName,
+            string[] shortSuffixes, string[] longSuffixes, string[] newYorkStateStreetNames)
+        {
+            string ret = "";
+
+            // right now it simply returns the first street which is within edit distance
+            // and so it breaks out early. later might consider a bet heuristic on top of edit distance 
+            // to break ties. 
+
+            Match match = Regex.Match(streetName.Replace("'", ""), @"(\d+) ([A-Z]+) ([A-Z]+)");
+
+            if (match != null && match.Groups.Count == 4)
+            {
+                string portionToExamine = match.Groups[2].Value;
+                string possibleSuffix = match.Groups[3].Value;
+
+                // look at the possible suffix. if it's a short variant, replace with long variant. 
+                bool correctedSuffix = false;
+                for (int c = 0; c < shortSuffixes.Length; c++)
+                {
+                    if (shortSuffixes[c] == possibleSuffix || longSuffixes[c] == possibleSuffix)
+                    {
+                        portionToExamine += " " + longSuffixes[c];
+                        correctedSuffix = true;
+                        break;
+                    }
+                }
+
+                // if we didn't auto correct the suffix, then just glom it back on. 
+                // it was either a part of the street name or was already a long suffix
+                // or some other variation. 
+                if (!correctedSuffix)
+                {
+                    portionToExamine += " " + possibleSuffix;
+                }
+
+                // look for the closest possible match
+                foreach (string newYorkStateStreeName in newYorkStateStreetNames)
+                {
+                    if (portionToExamine.Length >= 7)
+                    {
+                        int distance = EditDistance.Compute(portionToExamine, newYorkStateStreeName);
+                        if (distance == 1)
+                        {
+                            // match found. replace "portion to example" above (which is group 2 + 3). 
+                            ret = match.Groups[1] + " " + newYorkStateStreeName;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return ret;
+        }
+
         static void FindStreetNameWithEditDistanceLessThanOne()
         {
-            string[] streetNames = File.ReadAllLines("c:/users/brush/desktop/untouched.txt");
+            string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
+            string[] fullStreetNames = File.ReadAllLines("c:/users/brush/desktop/untouched.txt");
             string[] newYorkStateStreetNames = File.ReadAllLines("NewYorkStateStreets.csv");
+
+            string[] shortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
+            string[] longSuffixes = streetSuffixLines.Select(n => n.Split(',')[0]).ToArray();
 
             Dictionary<string, List<string>> replacements = new Dictionary<string, List<string>>();
             //foreach (string streetName in streetNames)
 
-            int counter = 0;
-            Parallel.ForEach(streetNames, streetName =>
+            int counter = 0, numberOfAlternates = 0;
+            //string portionToExamine = "383 HUTINGTON AVE"; 
+            //foreach(string fullStreetName in fullStreetNames)
+            Parallel.ForEach(fullStreetNames, streetName =>
             {
-                Match match = Regex.Match(streetName, @"'(\d+) ([A-Z]+) ([A-Z]+)'");
+                Interlocked.Increment(ref counter);
+
+                if (counter % 100 == 0)
+                {
+                    Console.WriteLine($"{counter} / {fullStreetNames.Length} / {numberOfAlternates}");
+                }
+
+                Match match = Regex.Match(streetName.Replace("'", ""), @"(\d+) ([A-Z]+) ([A-Z]+)");
 
                 if (match != null && match.Groups.Count == 4)
                 {
-                    streetName = match.Groups[2].Value;
+                    string portionToExamine = match.Groups[2].Value;
+                    string possibleSuffix = match.Groups[3].Value;
+
+                    for (int c = 0; c < shortSuffixes.Length; c++)
+                    {
+                        if (shortSuffixes[c] == possibleSuffix || longSuffixes[c] == possibleSuffix)
+                        {
+                            portionToExamine += " " + longSuffixes[c];
+                            break;
+                        }
+                    }
+
                     //streetName = match.Groups[]
 
-                    Interlocked.Increment(ref counter);
 
-                    if (counter % 100 == 0)
-                    {
-                        Console.WriteLine($"{counter} / {streetNames.Length}");
-                    }
 
                     List<string> alternates = null;
 
                     lock (replacements)
                     {
-                        if (replacements.ContainsKey(streetName))
+                        if (replacements.ContainsKey(portionToExamine))
                         {
-                            alternates = replacements[streetName];
+                            alternates = replacements[portionToExamine];
                         }
                         else
                         {
                             alternates = new List<string>();
-                            replacements.Add(streetName, alternates);
+                            replacements.Add(portionToExamine, alternates);
                         }
                     }
 
 
                     foreach (string newYorkStateStreeName in newYorkStateStreetNames)
                     {
-                        if (streetName.Length >= 7)
+                        if (portionToExamine.Length >= 7)
                         {
-                            int distance = EditDistance.Compute(streetName, newYorkStateStreeName);
+                            int distance = EditDistance.Compute(portionToExamine, newYorkStateStreeName);
                             if (distance == 1)
                             {
                                 alternates.Add(newYorkStateStreeName);
+                                Interlocked.Increment(ref numberOfAlternates);
                             }
                         }
                     }
@@ -320,10 +421,10 @@ namespace UndressAddress
             //HowManyMatchNewYorkDatabase();
             //Stopwatch sw = new Stopwatch();
             //sw.Start();
-            //GetCleanedNYStreetList2();
+            GetCleanedNYStreetList2();
             //sw.Stop();
 
-            FindStreetNameWithEditDistanceLessThanOne();
+            //FindStreetNameWithEditDistanceLessThanOne();
 
             //Console.WriteLine($"The process took {sw.ElapsedMilliseconds / 1000.0f / 60.0f} minutes");
 
