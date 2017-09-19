@@ -17,6 +17,8 @@ namespace challenge
             foreach (var d in data)
             {
                 string field = fieldSelector(d);
+                if (field == "")
+                    continue;
                 if (!rowsByFieldValue.ContainsKey(field))
                     rowsByFieldValue[field] = new List<Row>();
 
@@ -39,7 +41,8 @@ namespace challenge
                 Strings = strings,
                 StringMatches = stringMatches,
                 StringToArrayIndex = stringToArrayIndex,
-                RowsWithThisField = rowsWithThisField
+                RowsWithThisField = rowsWithThisField,
+                FieldSelector = fieldSelector
             };
 
             return toReturn;
@@ -48,6 +51,9 @@ namespace challenge
         public static Matches EditDistanceAtMostN(string[] strings, int n)
         {
             Matches toReturn = new Matches(strings.Count());
+            //Every string matches itself
+            for (int i = 0; i < strings.Length; i++)
+                toReturn.AddMatch(i, i);
 
             Console.WriteLine("Creating the neighborhoods");
             List<EditDistanceMatchObject> neighborHood = new List<EditDistanceMatchObject>();
@@ -239,6 +245,7 @@ namespace challenge
         public Matches StringMatches { get; set; }
         public Dictionary<string, int> StringToArrayIndex { get; set; }
         public List<Row>[] RowsWithThisField { get; set; }
+        public Func<Row,string> FieldSelector { get; set; }
     }
 
     public class Matches
@@ -269,11 +276,6 @@ namespace challenge
             for (int i = 0; i < _matchArray.Length; i++)
             {
                 _matchArray[i] = _matchArray[i].Distinct().ToList();
-                int selfIndex = _matchArray[i].IndexOf(i);
-                if (selfIndex >= 0)
-                {
-                    _matchArray[i].RemoveAt(selfIndex);
-                }
             }
         }
 

@@ -23,6 +23,7 @@ namespace challenge
 
             // Clean Data
             DataCleaningManager.CleanData(ref allData, realData);
+            EasiestAgreementMatch(allData);
 
             // Load Data
             ClosedSets originalMatches = FileManager.LoadOriginalMatches(allData);
@@ -35,6 +36,55 @@ namespace challenge
             //FileManager.SaveFinalSubmission(newMatches.ClosedRowSets(), @"C:\Users\jbrownkramer\Desktop\submission.csv");
 
             Console.ReadLine();
+        }
+
+        private static Matches EasiestAgreementMatch(Row[] allData)
+        {
+            Matches toReturn = new Matches(allData.Max(d => d.EnterpriseID));
+
+            //Do fuzzy match on two fields
+            Console.WriteLine("Matching Last Names");
+            var lastNameMatches =  FastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.LAST, 2);
+
+            Console.WriteLine("Matching First Names");
+            var firstNameMatches = FastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.FIRST, 2);
+
+            List<RowMatchObject> matchObjects = new List<RowMatchObject> { lastNameMatches, firstNameMatches };
+
+            int c = 0;
+            foreach(var row in allData)
+            {
+                Console.Write($"{c++}/{allData.Count()} Final Row Matches");
+                Dictionary<int, int> eidToMatchCount = new Dictionary<int, int>();
+                foreach(var matchObject in matchObjects)
+                {
+                    int index = matchObject.StringToArrayIndex[matchObject.FieldSelector(row)];
+                    var stringNeigborIndices = matchObject.StringMatches.Neighbors(index);
+                    foreach (var neighborIndex in stringNeigborIndices)
+                    {
+                        var rows = matchObject.RowsWithThisField[neighborIndex];
+                        foreach (var row2 in rows)
+                        {
+                            if (!eidToMatchCount.ContainsKey(row2.EnterpriseID))
+                            {
+                                eidToMatchCount[row2.EnterpriseID] = 1;
+                            }
+                            else
+                            {
+                                eidToMatchCount[row2.EnterpriseID]++;
+                            }
+                        }
+                    }
+                }
+
+                foreach(var pair in eidToMatchCount)
+                {
+                    if (pair.Value >= 2 && pair.Key != row.EnterpriseID)
+                        toReturn.AddMatch(row.EnterpriseID, pair.Key);
+                }
+            }
+
+            return toReturn;
         }
 
         private static List<List<Row>> ComputeDifference(ClosedSets originalMatches, ClosedSets newMatches)
