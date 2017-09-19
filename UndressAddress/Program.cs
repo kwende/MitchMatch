@@ -263,6 +263,7 @@ namespace UndressAddress
             List<string> uniques = new List<string>();
 
             string[] streetNames = File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv").Skip(1).ToArray();
+
             uniques.AddRange(File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv").Skip(1));
 
             //string[] newYorkCityStreetLines = File.ReadAllLines("C:/users/brush/desktop/NewYorkCityStreets.csv").Skip(1).ToArray();
@@ -1092,23 +1093,31 @@ namespace UndressAddress
 
             //GetCleanedCities();
 
-            List<string> noSuffixes = new List<string>(); 
-            string[] fullSuffixes = File.ReadAllLines("StreetSuffixes.csv").Select(n => n.Split(',')[0]).ToArray();
-            foreach (string line in File.ReadAllLines("C:/users/brush/desktop/NewYorkStateStreets.csv"))
+            string[] newYorkStateStreets = File.ReadAllLines("C:/users/ben/desktop/NewYorkStateStreets.csv");
+            string[] newYorkCityStreets = File.ReadAllLines("C:/users/ben/desktop/NewYorkCityStreets.csv");
+
+            List<string> missing = new List<string>();
+            foreach (string newYorkCityStreet in newYorkCityStreets)
             {
-                bool hasSuffix = false;
-                foreach (string suffix in fullSuffixes)
+                bool found = false;
+                foreach (string newYorkStateStreet in newYorkStateStreets)
                 {
-                    if (line.EndsWith(" " + suffix))
+                    if (newYorkCityStreet == newYorkStateStreet)
                     {
-                        hasSuffix = true;
-                        break;
+                        found = true;
                     }
                 }
-
-                if (!hasSuffix)
+                if (!found)
                 {
+                    missing.Add(newYorkCityStreet);
+                }
+            }
 
+            using (StreamWriter fout = File.AppendText("c:/users/ben/desktop/newyorkstatestreets.csv"))
+            {
+                foreach (string missed in missing)
+                {
+                    fout.WriteLine(missed);
                 }
             }
         }
