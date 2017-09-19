@@ -40,7 +40,7 @@ namespace challenge
 
         private static Matches EasiestAgreementMatch(Row[] allData)
         {
-            Matches toReturn = new Matches(allData.Max(d => d.EnterpriseID));
+            Matches toReturn = new Matches(allData.Max(d => d.EnterpriseID) + 1);
 
             //Do fuzzy match on two fields
             Console.WriteLine("Matching Last Names");
@@ -54,11 +54,14 @@ namespace challenge
             int c = 0;
             foreach(var row in allData)
             {
-                Console.Write($"{c++}/{allData.Count()} Final Row Matches");
+                Console.Write($"\r{c++}/{allData.Count()} Final Row Matches");
                 Dictionary<int, int> eidToMatchCount = new Dictionary<int, int>();
                 foreach(var matchObject in matchObjects)
                 {
-                    int index = matchObject.StringToArrayIndex[matchObject.FieldSelector(row)];
+                    string fieldValue = matchObject.FieldSelector(row);
+                    if (fieldValue == "")
+                        continue;
+                    int index = matchObject.StringToArrayIndex[fieldValue];
                     var stringNeigborIndices = matchObject.StringMatches.Neighbors(index);
                     foreach (var neighborIndex in stringNeigborIndices)
                     {
