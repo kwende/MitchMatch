@@ -373,305 +373,301 @@ namespace challenge
 
         public void FindAllMatches(Row[] allData, ref ClosedSets newMatches)
         {
-            AddMatches("SSN + soft match", allData, r => MatchingManager.HardSelector(r, new FieldInclusions
+            //AddMatches("SSN + soft match", allData, r => MatchingManager.HardSelector(r, new FieldInclusions
+            //{
+            //    SSN = true,
+
+            //}), 1, (r1, r2) => MatchingManager.SoftMatchCount(r1, r2, new FieldInclusions
+            //{
+            //    //SSN = true,
+            //    First = true,
+            //    Last = true,
+            //    Phone = true,
+            //    DOB = true,
+            //    Address = true,
+            //}), ref newMatches);
+
+
+            //AddMatches("Name + soft match", allData, r => MatchingManager.HardSelector(r, new FieldInclusions
+            //{
+            //    Name = true,
+            //}), 1, (r1, r2) => MatchingManager.SoftMatchCount(r1, r2, new FieldInclusions
+            //{
+            //    SSN = true,
+            //    //First = true,
+            //    //Last = true,
+            //    Phone = true,
+            //    DOB = true,
+            //    Address = true,
+            //}), ref newMatches);
+
+            //AddMatches("Phone + soft match", allData, r => MatchingManager.HardSelector(r, new FieldInclusions
+            //{
+            //    Phone = true,
+            //}), 1, (r1, r2) => MatchingManager.SoftMatchCount(r1, r2, new FieldInclusions
+            //{
+            //    SSN = true,
+            //    First = true,
+            //    Last = true,
+            //    //Phone = true,
+            //    DOB = true,
+            //    Address = true,
+            //}), ref newMatches);
+
+
+
+            //******************  SOLID MATCHES   ******************//
+            AddMatches("SSN + LAST", allData, r => HardSelector(r, new FieldInclusions
             {
                 SSN = true,
-
-            }), 1, (r1, r2) => MatchingManager.SoftMatchCount(r1, r2, new FieldInclusions
-            {
-                //SSN = true,
-                First = true,
                 Last = true,
-                Phone = true,
+            }), 0, (r1, r2) =>
+                1, ref newMatches);
+            AddMatches("SSN + DOB", allData, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true,
                 DOB = true,
+            }), 0, (r1, r2) =>
+                1, ref newMatches);
+            AddMatches("SSN + PHONE", allData, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true,
+                Phone = true,
+            }), 0, (r1, r2) =>
+                    1, ref newMatches);
+            AddMatches("SSN + ADDRESS", allData, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true,
                 Address = true,
-            }), ref newMatches);
+            }), 0, (r1, r2) =>
+                1, ref newMatches);
 
-
-            AddMatches("Name + soft match", allData, r => MatchingManager.HardSelector(r, new FieldInclusions
+            AddMatches("NAME + DOB strong", allData, r => HardSelector(r, new FieldInclusions
             {
                 Name = true,
-            }), 1, (r1, r2) => MatchingManager.SoftMatchCount(r1, r2, new FieldInclusions
+                DOB = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 SSN = true,
-                //First = true,
-                //Last = true,
                 Phone = true,
+                Address = true,
+            }), ref newMatches);
+            AddMatches("NAME + PHONE (no sr/jr)", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Phone = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
                 DOB = true,
+            }), ref newMatches);
+
+            AddMatches("NAME + ADDRESS (no sr/jr)", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Address = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                DOB = true,
+            }), ref newMatches);
+
+            AddMatches("DOB + PHONE (no twin)", allData, r => HardSelector(r, new FieldInclusions
+            {
+                First = true,
+                DOB = true,
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                Last = true,
                 Address = true,
             }), ref newMatches);
 
-            AddMatches("Phone + soft match", allData, r => MatchingManager.HardSelector(r, new FieldInclusions
+            AddMatches("DOB + ADDRESS (no twin)", allData, r => HardSelector(r, new FieldInclusions
             {
-                Phone = true,
-            }), 1, (r1, r2) => MatchingManager.SoftMatchCount(r1, r2, new FieldInclusions
+                DOB = true,
+                Address = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 SSN = true,
                 First = true,
-                Last = true,
-                //Phone = true,
-                DOB = true,
-                Address = true,
+            }), ref newMatches);
+
+            AddMatches("PHONE + ADDRESS (no twin)", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true,
+                Address = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
             }), ref newMatches);
 
 
+            AddMatches("SSN + soft match", allData, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Name = true,
+                Phone = true,
+                DOB = true,
+                Address = true,
+            }), ref newMatches); // Josh Code Review : Makes many of the SSN matches above redundant.
 
-            ////******************  SOLID MATCHES   ******************//
-            //AddMatches("SSN + LAST", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    Last = true,
-            //}), 0, (r1, r2) =>
-            //    1);
-            //AddMatches("SSN + DOB", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    DOB = true,
-            //}), 0, (r1, r2) =>
-            //    1);
-            //AddMatches("SSN + PHONE", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    Phone = true,
-            //}), 0, (r1, r2) =>
-            //        1);
-            //AddMatches("SSN + ADDRESS", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    Address = true,
-            //}), 0, (r1, r2) =>
-            //    1);
+            //******************  PROBABLY SOLID MATCHES   ******************//
 
-            //AddMatches("NAME + DOB strong", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //    DOB = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    Phone = true,
-            //    Address = true,
-            //}));
-            //AddMatches("NAME + PHONE (no sr/jr)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //    Phone = true
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    DOB = true,
-            //}));
-
-            //AddMatches("NAME + ADDRESS (no sr/jr)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //    Address = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    DOB = true,
-            //}));
-
-            //AddMatches("DOB + PHONE (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    First = true,
-            //    DOB = true,
-            //    Phone = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    First = true,
-            //}));  // Josh Code Review : This only matches on First, DOB, and Phone : If it gets past the hard match, it will pass the softmatch
-            //// Lucas Code Review : You're right, this should be soft match on Last or Address. I manually checked all of the ones that wouldn't meet that bar and they're ok.
-
-            //AddMatches("DOB + ADDRESS (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    DOB = true,
-            //    Address = true
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    First = true,
-            //}));
-
-            //AddMatches("PHONE + ADDRESS (no twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Phone = true,
-            //    Address = true
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    First = true,
-            //}));
+            AddMatches("NAME + PHONE (sr/jr)", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Address = true,
+            }), ref newMatches);
+            AddMatches("NAME + ADDRESS (sr/jr)", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Address = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Phone = true,
+            }), ref newMatches);
+            AddMatches("DOB + PHONE (twin)", allData, r => HardSelector(r, new FieldInclusions
+            {
+                DOB = true,
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Last = true,
+                Address = true,
+            }), ref newMatches);
+            AddMatches("DOB + ADDRESS (twin)", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Address = true,
+                DOB = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Last = true,
+                Phone = true,
+            }), ref newMatches);
+            AddMatches("PHONE + ADDRESS (twin)", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true,
+                Address = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Last = true,
+            }), ref newMatches);
 
 
-            //AddMatches("SSN + soft match", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    SSN = true
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    Name = true, // Josh Code Review : Note that softmatching on Name returns at least 1 if ONE of First, Last soft matches.
-            //    Phone = true,
-            //    DOB = true,
-            //    Address = true,
-            //})); // Josh Code Review : Makes many of the SSN matches above redundant.
-            //// Lucas Code Review : It was intended that that soft matching on name requires soft matching on both first and last. Manual review validates that that isn't necessary here. The other place it's used is in the weak matches regime, so has been hand validated.
-
-            ////******************  PROBABLY SOLID MATCHES   ******************//
-
-            //AddMatches("NAME + PHONE (sr/jr)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //    Phone = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    Address = true,
-            //}));
-            //AddMatches("NAME + ADDRESS (sr/jr)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //    Address = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    Phone = true,
-            //}));
-            //AddMatches("DOB + PHONE (twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    First = true,
-            //    DOB = true,
-            //    Phone = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    Last = true,
-            //    Address = true,
-            //})); //Josh Code Review : This is actually a stronger match than one of the matches in the SOLID match block.  Also, it doesn't allow twins.
-            //// Lucas Code Review : Agreed. This should not require hard match on First.
-            //AddMatches("DOB + ADDRESS (twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Address = true,
-            //    DOB = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    Last = true,
-            //    Phone = true,
-            //}));
-            //AddMatches("PHONE + ADDRESS (twin)", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Phone = true,
-            //    Address = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    Last = true,
-            //}));
-
-
-            //AddMatches("Name + 2 soft", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //}), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    DOB = true,
-            //    Phone = true,
-            //    Address = true,
-            //}));
-            //AddMatches("DOB + 2 soft", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    DOB = true,
-            //}), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    First = true,
-            //    Phone = true,
-            //    Address = true,
-            //}));
-            //AddMatches("Phone + 2 soft", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Phone = true,
-            //}), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    First = true,
-            //    DOB = true,
-            //    Address = true,
-            //}));
-            //AddMatches("Address + 2 soft", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Address = true,
-            //}), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    First = true,
-            //    DOB = true,
-            //    Phone = true,
-            //}));  //Josh code review : This could match on address, first name, and DOB.  Maybe it should go in the weaker matches category?
-            //// Lucas Code review : I hand-checked these ~60 matches. They're all ok.
+            AddMatches("Name + 2 soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                DOB = true,
+                Phone = true,
+                Address = true,
+            }), ref newMatches);
+            AddMatches("DOB + 2 soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                DOB = true,
+            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
+                Phone = true,
+                Address = true,
+            }), ref newMatches);
+            AddMatches("Phone + 2 soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true,
+            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
+                DOB = true,
+                Address = true,
+            }), ref newMatches);
+            AddMatches("Address + 2 soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Address = true,
+            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                First = true,
+                DOB = true,
+                Phone = true,
+            }), ref newMatches);  //Josh code review : This could match on address, first name, and DOB.  Maybe it should go in the weaker matches category?
 
             ////******************  WEAKER MATCHES   ******************//
 
             //List<int> weakerMatchedIDs = new List<int>();
             //var weak =
-            //AddMatches("PHONE + soft SSN", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Phone = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //}));
+            AddMatches("PHONE + soft SSN", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+            }), ref newMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
-            //AddMatches("NAME + DOB weaker", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //    DOB = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSNSoft = true,
-            //}));
+            AddMatches("NAME + DOB weaker", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                DOB = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSNSoft = true,
+            }), ref newMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
-            //AddMatches("NAME + PHONE weaker", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //    Phone = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSNSoft = true,
-            //}));
+            AddMatches("NAME + PHONE weaker", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSNSoft = true,
+            }), ref newMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
-            //AddMatches("NAME + ADDRESS weaker", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //    Address = true,
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSNSoft = true,
-            //}));
+            AddMatches("NAME + ADDRESS weaker", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+                Address = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSNSoft = true,
+            }), ref newMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
-            //AddMatches("PHONE + soft NAME", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Phone = true
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    Name = true,
-            //}));
+            AddMatches("PHONE + soft NAME", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                Name = true,
+            }), ref newMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
-            //AddMatches("PHONE + soft FIRST/DOB", data, ref matches, r => HardSelector(r, new FieldInclusions
-            //{
-            //    Phone = true
-            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    First = true,
-            //    DOB = true,
-            //}));
+            AddMatches("PHONE + soft FIRST/DOB", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                First = true,
+                DOB = true,
+            }), ref newMatches);
             //weakerMatchedIDs.AddRange(weak);
         }
 
