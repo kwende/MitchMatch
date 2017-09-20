@@ -28,9 +28,21 @@ namespace challenge
             var strings = rowsByFieldValue.Select(p => p.Key).ToArray();
             var stringMatches = EditDistanceAtMostN(strings, n);
 
-            Dictionary<string, int> stringToArrayIndex = new Dictionary<string, int>();
-            for (int i = 0; i < strings.Length; i++)
-                stringToArrayIndex[strings[i]] = i;
+            Console.WriteLine("Creating EID <=> Index Maps");
+            int[] eidToIndex = new int[data.Max(d => d.EnterpriseID) + 1];
+            for (int i = 0; i < eidToIndex.Length; i++)
+                eidToIndex[i] = -1;
+            int groupIndex = 0;
+            List<int>[] indexToEids = new List<int>[rowsByFieldValue.Count()];
+            foreach (var pair in rowsByFieldValue)
+            {
+                foreach(var row in pair.Value)
+                    eidToIndex[row.EnterpriseID] = groupIndex;
+
+                indexToEids[groupIndex] = pair.Value.Select(r => r.EnterpriseID).ToList();
+                groupIndex++;
+            }
+
 
             List<Row>[] rowsWithThisField = new List<Row>[strings.Length];
             for (int i = 0; i < strings.Length; i++)
@@ -38,11 +50,9 @@ namespace challenge
 
             RowMatchObject toReturn = new RowMatchObject
             {
-                Strings = strings,
-                StringMatches = stringMatches,
-                StringToArrayIndex = stringToArrayIndex,
-                RowsWithThisField = rowsWithThisField,
-                FieldSelector = fieldSelector
+                Matches = stringMatches,
+                EidToIndex = eidToIndex,
+                IndexToEids = indexToEids
             };
 
             return toReturn;
@@ -241,11 +251,9 @@ namespace challenge
 
     public class RowMatchObject
     {
-        public string[] Strings { get; set; }
-        public Matches StringMatches { get; set; }
-        public Dictionary<string, int> StringToArrayIndex { get; set; }
-        public List<Row>[] RowsWithThisField { get; set; }
-        public Func<Row,string> FieldSelector { get; set; }
+        public Matches Matches { get; set; }
+        public int[] EidToIndex { get; set; }
+        public List<int>[] IndexToEids { get; set; }
     }
 
     public class Matches

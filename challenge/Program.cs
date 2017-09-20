@@ -40,7 +40,8 @@ namespace challenge
 
         private static Matches EasiestAgreementMatch(Row[] allData)
         {
-            Matches toReturn = new Matches(allData.Max(d => d.EnterpriseID) + 1);
+            int maxEid = allData.Max(d => d.EnterpriseID);
+            Matches toReturn = new Matches(maxEid + 1);
 
             //Do fuzzy match on two fields
             Console.WriteLine("Matching Last Names");
@@ -49,44 +50,47 @@ namespace challenge
             Console.WriteLine("Matching First Names");
             var firstNameMatches = FastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.FIRST, 2);
 
-            List<RowMatchObject> matchObjects = new List<RowMatchObject> { lastNameMatches, firstNameMatches };
+            Console.WriteLine("Matching SSN");
+            var ssnMatches = FastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.SSN <= 0 ? "" : d.SSN.ToString(), 1);
+
+            List<RowMatchObject> matchObjects = new List<RowMatchObject> { lastNameMatches, firstNameMatches, ssnMatches };
 
             int c = 0;
+            int[] eidToMatchCount = new int[maxEid + 1];
+            List<int> usedEids = new List<int>();
             foreach(var row in allData)
             {
+                usedEids.Clear();
                 Console.Write($"\r{c++}/{allData.Count()} Final Row Matches");
-                Dictionary<int, int> eidToMatchCount = new Dictionary<int, int>();
                 foreach(var matchObject in matchObjects)
                 {
-                    string fieldValue = matchObject.FieldSelector(row);
-                    if (fieldValue == "")
+                    int index = matchObject.EidToIndex[row.EnterpriseID];
+                    if (index == -1)
                         continue;
-                    int index = matchObject.StringToArrayIndex[fieldValue];
-                    var stringNeigborIndices = matchObject.StringMatches.Neighbors(index);
+                    var stringNeigborIndices = matchObject.Matches.Neighbors(index);
                     foreach (var neighborIndex in stringNeigborIndices)
                     {
-                        var rows = matchObject.RowsWithThisField[neighborIndex];
-                        foreach (var row2 in rows)
+                        var eids = matchObject.IndexToEids[neighborIndex];
+                        foreach (var eid in eids)
                         {
-                            if (!eidToMatchCount.ContainsKey(row2.EnterpriseID))
-                            {
-                                eidToMatchCount[row2.EnterpriseID] = 1;
-                            }
-                            else
-                            {
-                                eidToMatchCount[row2.EnterpriseID]++;
-                            }
+                            usedEids.Add(eid);
+                            eidToMatchCount[eid]++;
                         }
                     }
+                } 
+
+                foreach(var eid in usedEids)
+                {
+                    if (eidToMatchCount[eid] >= 2 && eid != row.EnterpriseID)
+                        toReturn.AddMatch(row.EnterpriseID, eid);
+
+                    eidToMatchCount[eid] = 0;
                 }
 
-                foreach(var pair in eidToMatchCount)
-                {
-                    if (pair.Value >= 2 && pair.Key != row.EnterpriseID)
-                        toReturn.AddMatch(row.EnterpriseID, pair.Key);
-                }
+
             }
 
+            toReturn.Clean();  //I think I've actually staged things in a way that makes this unnecessary.
             return toReturn;
         }
 
