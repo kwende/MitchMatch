@@ -68,6 +68,7 @@
     <Compile Include="Ben\ErrorScrubber.cs" />
     <Compile Include="Common\ClosedSets.cs" />
     <Compile Include="Common\DataCleaningManager.cs" />
+    <Compile Include="Common\FastEditDistanceGrouper.cs" />
     <Compile Include="Common\FieldInclusions.cs" />
     <Compile Include="Common\FileManager.cs" />
     <Compile Include="Common\MatchingManager.cs" />

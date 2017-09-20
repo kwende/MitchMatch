@@ -67,6 +67,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="NewYorkStateStreets.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="StreetSuffixes.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
