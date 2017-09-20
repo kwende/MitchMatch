@@ -60,6 +60,7 @@ namespace challenge
             List<int> usedEids = new List<int>();
             foreach(var row in allData)
             {
+                int rowEid = row.EnterpriseID;
                 usedEids.Clear();
                 Console.Write($"\r{c++}/{allData.Count()} Final Row Matches");
                 foreach(var matchObject in matchObjects)
@@ -73,6 +74,8 @@ namespace challenge
                         var eids = matchObject.IndexToEids[neighborIndex];
                         foreach (var eid in eids)
                         {
+                            if (eid <= rowEid)  //We will do the exact same computation when we find all the matches for eid.
+                                continue;
                             usedEids.Add(eid);
                             eidToMatchCount[eid]++;
                         }
@@ -81,8 +84,8 @@ namespace challenge
 
                 foreach(var eid in usedEids)
                 {
-                    if (eidToMatchCount[eid] >= 2 && eid != row.EnterpriseID)
-                        toReturn.AddMatch(row.EnterpriseID, eid);
+                    if (eidToMatchCount[eid] >= 2)
+                        toReturn.AddMatch(rowEid, eid);
 
                     eidToMatchCount[eid] = 0;
                 }
@@ -90,7 +93,7 @@ namespace challenge
 
             }
 
-            toReturn.Clean();  //I think I've actually staged things in a way that makes this unnecessary.
+            toReturn.Clean();  //I think I've actually staged things in a way that makes this unnecessary
             return toReturn;
         }
 
