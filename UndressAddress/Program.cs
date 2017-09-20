@@ -29,12 +29,16 @@ namespace UndressAddress
             }
 
             // remove the suffix at the end of 1st or 2nd or 3rd, etc. 
-            inputAddress1 = Regex.Replace(inputAddress1, @"(\d)(ST|ND|RD|TH)\b", "$1");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)(ST|ND|RD|TH)", "$1 ");
             inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (ST|ND|RD|TH) ", " $1 ");
 
             // separate the East/West portion from the street number. 
             // Ex: "460 E46 STREET"
             inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (N|S|W|E)(\d+) \b", "$1 $2 $3 ");
+
+            // split apart the N/S/E/W if catenated to number. 
+            // Ex: 219E 121
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+)(N|S|E|W) ", "$1 $2");
 
             // split up addresses that are stuck together. 
             // Ex: 543 W180THST
@@ -47,9 +51,15 @@ namespace UndressAddress
             inputAddress1 = Regex.Replace(inputAddress1, @" (E)$", " EAST");
             inputAddress1 = Regex.Replace(inputAddress1, @" (W)$", " WEST");
 
-            // split apart the N/S/E/W if catenated to number. 
-            // Ex: 219E 121
-            inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+)(N|S|E|W) ", "$1 $2");
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(N) ", "NORTH ");
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(S) ", "SOUTH ");
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(E) ", "EAST ");
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(W) ", "WEST ");
+
+            inputAddress1 = Regex.Replace(inputAddress1, @" (N) ", " NORTH ");
+            inputAddress1 = Regex.Replace(inputAddress1, @" (S) ", " SOUTH ");
+            inputAddress1 = Regex.Replace(inputAddress1, @" (E) ", " EAST ");
+            inputAddress1 = Regex.Replace(inputAddress1, @" (W) ", " WEST ");
 
             // put street at the end if it's just a number at the end. 
             // Ex: 360 E 193
@@ -64,6 +74,16 @@ namespace UndressAddress
             // Replace "1387 STJOHNS PL" with "1387 ST JOHNS PL"
             inputAddress1 = Regex.Replace(inputAddress1, @" (ST)([BCDFGHJKLMNPQSTVWXZ])([A-Z]+) ", " $1 $2$3 ");
 
+            // break up number/street suffix. 
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)(AVE)", "$1 $2");
+
+            // Remove the period from end of numbers. 
+            // 2920 W 21. ST
+            inputAddress1 = Regex.Replace(inputAddress1, @" (\d+)(\.) ", " $1 ");
+
+            // Remove RST from ending of numbers. 
+            inputAddress1 = Regex.Replace(inputAddress1, @" (\d+)(RST) ", " $1 ");
+
             return inputAddress1;
         }
 
@@ -71,7 +91,8 @@ namespace UndressAddress
         {
             // read from all the necessary files. 
             string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
-            string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
+            //string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
+            string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood2.txt");
             string[] newYorkStateStreetLines = File.ReadAllLines("NewYorkStateStreets.csv").Skip(1).ToArray();
 
             // process the suffixes into long and short 
@@ -126,27 +147,30 @@ namespace UndressAddress
                 Interlocked.Increment(ref iterations);
                 if (iterations % 1000 == 0)
                 {
-                    DateTime now = DateTime.Now; 
+                    DateTime now = DateTime.Now;
                     double millisecondsSinceLast = (now - lastTime).TotalMilliseconds;
                     timeSpans.Add(millisecondsSinceLast);
 
                     double averageTimeFor1000 = timeSpans.Average();
                     double numberOf1000sLeft = (finalDataSetLines.Length - iterations) / 1000.0f;
 
-                    double hoursLeft = (averageTimeFor1000 * numberOf1000sLeft) / 1000.0f / 60.0f / 60.0f; 
+                    double hoursLeft = (averageTimeFor1000 * numberOf1000sLeft) / 1000.0f / 60.0f / 60.0f;
 
                     if (timeSpans.Count > 100)
                     {
                         timeSpans.RemoveAt(0);
                     }
 
-                    Console.WriteLine($"{iterations}/{finalDataSetLines.Length}:{exactMatches}:{editDistanceMatches}. {hoursLeft.ToString("0.00")} hours left.");
+                    double percentage = (exactMatches / (iterations * 1.0)) * 100; 
 
-                    lastTime = now; 
+                    Console.WriteLine($"{iterations}/{finalDataSetLines.Length}:{exactMatches}. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
+
+                    lastTime = now;
                 }
 
                 // precleaning. 
                 string[] parts = DataLoader.SmartSplit(finalDataSetLines[c]);
+                //parts[8] = "735 GDN ST";
                 string address1 = CleanAddress(parts[8]);
 
 
@@ -187,6 +211,7 @@ namespace UndressAddress
 
                                 if (!string.IsNullOrEmpty(alternative))
                                 {
+                                    exactMatchFound = true;
                                     matched = alternative;
                                 }
                                 else
@@ -250,41 +275,54 @@ namespace UndressAddress
             // right now it simply returns the first street which is within edit distance
             // and so it breaks out early. later might consider a bet heuristic on top of edit distance 
             // to break ties. 
+            const int MaximumLengthOfPortionToExamineForEditDistance = 7;
 
             Match match = Regex.Match(streetName.Replace("'", ""), @"(\d+) ([A-Z]+) ([A-Z]+)");
-
-            if (match != null && match.Groups.Count == 4)
+            if (match.Groups[2].Value.Length >= MaximumLengthOfPortionToExamineForEditDistance)
             {
-                string portionToExamine = match.Groups[2].Value;
-                string possibleSuffix = match.Groups[3].Value;
-
-                // look at the possible suffix. if it's a short variant, replace with long variant. 
-                bool correctedSuffix = false;
-                for (int c = 0; c < shortSuffixes.Length; c++)
+                if (match != null && match.Groups.Count == 4)
                 {
-                    if (shortSuffixes[c] == possibleSuffix || longSuffixes[c] == possibleSuffix)
+                    string portionToExamine = match.Groups[2].Value;
+                    string possibleSuffix = match.Groups[3].Value;
+
+                    // look at the possible suffix. if it's a short variant, replace with long variant. 
+                    bool correctedSuffix = false;
+                    for (int c = 0; c < shortSuffixes.Length; c++)
                     {
-                        portionToExamine += " " + longSuffixes[c];
-                        correctedSuffix = true;
-                        break;
+                        if (shortSuffixes[c] == possibleSuffix || longSuffixes[c] == possibleSuffix)
+                        {
+                            portionToExamine += " " + longSuffixes[c];
+                            correctedSuffix = true;
+                            break;
+                        }
                     }
-                }
 
-                // if we didn't auto correct the suffix, then just glom it back on. 
-                // it was either a part of the street name or was already a long suffix
-                // or some other variation. 
-                if (!correctedSuffix)
-                {
-                    portionToExamine += " " + possibleSuffix;
-                }
-
-                // look for the closest possible match
-                foreach (string newYorkStateStreeName in newYorkStateStreetNames)
-                {
-                    if (portionToExamine.Length >= 7)
+                    // if we didn't auto correct the suffix, then just glom it back on. 
+                    // it was either a part of the street name or was already a long suffix
+                    // or some other variation. 
+                    if (!correctedSuffix)
                     {
+                        portionToExamine += " " + possibleSuffix;
+                    }
+
+
+                    // look for the closest possible match
+                    foreach (string newYorkStateStreeName in newYorkStateStreetNames)
+                    {
+                        // limit to the portion without the suffix. 
                         int distance = EditDistance.Compute(portionToExamine, newYorkStateStreeName);
-                        if (distance == 1)
+
+                        int maxEditDistance = 1;
+                        //if (portionToExamine.Length < 9)
+                        //{
+                        //    maxEditDistance = 1;
+                        //}
+                        //else
+                        //{
+                        //    maxEditDistance = 2;
+                        //}
+
+                        if (distance <= maxEditDistance)
                         {
                             // match found. replace "portion to example" above (which is group 2 + 3). 
                             ret = match.Groups[1] + " " + newYorkStateStreeName;
@@ -293,6 +331,7 @@ namespace UndressAddress
                     }
                 }
             }
+
 
             return ret;
         }
@@ -383,8 +422,23 @@ namespace UndressAddress
             }
         }
 
+        static void MakeNotMatchedButRightFormatFileLookLikeFinalDataSet()
+        {
+            string[] notMatchedButGood = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood.txt");
+            using (StreamWriter fout = File.CreateText("c:/users/brush/desktop/notmatchedButFormatIsGood2.txt"))
+            {
+                foreach (string line in notMatchedButGood)
+                {
+                    fout.WriteLine(",,,,,,,," + line);
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
+            //int editDistance = EditDistance.Compute("PENNSILVENIA", "PENNSYLVANIA");
+            //string cleaned = CleanAddress("2920 W 21. ST"); 
+            //return;
             ////string cleaned = CleanAddress("1387 STJOHNS PL");
             ////return; 
 
@@ -422,6 +476,7 @@ namespace UndressAddress
             //Stopwatch sw = new Stopwatch();
             //sw.Start();
             GetCleanedNYStreetList2();
+            //MakeNotMatchedButRightFormatFileLookLikeFinalDataSet(); 
             //sw.Stop();
 
             //FindStreetNameWithEditDistanceLessThanOne();
