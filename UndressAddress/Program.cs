@@ -2,6 +2,8 @@
 using DecisionTreeLearner.NLP;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.OleDb;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,6 +24,8 @@ namespace UndressAddress
 
         static string CleanAddress(string inputAddress1)
         {
+            inputAddress1 = inputAddress1.Replace("  ", " ");
+
             // replace periods at end of the address
             if (inputAddress1.EndsWith("."))
             {
@@ -29,7 +33,7 @@ namespace UndressAddress
             }
 
             // remove the suffix at the end of 1st or 2nd or 3rd, etc. 
-            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)(ST|ND|RD|TH)", "$1 ");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)(ST|ND|RD|TH)", "$1");
             inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (ST|ND|RD|TH) ", " $1 ");
 
             // separate the East/West portion from the street number. 
@@ -43,6 +47,9 @@ namespace UndressAddress
             // split up addresses that are stuck together. 
             // Ex: 543 W180THST
             inputAddress1 = Regex.Replace(inputAddress1, @"(E|W|S|N)(\d+)(ST|ND|RD|TH)(.+)", "$1 $2 $4");
+
+            // 1668 W.6 ST
+            inputAddress1 = Regex.Replace(inputAddress1, @" (E|W|N|S)\.(\d+) ", " $1 $2 ");
 
             // replace N/S/E/W with the appropriate cardinal if put at end. 
             // Ex: "31 W MOSHOLU PRKWY N"
@@ -84,6 +91,9 @@ namespace UndressAddress
             // Remove RST from ending of numbers. 
             inputAddress1 = Regex.Replace(inputAddress1, @" (\d+)(RST) ", " $1 ");
 
+            // BKLYN to BROOKLYN
+            inputAddress1.Replace(" BKLYN ", " BROOKLYN ");
+
             return inputAddress1;
         }
 
@@ -91,8 +101,8 @@ namespace UndressAddress
         {
             // read from all the necessary files. 
             string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
-            //string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
-            string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood2.txt");
+            string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
+            //string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood2.txt");
             string[] newYorkStateStreetLines = File.ReadAllLines("NewYorkStateStreets.csv").Skip(1).ToArray();
 
             // process the suffixes into long and short 
@@ -140,7 +150,7 @@ namespace UndressAddress
             DateTime lastTime = DateTime.Now;
             List<double> timeSpans = new List<double>();
             // go over each line in the final data set. 
-            //for (int c = 1; c < finalDataSetLines.Length; c++)
+            //for (int c = 0; c < finalDataSetLines.Length; c++)
             Parallel.For(1, finalDataSetLines.Length, c =>
             {
                 // debugging purposes. 
@@ -161,7 +171,7 @@ namespace UndressAddress
                         timeSpans.RemoveAt(0);
                     }
 
-                    double percentage = (exactMatches / (iterations * 1.0)) * 100; 
+                    double percentage = (exactMatches / (iterations * 1.0)) * 100;
 
                     Console.WriteLine($"{iterations}/{finalDataSetLines.Length}:{exactMatches}. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
 
@@ -170,8 +180,9 @@ namespace UndressAddress
 
                 // precleaning. 
                 string[] parts = DataLoader.SmartSplit(finalDataSetLines[c]);
-                //parts[8] = "735 GDN ST";
-                string address1 = CleanAddress(parts[8]);
+                //parts[8] = "219 E121 ST";
+                string address1Raw = parts[8];
+                string address1 = CleanAddress(address1Raw);
 
 
                 // is there an address left? 
@@ -224,7 +235,7 @@ namespace UndressAddress
 
                     if (exactMatchFound)
                     {
-                        exactMatchesFound.Add($"{address1} => {matched}");
+                        exactMatchesFound.Add($"{address1Raw} => {matched}");
                         exactMatches++;
                     }
                     else if (noMatchButFormatSeemsGood)
@@ -434,10 +445,64 @@ namespace UndressAddress
             }
         }
 
+        static void DownloadApartmentBuildingAddresses()
+        {
+            string dir = "D:\\streets_shp\\";
+            string constr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + dir + ";Extended Properties=dBase III;";
+            using (OleDbConnection con = new OleDbConnection(constr))
+            {
+                var sql = "select * from Street.dbf";
+                OleDbCommand cmd = new OleDbCommand(sql, con);
+                con.Open();
+
+                List<string> uniques = new List<string>();
+                using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/allStreets.csv"))
+                {
+                    using (OleDbDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string completeStreetName = reader.GetValue(6).ToString();
+
+                            if (!uniques.Contains(completeStreetName))
+                            {
+                                uniques.Add(completeStreetName);
+                                sw.WriteLine($"{reader.GetValue(6)},{reader.GetValue(11)},{reader.GetValue(12)}");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
+            //DownloadApartmentBuildingAddresses();
+
+            //string[] lines = File.ReadAllLines("c:/users/brush/desktop/current/notmatched.txt");
+
+            //Dictionary<string, int> hospitals = new Dictionary<string, int>();
+            //foreach (string line in lines)
+            //{
+            //    if (line.Contains("HOSP"))
+            //    {
+            //        if (!hospitals.ContainsKey(line))
+            //        {
+            //            hospitals.Add(line, 0);
+            //        }
+            //        hospitals[line] = hospitals[line] + 1;
+            //    }
+            //}
+
+            //foreach (string key in hospitals.Keys)
+            //{
+            //    File.AppendAllText("C:/users/brush/desktop/hospitals.csv",
+            //        $"{key},{hospitals[key]}\n");
+            //}
+
+
             //int editDistance = EditDistance.Compute("PENNSILVENIA", "PENNSYLVANIA");
-            //string cleaned = CleanAddress("2920 W 21. ST"); 
+            //String cleaned = CleanAddress("1668 W.6 ST"); 
             //return;
             ////string cleaned = CleanAddress("1387 STJOHNS PL");
             ////return; 
@@ -475,7 +540,7 @@ namespace UndressAddress
             //HowManyMatchNewYorkDatabase();
             //Stopwatch sw = new Stopwatch();
             //sw.Start();
-            GetCleanedNYStreetList2();
+            //GetCleanedNYStreetList2();
             //MakeNotMatchedButRightFormatFileLookLikeFinalDataSet(); 
             //sw.Stop();
 
