@@ -99,11 +99,11 @@ namespace UndressAddress
 
         static List<string> GetCleanedNYStreetList2()
         {
-            // read from all the necessary files. 
+            // read from all the necessary files
             string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
             string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
             //string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood2.txt");
-            string[] newYorkStateStreetLines = File.ReadAllLines("NewYorkStateStreets.csv").Skip(1).ToArray();
+            string[] newYorkStateStreetLines = File.ReadAllLines("allStreets.csv").Select(n => n.Split(',')[0].Trim()).ToArray(); 
 
             // process the suffixes into long and short 
             string[] shortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
@@ -540,7 +540,7 @@ namespace UndressAddress
             //HowManyMatchNewYorkDatabase();
             //Stopwatch sw = new Stopwatch();
             //sw.Start();
-            //GetCleanedNYStreetList2();
+            GetCleanedNYStreetList2();
             //MakeNotMatchedButRightFormatFileLookLikeFinalDataSet(); 
             //sw.Stop();
 

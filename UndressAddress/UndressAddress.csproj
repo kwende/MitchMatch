@@ -66,6 +66,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="allStreets.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="App.config" />
     <None Include="NewYorkStateStreets.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
