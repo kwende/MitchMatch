@@ -103,7 +103,7 @@ namespace UndressAddress
             string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
             string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
             //string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood2.txt");
-            string[] newYorkStateStreetLines = File.ReadAllLines("allStreets.csv").Select(n => n.Split(',')[0].Trim()).ToArray(); 
+            string[] newYorkStateStreetLines = File.ReadAllLines("allStreets.csv").Select(n => n.Split(',')[0].Trim()).ToArray();
 
             // process the suffixes into long and short 
             string[] shortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
@@ -218,7 +218,8 @@ namespace UndressAddress
                             if (IsNumber(firstPart) &&
                                 (shortSuffixes.Contains(lastPart) || longSuffixes.Contains(lastPart)))
                             {
-                                string alternative = FindBestMatchedStreetNameWithinEditDistance(1, address1, shortSuffixes, longSuffixes, newYorkStateStreetLines);
+                                string alternative = FindBestMatchedStreetNameWithinEditDistance(
+                                    address1, shortSuffixes, longSuffixes, newYorkStateStreetLines);
 
                                 if (!string.IsNullOrEmpty(alternative))
                                 {
@@ -278,7 +279,7 @@ namespace UndressAddress
             return null;
         }
 
-        static string FindBestMatchedStreetNameWithinEditDistance(int maximumEditDistance, string streetName,
+        static string FindBestMatchedStreetNameWithinEditDistance(string streetName,
             string[] shortSuffixes, string[] longSuffixes, string[] newYorkStateStreetNames)
         {
             string ret = "";
@@ -286,9 +287,9 @@ namespace UndressAddress
             // right now it simply returns the first street which is within edit distance
             // and so it breaks out early. later might consider a bet heuristic on top of edit distance 
             // to break ties. 
-            const int MaximumLengthOfPortionToExamineForEditDistance = 7;
+            const int MaximumLengthOfPortionToExamineForEditDistance = 5;
 
-            Match match = Regex.Match(streetName.Replace("'", ""), @"(\d+) ([A-Z]+) ([A-Z]+)");
+            Match match = Regex.Match(streetName.Replace("'", ""), @"(\d+) ([A-Z ]+) ([A-Z]+)");
             if (match.Groups[2].Value.Length >= MaximumLengthOfPortionToExamineForEditDistance)
             {
                 if (match != null && match.Groups.Count == 4)
@@ -316,28 +317,63 @@ namespace UndressAddress
                         portionToExamine += " " + possibleSuffix;
                     }
 
-
                     // look for the closest possible match
                     foreach (string newYorkStateStreeName in newYorkStateStreetNames)
                     {
                         // limit to the portion without the suffix. 
                         int distance = EditDistance.Compute(portionToExamine, newYorkStateStreeName);
-
-                        int maxEditDistance = 1;
-                        //if (portionToExamine.Length < 9)
-                        //{
-                        //    maxEditDistance = 1;
-                        //}
-                        //else
-                        //{
-                        //    maxEditDistance = 2;
-                        //}
-
-                        if (distance <= maxEditDistance)
+                        if (distance == 1)
                         {
                             // match found. replace "portion to example" above (which is group 2 + 3). 
                             ret = match.Groups[1] + " " + newYorkStateStreeName;
                             break;
+                        }
+                        else if (distance == 2)
+                        {
+                            // are letters/numbers just permuted? 
+                            string longestString = "", shortestString = "";
+
+                            // find the longest string. 
+                            if (portionToExamine.Length > newYorkStateStreeName.Length)
+                            {
+                                longestString = portionToExamine;
+                                shortestString = newYorkStateStreeName;
+                            }
+                            else
+                            {
+                                longestString = newYorkStateStreeName;
+                                shortestString = portionToExamine;
+                            }
+
+                            // examine each character of the longest string. 
+                            bool justPermutation = false;
+                            for (int c = 0; c < longestString.Length; c++)
+                            {
+                                char toFind = longestString[c];
+                                bool found = false;
+                                // does it exist in the shortest string? 
+                                for (int d = 0; d < shortestString.Length; d++)
+                                {
+                                    if (shortestString[d] == longestString[c])
+                                    {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found)
+                                {
+                                    // if it doesn't exist, then this isn't acceptable. 
+                                    justPermutation = false;
+                                    break;
+                                }
+                            }
+
+                            // if letters/numbers are just shuffled around, then be okay with distance 2. 
+                            if (justPermutation)
+                            {
+                                ret = match.Groups[1] + " " + newYorkStateStreeName;
+                                break;
+                            }
                         }
                     }
                 }
@@ -387,10 +423,6 @@ namespace UndressAddress
                         }
                     }
 
-                    //streetName = match.Groups[]
-
-
-
                     List<string> alternates = null;
 
                     lock (replacements)
@@ -406,7 +438,6 @@ namespace UndressAddress
                         }
                     }
 
-
                     foreach (string newYorkStateStreeName in newYorkStateStreetNames)
                     {
                         if (portionToExamine.Length >= 7)
@@ -416,6 +447,10 @@ namespace UndressAddress
                             {
                                 alternates.Add(newYorkStateStreeName);
                                 Interlocked.Increment(ref numberOfAlternates);
+                            }
+                            else if (distance == 2)
+                            {
+
                             }
                         }
                     }
@@ -477,78 +512,7 @@ namespace UndressAddress
 
         static void Main(string[] args)
         {
-            //DownloadApartmentBuildingAddresses();
-
-            //string[] lines = File.ReadAllLines("c:/users/brush/desktop/current/notmatched.txt");
-
-            //Dictionary<string, int> hospitals = new Dictionary<string, int>();
-            //foreach (string line in lines)
-            //{
-            //    if (line.Contains("HOSP"))
-            //    {
-            //        if (!hospitals.ContainsKey(line))
-            //        {
-            //            hospitals.Add(line, 0);
-            //        }
-            //        hospitals[line] = hospitals[line] + 1;
-            //    }
-            //}
-
-            //foreach (string key in hospitals.Keys)
-            //{
-            //    File.AppendAllText("C:/users/brush/desktop/hospitals.csv",
-            //        $"{key},{hospitals[key]}\n");
-            //}
-
-
-            //int editDistance = EditDistance.Compute("PENNSILVENIA", "PENNSYLVANIA");
-            //String cleaned = CleanAddress("1668 W.6 ST"); 
-            //return;
-            ////string cleaned = CleanAddress("1387 STJOHNS PL");
-            ////return; 
-
-            //string[] allAddresses = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood.txt");
-
-            //using (StreamWriter untouched = File.CreateText("c:/users/brush/desktop/untouched.txt"))
-            //{
-            //    foreach (string line in allAddresses)
-            //    {
-            //        string changed = CleanAddress(line);
-
-            //        if (changed == line)
-            //        {
-            //            untouched.WriteLine($"'{line}'");
-            //        }
-            //    }
-            //}
-            //using (StreamWriter fout = File.CreateText("c:/users/brush/desktop/changed.txt"))
-            //{
-            //    foreach (string line in allAddresses)
-            //    {
-            //        string changed = CleanAddress(line);
-
-            //        if (changed != line)
-            //        {
-            //            fout.WriteLine($"'{line}' => '{changed}'");
-            //        }
-            //    }
-            //}
-
-            //StreetSuffixVariationFinder();
-            //Summarize();
-            //ReplacementCount();
-            //HowManyMatchNewYorkDatabase();
-            //Stopwatch sw = new Stopwatch();
-            //sw.Start();
             GetCleanedNYStreetList2();
-            //MakeNotMatchedButRightFormatFileLookLikeFinalDataSet(); 
-            //sw.Stop();
-
-            //FindStreetNameWithEditDistanceLessThanOne();
-
-            //Console.WriteLine($"The process took {sw.ElapsedMilliseconds / 1000.0f / 60.0f} minutes");
-
-            //GetCleanedCities();
         }
     }
 }
