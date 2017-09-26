@@ -23,7 +23,31 @@ namespace challenge
 
             // Clean Data
             DataCleaningManager.CleanData(ref allData, realData);
-            EasiestAgreementMatch(allData);
+
+            var strings = BKTreeEngine.DistinctNonEmptyStrings(allData, d => d.ADDRESS1).ToList();
+            var streetTypes = strings.GroupBy(s => s.Split(' ').Last()).ToArray();
+            var streetTypePrefixes = streetTypes.Select(g => g.Select(s => s.Substring(0, s.Length - g.Key.Length)).ToArray()).ToArray();
+            var streetTypeStrings = streetTypes.Select(g => g.Key).ToArray();
+            var streetTypeNeighbors = FastEditDistanceGrouper.EditDistanceAtMostN(streetTypeStrings, 2);
+            Console.WriteLine(streetTypeNeighbors.Pairs());
+            for (int i = 0; i < streetTypeStrings.Length; i++)
+            {
+                foreach(var neighbor in streetTypeNeighbors.Neighbors(i))
+                {
+                    if (neighbor < i) //This will be handled elsewhere
+                        continue;
+
+                    int d = EditDistance.Compute(streetTypeStrings[i], streetTypeStrings[neighbor]);
+
+                    FastEditDistanceGrouper.EditDistanceAtMostN(streetTypePrefixes[i], streetTypePrefixes[neighbor], 2 - d);
+                }
+            }
+            
+            
+
+            //Matches fuzzyMatches = EasiestAgreementMatch(allData);
+            //fuzzyMatches.Serialize(@"C:\Users\jbrownkramer\Desktop\fuzzyMatches.csv");
+
 
             // Load Data
             ClosedSets originalMatches = FileManager.LoadOriginalMatches(allData);
@@ -53,7 +77,13 @@ namespace challenge
             Console.WriteLine("Matching SSN");
             var ssnMatches = FastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.SSN <= 0 ? "" : d.SSN.ToString(), 1);
 
-            List<RowMatchObject> matchObjects = new List<RowMatchObject> { lastNameMatches, firstNameMatches, ssnMatches };
+            Console.WriteLine("Matching Address");
+            var addressMatches = FastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.ADDRESS1, 2); //Note : should work much better when address normalization comes in
+
+            Console.WriteLine("Matching Phone");
+            var phoneMatches = FastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.PHONE <= 0 ? "" : d.PHONE.ToString(), 1);
+
+            List<RowMatchObject> matchObjects = new List<RowMatchObject> { lastNameMatches, firstNameMatches, ssnMatches, addressMatches};
 
             int c = 0;
             int[] eidToMatchCount = new int[maxEid + 1];
@@ -93,6 +123,7 @@ namespace challenge
 
             }
 
+            Console.WriteLine("Cleaning");
             toReturn.Clean();  //I think I've actually staged things in a way that makes this unnecessary
             return toReturn;
         }

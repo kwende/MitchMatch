@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="Ben\EditDistance.cs" />
     <Compile Include="Ben\ErrorScrubber.cs" />
+    <Compile Include="Common\BKTreeEngine.cs" />
     <Compile Include="Common\ClosedSets.cs" />
     <Compile Include="Common\DataCleaningManager.cs" />
     <Compile Include="Common\FastEditDistanceGrouper.cs" />
