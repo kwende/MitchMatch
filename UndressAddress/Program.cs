@@ -21,8 +21,7 @@ namespace UndressAddress
             double tmp;
             return double.TryParse(input, out tmp);
         }
-
-        static string CleanAddress(string inputAddress1)
+        static string CleanAddress(string inputAddress1, List<NewYorkCityAddress> fullAddresses)
         {
             inputAddress1 = inputAddress1.Replace("  ", " ");
 
@@ -94,16 +93,60 @@ namespace UndressAddress
             // BKLYN to BROOKLYN
             inputAddress1.Replace(" BKLYN ", " BROOKLYN ");
 
+            Match streetWithPossibleCardinal = Regex.Match(inputAddress1, @"(\d+) ([A-Z]+) (\d+) ([A-Z]+)");
+            if (streetWithPossibleCardinal.Groups.Count == 5)
+            {
+                string possibleCardinal = streetWithPossibleCardinal.Groups[2].Value;
+                if (EditDistance.Compute(possibleCardinal, "WEST") == 1)
+                {
+                    return inputAddress1;
+                }
+                if (EditDistance.Compute(possibleCardinal, "EAST") == 1)
+                {
+                    return inputAddress1;
+                }
+                if (EditDistance.Compute(possibleCardinal, "NORTH") == 1)
+                {
+                    return inputAddress1;
+                }
+                if (EditDistance.Compute(possibleCardinal, "SOUTH") == 1)
+                {
+                    return inputAddress1;
+                }
+            }
+
             return inputAddress1;
+        }
+
+        static bool ConfirmAddress(string addressLine)
+        {
+            return false;
         }
 
         static List<string> GetCleanedNYStreetList2()
         {
             // read from all the necessary files
             string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
-            string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
+            string[] finalDataSetLines = File.ReadAllLines("c:/users/ben/desktop/finaldataset.csv").Where(n => n.Contains(" EST ")).ToArray();
             //string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood2.txt");
             string[] newYorkStateStreetLines = File.ReadAllLines("allStreets.csv").Select(n => n.Split(',')[0].Trim()).ToArray();
+
+            List<NewYorkCityAddress> fullAddresses = new List<NewYorkCityAddress>();
+
+            IEnumerable<string> linesInNewYorkAddresses = File.ReadLines("c:/users/ben/desktop/city_of_new_york.csv").Skip(1);
+
+            foreach (string lineInNewYorkAddress in linesInNewYorkAddresses)
+            {
+                string[] bits = lineInNewYorkAddress.Split(',').Select(n => n.Trim()).ToArray();
+
+                NewYorkCityAddress address = new NewYorkCityAddress
+                {
+                    BuildingNumber = bits[2],
+                    StreetName = bits[3],
+                    ZipCode = bits[8]
+                };
+                fullAddresses.Add(address);
+            }
 
             // process the suffixes into long and short 
             string[] shortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
@@ -150,8 +193,8 @@ namespace UndressAddress
             DateTime lastTime = DateTime.Now;
             List<double> timeSpans = new List<double>();
             // go over each line in the final data set. 
-            //for (int c = 0; c < finalDataSetLines.Length; c++)
-            Parallel.For(1, finalDataSetLines.Length, c =>
+            for (int c = 0; c < finalDataSetLines.Length; c++)
+            //Parallel.For(1, finalDataSetLines.Length, c =>
             {
                 // debugging purposes. 
                 Interlocked.Increment(ref iterations);
@@ -182,8 +225,7 @@ namespace UndressAddress
                 string[] parts = DataLoader.SmartSplit(finalDataSetLines[c]);
                 //parts[8] = "219 E121 ST";
                 string address1Raw = parts[8];
-                string address1 = CleanAddress(address1Raw);
-
+                string address1 = CleanAddress(address1Raw, fullAddresses);
 
                 // is there an address left? 
                 if (address1.Length != 0)
@@ -248,7 +290,7 @@ namespace UndressAddress
                         notMatched.Add(address1);
                     }
                 }
-            });
+            }//);
 
             using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/matched.txt"))
             {
@@ -278,7 +320,6 @@ namespace UndressAddress
 
             return null;
         }
-
         static string FindBestMatchedStreetNameWithinEditDistance(string streetName,
             string[] shortSuffixes, string[] longSuffixes, string[] newYorkStateStreetNames)
         {
@@ -381,133 +422,6 @@ namespace UndressAddress
 
 
             return ret;
-        }
-
-        static void FindStreetNameWithEditDistanceLessThanOne()
-        {
-            string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
-            string[] fullStreetNames = File.ReadAllLines("c:/users/brush/desktop/untouched.txt");
-            string[] newYorkStateStreetNames = File.ReadAllLines("NewYorkStateStreets.csv");
-
-            string[] shortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
-            string[] longSuffixes = streetSuffixLines.Select(n => n.Split(',')[0]).ToArray();
-
-            Dictionary<string, List<string>> replacements = new Dictionary<string, List<string>>();
-            //foreach (string streetName in streetNames)
-
-            int counter = 0, numberOfAlternates = 0;
-            //string portionToExamine = "383 HUTINGTON AVE"; 
-            //foreach(string fullStreetName in fullStreetNames)
-            Parallel.ForEach(fullStreetNames, streetName =>
-            {
-                Interlocked.Increment(ref counter);
-
-                if (counter % 100 == 0)
-                {
-                    Console.WriteLine($"{counter} / {fullStreetNames.Length} / {numberOfAlternates}");
-                }
-
-                Match match = Regex.Match(streetName.Replace("'", ""), @"(\d+) ([A-Z]+) ([A-Z]+)");
-
-                if (match != null && match.Groups.Count == 4)
-                {
-                    string portionToExamine = match.Groups[2].Value;
-                    string possibleSuffix = match.Groups[3].Value;
-
-                    for (int c = 0; c < shortSuffixes.Length; c++)
-                    {
-                        if (shortSuffixes[c] == possibleSuffix || longSuffixes[c] == possibleSuffix)
-                        {
-                            portionToExamine += " " + longSuffixes[c];
-                            break;
-                        }
-                    }
-
-                    List<string> alternates = null;
-
-                    lock (replacements)
-                    {
-                        if (replacements.ContainsKey(portionToExamine))
-                        {
-                            alternates = replacements[portionToExamine];
-                        }
-                        else
-                        {
-                            alternates = new List<string>();
-                            replacements.Add(portionToExamine, alternates);
-                        }
-                    }
-
-                    foreach (string newYorkStateStreeName in newYorkStateStreetNames)
-                    {
-                        if (portionToExamine.Length >= 7)
-                        {
-                            int distance = EditDistance.Compute(portionToExamine, newYorkStateStreeName);
-                            if (distance == 1)
-                            {
-                                alternates.Add(newYorkStateStreeName);
-                                Interlocked.Increment(ref numberOfAlternates);
-                            }
-                            else if (distance == 2)
-                            {
-
-                            }
-                        }
-                    }
-                }
-            });
-
-            using (StreamWriter sw = File.CreateText("c:/users/brush/desktop/alternates.txt"))
-            {
-                foreach (string key in replacements.Keys)
-                {
-                    List<string> alternates = replacements[key];
-
-                    sw.WriteLine(key + ":" + string.Join(" && ", alternates));
-                }
-            }
-        }
-
-        static void MakeNotMatchedButRightFormatFileLookLikeFinalDataSet()
-        {
-            string[] notMatchedButGood = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood.txt");
-            using (StreamWriter fout = File.CreateText("c:/users/brush/desktop/notmatchedButFormatIsGood2.txt"))
-            {
-                foreach (string line in notMatchedButGood)
-                {
-                    fout.WriteLine(",,,,,,,," + line);
-                }
-            }
-        }
-
-        static void DownloadApartmentBuildingAddresses()
-        {
-            string dir = "D:\\streets_shp\\";
-            string constr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + dir + ";Extended Properties=dBase III;";
-            using (OleDbConnection con = new OleDbConnection(constr))
-            {
-                var sql = "select * from Street.dbf";
-                OleDbCommand cmd = new OleDbCommand(sql, con);
-                con.Open();
-
-                List<string> uniques = new List<string>();
-                using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/allStreets.csv"))
-                {
-                    using (OleDbDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            string completeStreetName = reader.GetValue(6).ToString();
-
-                            if (!uniques.Contains(completeStreetName))
-                            {
-                                uniques.Add(completeStreetName);
-                                sw.WriteLine($"{reader.GetValue(6)},{reader.GetValue(11)},{reader.GetValue(12)}");
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         static void Main(string[] args)
