@@ -9,8 +9,9 @@ namespace UndressAddress.DataTypes
     public enum MatchQuality
     {
         Unknown = 0,
-        Matched = 1,
+        Homeless = 1,
         NotMatched = 2,
-        Homeless = 3,
+        StreetMatched = 3,
+        FullAddressMatched = 4,
     }
 }
