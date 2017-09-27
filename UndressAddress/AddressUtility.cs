@@ -211,12 +211,28 @@ namespace UndressAddress
                     }
                     #endregion
 
-                    #region 
+                    #region StreetName
                     // examine standard format
                     if (Regex.IsMatch(inputAddress1, @"^(\d+) ([A-Z 0-9]+) ([A-Z]+)"))
                     {
                         Match standardAddressPortion = Regex.Match(inputAddress1, @"^(\d+) ([A-Z 0-9]+) ([A-Z]+)");
                         ret.StreetName = standardAddressPortion.Groups[2].Value;
+                    }
+                    else if (Regex.IsMatch(inputAddress1, @"^[A-Z]$"))
+                    {
+                        ret.StreetName = inputAddress1;
+                    }
+
+                    #endregion
+
+                    #region ApartmentNumber
+
+                    // this matching is kind of ... well, not great. I'd like to see examples. I'm not sure if want
+                    // to blindly take the text proceeding 'apartment' to just be the apartment number. maybe we do? 
+                    Match apartmentNumberMatch = Regex.Match(inputAddress1, @" (APT|APARTMENT) ([0-9]+[A-Z]) ");
+                    if (apartmentNumberMatch.Groups.Count == 3) // this is odd, always +1 the Number of matches. Groups[0] is the original string. 
+                    {
+                        ret.ApartmentNumber = apartmentNumberMatch.Groups[2].Value;
                     }
 
                     #endregion
@@ -224,52 +240,6 @@ namespace UndressAddress
 
                 ret.MatchQuality = MatchQuality.NotMatched;
             }
-
-
-            //// is there a house number? 
-            //if (Regex.IsMatch(inputAddress1, @"^(\d+) "))
-            //{
-            //    // let's see if we can match this to an actual address in the database
-            //    // and potentially clean up even more. 
-            //    string[] bits = inputAddress1.Split(' ');
-
-            //    int number = int.Parse(bits[0]);
-            //    string partSansNumber = string.Join(" ", bits.Skip(1).ToArray());
-
-            //    foreach (StateOfNewYorkAddressRange address in data.AllAddresses)
-            //    {
-            //        if (address.BuildingNumberStart == number ||
-            //            (address.BuildingNumberStart <= number && address.BuildingNumberEnd >= number))
-            //        {
-            //            if (EditDistance.Compute(address.StreetName, partSansNumber) <= 1)
-            //            {
-            //                return null; 
-            //            }
-            //        }
-            //    }
-            //}
-
-            ////Match streetWithPossibleCardinal = Regex.Match(inputAddress1, @"(\d+) ([A-Z]+) (\d+) ([A-Z]+)");
-            ////if (streetWithPossibleCardinal.Groups.Count == 5)
-            ////{
-            ////    string possibleCardinal = streetWithPossibleCardinal.Groups[2].Value;
-            ////    if (EditDistance.Compute(possibleCardinal, "WEST") == 1)
-            ////    {
-            ////        return inputAddress1;
-            ////    }
-            ////    if (EditDistance.Compute(possibleCardinal, "EAST") == 1)
-            ////    {
-            ////        return inputAddress1;
-            ////    }
-            ////    if (EditDistance.Compute(possibleCardinal, "NORTH") == 1)
-            ////    {
-            ////        return inputAddress1;
-            ////    }
-            ////    if (EditDistance.Compute(possibleCardinal, "SOUTH") == 1)
-            ////    {
-            ////        return inputAddress1;
-            ////    }
-            ////}
 
             return ret;
         }
