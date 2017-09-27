@@ -17,6 +17,8 @@ namespace challenge
             foreach (var d in data)
             {
                 string field = fieldSelector(d);
+                if (field == "")
+                    continue;
                 if (!rowsByFieldValue.ContainsKey(field))
                     rowsByFieldValue[field] = new List<Row>();
 
@@ -26,9 +28,21 @@ namespace challenge
             var strings = rowsByFieldValue.Select(p => p.Key).ToArray();
             var stringMatches = EditDistanceAtMostN(strings, n);
 
-            Dictionary<string, int> stringToArrayIndex = new Dictionary<string, int>();
-            for (int i = 0; i < strings.Length; i++)
-                stringToArrayIndex[strings[i]] = i;
+            Console.WriteLine("Creating EID <=> Index Maps");
+            int[] eidToIndex = new int[data.Max(d => d.EnterpriseID) + 1];
+            for (int i = 0; i < eidToIndex.Length; i++)
+                eidToIndex[i] = -1;
+            int groupIndex = 0;
+            List<int>[] indexToEids = new List<int>[rowsByFieldValue.Count()];
+            foreach (var pair in rowsByFieldValue)
+            {
+                foreach(var row in pair.Value)
+                    eidToIndex[row.EnterpriseID] = groupIndex;
+
+                indexToEids[groupIndex] = pair.Value.Select(r => r.EnterpriseID).ToList();
+                groupIndex++;
+            }
+
 
             List<Row>[] rowsWithThisField = new List<Row>[strings.Length];
             for (int i = 0; i < strings.Length; i++)
@@ -36,10 +50,9 @@ namespace challenge
 
             RowMatchObject toReturn = new RowMatchObject
             {
-                Strings = strings,
-                StringMatches = stringMatches,
-                StringToArrayIndex = stringToArrayIndex,
-                RowsWithThisField = rowsWithThisField
+                Matches = stringMatches,
+                EidToIndex = eidToIndex,
+                IndexToEids = indexToEids
             };
 
             return toReturn;
@@ -48,6 +61,9 @@ namespace challenge
         public static Matches EditDistanceAtMostN(string[] strings, int n)
         {
             Matches toReturn = new Matches(strings.Count());
+            //Every string matches itself
+            for (int i = 0; i < strings.Length; i++)
+                toReturn.AddMatch(i, i);
 
             Console.WriteLine("Creating the neighborhoods");
             List<EditDistanceMatchObject> neighborHood = new List<EditDistanceMatchObject>();
@@ -80,6 +96,81 @@ namespace challenge
                         for (int j = i + 1; j < groupArray.Length; j++)
                             if (EditDistance(groupArray[i], groupArray[j]) <= n)
                                 toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
+                }
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("Cleaning string match object");
+            toReturn.Clean();
+
+            //ExploreStrings(strings, toReturn);
+
+            return toReturn;
+        }
+
+
+        /// <summary>
+        /// Returns pairs where first element is from first part and second element from second.  The indices for elements of T are offset by S.Length
+        /// </summary>
+        /// <param name="S"></param>
+        /// <param name="T"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static Matches EditDistanceAtMostN(string[] S, string[] T, int n)
+        {
+            int totalGraphSize = S.Length + T.Length;
+            Matches toReturn = new Matches(totalGraphSize);
+
+            Console.WriteLine("Creating the neighborhoods");
+            List<BipartiteEditDistanceMatchObject> neighborHood = new List<BipartiteEditDistanceMatchObject>();
+            int c = 0;
+            for (int i = 0; i < S.Length; i++)
+            {
+                Console.Write($"\r{c++}/{S.Length} S neighborhoods computed");
+                var withoutParts = DeleteN(S[i], i, n);
+                foreach (var edmo in withoutParts)
+                {
+                    neighborHood.Add(new BipartiteEditDistanceMatchObject {EditDistanceMatchObject = edmo, Part = 0 });
+                }
+            }
+
+            c = 0;
+            for (int i = 0; i < T.Length; i++)
+            {
+                Console.Write($"\r{c++}/{T.Length} T neighborhoods computed");
+                var withoutParts = DeleteN(T[i], i + S.Length, n);
+                foreach (var edmo in withoutParts)
+                {
+                    neighborHood.Add(new BipartiteEditDistanceMatchObject { EditDistanceMatchObject = edmo, Part = 1 });
+                }
+            }
+
+            Console.WriteLine();
+
+            Console.WriteLine("Grouping by neighborhood");
+            var grouped = neighborHood.GroupBy(edmo => edmo.EditDistanceMatchObject.Substring).ToArray();
+
+
+            Console.WriteLine("Checking edit distance");
+            c = 0;
+            foreach (var group in grouped)
+            {
+                var groupS = group.Where(bedmo => bedmo.Part == 0).Select(bedmo => bedmo.EditDistanceMatchObject).ToArray();
+                var groupT = group.Where(bedmo => bedmo.Part == 1).Select(bedmo => bedmo.EditDistanceMatchObject).ToArray();
+
+                Console.Write($"\r{c++}/{grouped.Length} edit distance groups checked");
+                if (group.Key == "")  //In this case, both of the original strings had length at most n, so they have edit distance at most n.  We are probably avoiding a lot of work on a huge component by doing this
+                {
+                    foreach(var s in groupS)
+                        foreach(var t in groupT)
+                            toReturn.AddMatch(s.Index, t.Index);
+                }
+                else
+                {
+                    foreach (var s in groupS)
+                        foreach (var t in groupT)
+                            if (EditDistance(s, t) <= n)
+                                toReturn.AddMatch(s.Index, t.Index);
                 }
             }
             Console.WriteLine();
@@ -233,12 +324,17 @@ namespace challenge
         public List<int> DeletedIndices { get; set; }
     }
 
+    class BipartiteEditDistanceMatchObject
+    {
+        public EditDistanceMatchObject EditDistanceMatchObject;
+        public int Part { get; set; }
+    }
+
     public class RowMatchObject
     {
-        public string[] Strings { get; set; }
-        public Matches StringMatches { get; set; }
-        public Dictionary<string, int> StringToArrayIndex { get; set; }
-        public List<Row>[] RowsWithThisField { get; set; }
+        public Matches Matches { get; set; }
+        public int[] EidToIndex { get; set; }
+        public List<int>[] IndexToEids { get; set; }
     }
 
     public class Matches
@@ -252,6 +348,18 @@ namespace challenge
             for (int i = 0; i < n; i++)
             {
                 _matchArray[i] = new List<int>();
+            }
+        }
+
+        public Matches(string filePath)
+        {
+            var lines = System.IO.File.ReadAllLines(filePath);
+            _matchArray = new List<int>[lines.Count()];
+            int i = 0;
+            foreach (var line in lines)
+            {
+                List<int> asList = line.Split(',').Select(s => int.Parse(s)).ToList();
+                _matchArray[i++] = asList;
             }
         }
 
@@ -269,11 +377,6 @@ namespace challenge
             for (int i = 0; i < _matchArray.Length; i++)
             {
                 _matchArray[i] = _matchArray[i].Distinct().ToList();
-                int selfIndex = _matchArray[i].IndexOf(i);
-                if (selfIndex >= 0)
-                {
-                    _matchArray[i].RemoveAt(selfIndex);
-                }
             }
         }
 
@@ -292,6 +395,22 @@ namespace challenge
         public List<int> Neighbors(int i)
         {
             return _matchArray[i];
+        }
+
+        public void Serialize(string path)
+        {
+            System.IO.File.WriteAllLines(path, AsLines());
+        }
+
+        private List<string> AsLines()
+        {
+            List<string> toReturn = new List<string>();
+            foreach(var list in _matchArray)
+            {
+                toReturn.Add(string.Join(",", list));
+            }
+
+            return toReturn;
         }
     }
 }

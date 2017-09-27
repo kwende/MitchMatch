@@ -66,14 +66,17 @@
   <ItemGroup>
     <Compile Include="Ben\EditDistance.cs" />
     <Compile Include="Ben\ErrorScrubber.cs" />
+    <Compile Include="Common\BKTreeEngine.cs" />
     <Compile Include="Common\ClosedSets.cs" />
     <Compile Include="Common\DataCleaningManager.cs" />
     <Compile Include="Common\FastEditDistanceGrouper.cs" />
+    <Compile Include="Common\FastFuzzyMatchEngine.cs" />
     <Compile Include="Common\FieldInclusions.cs" />
     <Compile Include="Common\FileManager.cs" />
     <Compile Include="Common\MatchingManager.cs" />
     <Compile Include="Common\PrintingManager.cs" />
     <Compile Include="Common\Row.cs" />
+    <Compile Include="FastFuzzyAddressGrouper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
