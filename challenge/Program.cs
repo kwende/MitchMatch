@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace challenge
 {
@@ -15,6 +16,7 @@ namespace challenge
 
         static void Main(string[] args)
         {
+
             // Load Data
             var lines = FileManager.GetLines();
             var allData = lines.Skip(1).Where(l => l != ",,,,,,,,,,,,,,,,,,").Select(l => FileManager.ParseRow(l)).ToArray();
@@ -23,6 +25,12 @@ namespace challenge
 
             // Clean Data
             DataCleaningManager.CleanData(ref allData, realData);
+
+            FastBKTreeGrouper fastBKTreeGrouper = new FastBKTreeGrouper();
+            var matchObject = fastBKTreeGrouper.EditDistanceAtMostN(allData, d => d.ADDRESS1, 2);
+            var serialized = Serialize(matchObject);
+            System.IO.File.WriteAllText(@"C:\Users\jbrownkramer\Desktop\addressMatchObject.xml", serialized);
+
 
             // Load Data
             ClosedSets originalMatches = FileManager.LoadOriginalMatches(allData);
@@ -35,6 +43,21 @@ namespace challenge
             //FileManager.SaveFinalSubmission(newMatches.ClosedRowSets(), @"C:\Users\jbrownkramer\Desktop\submission.csv");
 
             Console.ReadLine();
+        }
+
+        public static T Deserialize<T>(string toDeserialize)
+        {
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
+            StringReader textReader = new StringReader(toDeserialize);
+            return (T)xmlSerializer.Deserialize(textReader);
+        }
+
+        public static string Serialize<T>(T toSerialize)
+        {
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
+            StringWriter textWriter = new StringWriter();
+            xmlSerializer.Serialize(textWriter, toSerialize);
+            return textWriter.ToString();
         }
 
         private static List<List<Row>> ComputeDifference(ClosedSets originalMatches, ClosedSets newMatches)
