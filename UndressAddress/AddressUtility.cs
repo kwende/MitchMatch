@@ -57,7 +57,7 @@ namespace UndressAddress
             string[] bits = DecisionTreeLearner.Data.DataLoader.SmartSplit(input);
             string inputAddress1 = bits[Address1Column];
 
-            ret.Original = inputAddress1;
+            ret.RawAddress1 = inputAddress1;
 
             if (inputAddress1.Length > 0)
             {
@@ -161,8 +161,12 @@ namespace UndressAddress
                     // Remove RST from ending of numbers. 
                     inputAddress1 = Regex.Replace(inputAddress1, @" (\d+)(RST) ", " $1 ");
 
-                    // BKLYN to BROOKLYN
-                    inputAddress1.Replace(" BKLYN ", " BROOKLYN ");
+                    // generic abbreviations. 
+                    foreach (KeyValuePair<string, string> pair in data.Abbreviations)
+                    {
+                        inputAddress1 = inputAddress1.Replace(" " + pair.Key + " ", " " + pair.Value + " ");
+                    }
+
                     #endregion
 
                     string[] inputAddress1Bits = inputAddress1.Split(' ');
@@ -236,9 +240,9 @@ namespace UndressAddress
                     }
 
                     #endregion
-                }
 
-                ret.MatchQuality = MatchQuality.NotMatched;
+                    ret.MatchQuality = MatchQuality.NotMatched;
+                }
             }
 
             return ret;

@@ -14,5 +14,6 @@ namespace UndressAddress.DataTypes
         public string[] NewYorkStateStreetNames { get; set; }
         public string[] UnknownAddresses { get; set; }
         public string[] HomelessAddresses { get; set; }
+        public Dictionary<string, string> Abbreviations { get; set; }
     }
 }

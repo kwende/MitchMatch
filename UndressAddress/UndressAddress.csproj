@@ -71,6 +71,7 @@
     <Compile Include="DataTypes\StateOfNewYorkAddressRange.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="allStreets.csv">
@@ -101,6 +102,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Abbreviations.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SuffixReplacementKey.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

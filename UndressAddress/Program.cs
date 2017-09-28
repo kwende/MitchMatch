@@ -37,14 +37,24 @@ namespace UndressAddress
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
 
-            // add all the streetNames
-            List<string> uniques = new List<string>();
-            uniques.AddRange(data.NewYorkStateStreetNames);
+            // precompute these strings because otherwise we compute them in a for() loop and 
+            // string.concat() becomes a wasteful operation. 
+            List<string> streetNameSubStrings = new List<string>();
+            streetNameSubStrings.AddRange(data.NewYorkStateStreetNames.Select(n => " " + n + " "));
+            List<string> streetNameEndsWith = new List<string>();
+            streetNameEndsWith.AddRange(data.NewYorkStateStreetNames.Select(n => " " + n));
+            List<string> streetNames = new List<string>();
+            streetNames.AddRange(data.NewYorkStateStreetNames);
 
             // create lists to store exact, no match and near matches. 
-            List<string> exactMatchesFound = new List<string>();
+            //List<string> exactMatchesFound = new List<string>();
+            //List<string> notMatched = new List<string>();
+            //List<string> notMatchedButFormatIsGood = new List<string>();
+
+            List<string> unknown = new List<string>();
             List<string> notMatched = new List<string>();
-            List<string> notMatchedButFormatIsGood = new List<string>();
+            List<string> homeless = new List<string>();
+            List<string> streetMatched = new List<string>();
 
             // counter variables. 
             int exactMatches = 0;
@@ -54,8 +64,8 @@ namespace UndressAddress
             DateTime lastTime = DateTime.Now;
             List<double> timeSpans = new List<double>();
             // go over each line in the final data set. 
-            //for (int c = 0; c < finalDataSetLines.Length; c++)
-            Parallel.For(1, data.FinalDataSet.Length, c =>
+            //for (int c = 0; c < data.FinalDataSet.Length; c++)
+            Parallel.For(0, data.FinalDataSet.Length, c =>
             {
                 #region DebuggingOutput
                 // debugging purposes. 
@@ -85,6 +95,57 @@ namespace UndressAddress
                 #endregion
 
                 Address address = AddressUtility.InitializeAddress(data.FinalDataSet[c], data);
+
+                if (address.MatchQuality == MatchQuality.NotMatched)
+                {
+                    string address1 = address.StreetName + " " + address.Suffix;
+                    string matched = "";
+                    // look for street name matching. 
+
+                    const int MinimumLengthForEditDistance1ToStillCount = 7;
+
+                    for (int e = 0; e < streetNameSubStrings.Count; e++)
+                    {
+                        string streetName = streetNames[e];
+                        if ((address1 == streetName ||
+                            StringUtility.Contains(address1, streetNameSubStrings[e]) ||
+                            StringUtility.EndsWith(address1, streetNameEndsWith[e])) && streetName.Length > matched.Length)
+                        {
+                            matched = streetName;
+                            address.MatchQuality = MatchQuality.StreetMatched;
+                        }
+                    }
+
+                    if (address.MatchQuality == MatchQuality.StreetMatched)
+                    {
+                        lock (streetMatched)
+                        {
+                            streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                        }
+                    }
+                }
+
+                if (address.MatchQuality == MatchQuality.Homeless)
+                {
+                    lock (homeless)
+                    {
+                        homeless.Add(address.RawAddress1);
+                    }
+                }
+                else if (address.MatchQuality == MatchQuality.Unknown)
+                {
+                    lock (unknown)
+                    {
+                        unknown.Add(address.RawAddress1);
+                    }
+                }
+                else if (address.MatchQuality == MatchQuality.NotMatched)
+                {
+                    lock (notMatched)
+                    {
+                        notMatched.Add(address.RawAddress1);
+                    }
+                }
 
                 //// is there an address left? 
                 //if (address1.Length != 0)
@@ -151,27 +212,35 @@ namespace UndressAddress
                 //}
             });
 
-            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/matched.txt"))
+            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/homeless.txt"))
             {
-                for (int c = 0; c < exactMatchesFound.Count; c++)
+                for (int c = 0; c < homeless.Count; c++)
                 {
-                    fout.WriteLine(exactMatchesFound[c]);
+                    fout.WriteLine(homeless[c]);
                 }
             }
 
-            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/notmatchedButFormatIsGood.txt"))
+            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/unknown.txt"))
             {
-                for (int c = 0; c < notMatchedButFormatIsGood.Count; c++)
+                for (int c = 0; c < unknown.Count; c++)
                 {
-                    fout.WriteLine(notMatchedButFormatIsGood[c]);
+                    fout.WriteLine(unknown[c]);
                 }
             }
 
-            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/notmatched.txt"))
+            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/notMatched.txt"))
             {
                 for (int c = 0; c < notMatched.Count; c++)
                 {
                     fout.WriteLine(notMatched[c]);
+                }
+            }
+
+            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/streetMatched.txt"))
+            {
+                for (int c = 0; c < streetMatched.Count; c++)
+                {
+                    fout.WriteLine(streetMatched[c]);
                 }
             }
 
@@ -362,7 +431,29 @@ namespace UndressAddress
             //return;
 
 
+
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
+            //for (int c = 0; c < 1000000; c++)
+            //{
+            //    StringUtility.Contains("Hello World", " Worl");
+            //}
+            //sw.Stop();
+
+            //Stopwatch sw2 = new Stopwatch();
+            //sw2.Start();
+            //for (int c = 0; c < 1000000; c++)
+            //{
+            //    "Hello World".Contains(" Worl");
+            //}
+            //sw2.Stop();
+
+            //Console.WriteLine($"{sw.ElapsedMilliseconds}, {sw2.ElapsedMilliseconds}");
+            //return;
+
             GetCleanedNYStreetList2();
+
+            return;
         }
     }
 }

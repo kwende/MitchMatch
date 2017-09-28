@@ -131,6 +131,14 @@ namespace UndressAddress
             data.UnknownAddresses = File.ReadAllLines("UnknownAddresses.csv");
             data.HomelessAddresses = File.ReadAllLines("HomelessAddresses.csv");
 
+            data.Abbreviations = new Dictionary<string, string>();
+            string[] nameValuePairs = File.ReadAllLines("Abbreviations.txt");
+            foreach (string nameValuePair in nameValuePairs)
+            {
+                string[] bits = nameValuePair.Split(',').Select(n => n.Trim()).ToArray();
+                data.Abbreviations.Add(bits[0], bits[1]);
+            }
+
             return data;
         }
     }

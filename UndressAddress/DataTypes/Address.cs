@@ -15,7 +15,7 @@ namespace UndressAddress.DataTypes
         public int? Zip { get; set; }
         public string City { get; set; }
         public string Other { get; set; }
-        public string Original { get; set; }
+        public string RawAddress1 { get; set; }
         public MatchQuality MatchQuality { get; set; }
     }
 }
