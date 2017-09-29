@@ -103,7 +103,6 @@ namespace UndressAddress
                     // look for street name matching. 
 
                     const int MinimumLengthForEditDistance1ToStillCount = 7;
-
                     for (int e = 0; e < streetNameSubStrings.Count; e++)
                     {
                         string streetName = streetNames[e];
