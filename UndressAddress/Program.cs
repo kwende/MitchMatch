@@ -21,7 +21,7 @@ namespace UndressAddress
             double tmp;
             return double.TryParse(input, out tmp);
         }
-        static string CleanAddress(string inputAddress1, List<NewYorkCityAddress> fullAddresses)
+        static string CleanAddress(string inputAddress1, string[] shortSuffixes, string[] longSuffixes)
         {
             inputAddress1 = inputAddress1.Replace("  ", " ");
 
@@ -93,25 +93,16 @@ namespace UndressAddress
             // BKLYN to BROOKLYN
             inputAddress1.Replace(" BKLYN ", " BROOKLYN ");
 
-            Match streetWithPossibleCardinal = Regex.Match(inputAddress1, @"(\d+) ([A-Z]+) (\d+) ([A-Z]+)");
-            if (streetWithPossibleCardinal.Groups.Count == 5)
+            // Effectively remove APT 13
+            inputAddress1 = Regex.Replace(inputAddress1, @" (APT|APARTMENT) (\d+) ", " ");
+
+            // Replace long suffix with short. 
+            for (int c = 0; c < longSuffixes.Length; c++)
             {
-                string possibleCardinal = streetWithPossibleCardinal.Groups[2].Value;
-                if (EditDistance.Compute(possibleCardinal, "WEST") == 1)
+                if (inputAddress1.EndsWith(" " + longSuffixes[c]))
                 {
-                    return inputAddress1;
-                }
-                if (EditDistance.Compute(possibleCardinal, "EAST") == 1)
-                {
-                    return inputAddress1;
-                }
-                if (EditDistance.Compute(possibleCardinal, "NORTH") == 1)
-                {
-                    return inputAddress1;
-                }
-                if (EditDistance.Compute(possibleCardinal, "SOUTH") == 1)
-                {
-                    return inputAddress1;
+                    int lastIndex = inputAddress1.LastIndexOf(" " + longSuffixes[c]);
+                    inputAddress1 = inputAddress1.Substring(0, lastIndex) + " " + shortSuffixes[c];
                 }
             }
 
@@ -127,7 +118,7 @@ namespace UndressAddress
         {
             // read from all the necessary files
             string[] streetSuffixLines = File.ReadAllLines("StreetSuffixes.csv");
-            string[] finalDataSetLines = File.ReadAllLines("c:/users/ben/desktop/finaldataset.csv").Where(n => n.Contains(" EST ")).ToArray();
+            string[] finalDataSetLines = File.ReadAllLines("c:/users/ben/desktop/finaldataset.csv");
             //string[] finalDataSetLines = File.ReadAllLines("c:/users/brush/desktop/notmatchedButFormatIsGood2.txt");
             string[] newYorkStateStreetLines = File.ReadAllLines("allStreets.csv").Select(n => n.Split(',')[0].Trim()).ToArray();
 
@@ -225,7 +216,7 @@ namespace UndressAddress
                 string[] parts = DataLoader.SmartSplit(finalDataSetLines[c]);
                 //parts[8] = "219 E121 ST";
                 string address1Raw = parts[8];
-                string address1 = CleanAddress(address1Raw, fullAddresses);
+                string address1 = CleanAddress(address1Raw, longSuffixes, shortSuffixes);
 
                 // is there an address left? 
                 if (address1.Length != 0)
