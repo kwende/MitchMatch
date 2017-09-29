@@ -61,6 +61,8 @@ namespace UndressAddress
             int nonZeroAddress1 = 0;
             int iterations = 0;
 
+            List<string> cleanedAddresses = new List<string>();
+
             DateTime lastTime = DateTime.Now;
             List<double> timeSpans = new List<double>();
             // go over each line in the final data set. 
@@ -96,55 +98,55 @@ namespace UndressAddress
 
                 Address address = AddressUtility.InitializeAddress(data.FinalDataSet[c], data);
 
-                if (address.MatchQuality == MatchQuality.NotMatched)
-                {
-                    string address1 = address.StreetName + " " + address.Suffix;
-                    string matched = "";
-                    // look for street name matching. 
+                //if (address.MatchQuality == MatchQuality.NotMatched)
+                //{
+                //    string address1 = address.StreetName + " " + address.Suffix;
+                //    string matched = "";
+                //    // look for street name matching. 
 
-                    const int MinimumLengthForEditDistance1ToStillCount = 7;
-                    for (int e = 0; e < streetNameSubStrings.Count; e++)
-                    {
-                        string streetName = streetNames[e];
-                        if ((address1 == streetName ||
-                            StringUtility.Contains(address1, streetNameSubStrings[e]) ||
-                            StringUtility.EndsWith(address1, streetNameEndsWith[e])) && streetName.Length > matched.Length)
-                        {
-                            matched = streetName;
-                            address.MatchQuality = MatchQuality.StreetMatched;
-                        }
-                    }
+                //    const int MinimumLengthForEditDistance1ToStillCount = 7;
+                //    for (int e = 0; e < streetNameSubStrings.Count; e++)
+                //    {
+                //        string streetName = streetNames[e];
+                //        if ((address1 == streetName ||
+                //            StringUtility.Contains(address1, streetNameSubStrings[e]) ||
+                //            StringUtility.EndsWith(address1, streetNameEndsWith[e])) && streetName.Length > matched.Length)
+                //        {
+                //            matched = streetName;
+                //            address.MatchQuality = MatchQuality.StreetMatched;
+                //        }
+                //    }
 
-                    if (address.MatchQuality == MatchQuality.StreetMatched)
-                    {
-                        lock (streetMatched)
-                        {
-                            streetMatched.Add($"{address.RawAddress1}=>{matched}");
-                        }
-                    }
-                }
+                //    if (address.MatchQuality == MatchQuality.StreetMatched)
+                //    {
+                //        lock (streetMatched)
+                //        {
+                //            streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                //        }
+                //    }
+                //}
 
-                if (address.MatchQuality == MatchQuality.Homeless)
-                {
-                    lock (homeless)
-                    {
-                        homeless.Add(address.RawAddress1);
-                    }
-                }
-                else if (address.MatchQuality == MatchQuality.Unknown)
-                {
-                    lock (unknown)
-                    {
-                        unknown.Add(address.RawAddress1);
-                    }
-                }
-                else if (address.MatchQuality == MatchQuality.NotMatched)
-                {
-                    lock (notMatched)
-                    {
-                        notMatched.Add(address.RawAddress1);
-                    }
-                }
+                //if (address.MatchQuality == MatchQuality.Homeless)
+                //{
+                //    lock (homeless)
+                //    {
+                //        homeless.Add(address.RawAddress1);
+                //    }
+                //}
+                //else if (address.MatchQuality == MatchQuality.Unknown)
+                //{
+                //    lock (unknown)
+                //    {
+                //        unknown.Add(address.RawAddress1);
+                //    }
+                //}
+                //else if (address.MatchQuality == MatchQuality.NotMatched)
+                //{
+                //    lock (notMatched)
+                //    {
+                //        notMatched.Add(address.RawAddress1);
+                //    }
+                //}
 
                 //// is there an address left? 
                 //if (address1.Length != 0)
@@ -247,108 +249,15 @@ namespace UndressAddress
 
             return null;
         }
-        static string FindBestMatchedStreetNameWithinEditDistance(string streetName, Data data)
+
+        static challenge.Matches FuzzyMatchStreetNames(string[] rows, string[] truth)
         {
-            string ret = "";
+            return challenge.FastEditDistanceGrouper.EditDistanceAtMostN(rows, truth, 1);
+        }
 
-            // right now it simply returns the first street which is within edit distance
-            // and so it breaks out early. later might consider a bet heuristic on top of edit distance 
-            // to break ties. 
-            const int MaximumLengthOfPortionToExamineForEditDistance = 5;
-
-            Match match = Regex.Match(streetName.Replace("'", ""), @"(\d+) ([A-Z ]+) ([A-Z]+)");
-            if (match.Groups[2].Value.Length >= MaximumLengthOfPortionToExamineForEditDistance)
-            {
-                if (match != null && match.Groups.Count == 4)
-                {
-                    string portionToExamine = match.Groups[2].Value;
-                    string possibleSuffix = match.Groups[3].Value;
-
-                    // look at the possible suffix. if it's a short variant, replace with long variant. 
-                    bool correctedSuffix = false;
-                    for (int c = 0; c < data.Suffixes.ShortSuffixes.Length; c++)
-                    {
-                        if (data.Suffixes.ShortSuffixes[c] == possibleSuffix ||
-                            data.Suffixes.LongSuffixes[c] == possibleSuffix)
-                        {
-                            portionToExamine += " " + data.Suffixes.LongSuffixes[c];
-                            correctedSuffix = true;
-                            break;
-                        }
-                    }
-
-                    // if we didn't auto correct the suffix, then just glom it back on. 
-                    // it was either a part of the street name or was already a long suffix
-                    // or some other variation. 
-                    if (!correctedSuffix)
-                    {
-                        portionToExamine += " " + possibleSuffix;
-                    }
-
-                    // look for the closest possible match
-                    foreach (string newYorkStateStreeName in data.NewYorkStateStreetNames)
-                    {
-                        // limit to the portion without the suffix. 
-                        int distance = EditDistance.Compute(portionToExamine, newYorkStateStreeName);
-                        if (distance == 1)
-                        {
-                            // match found. replace "portion to example" above (which is group 2 + 3). 
-                            ret = match.Groups[1] + " " + newYorkStateStreeName;
-                            break;
-                        }
-                        else if (distance == 2)
-                        {
-                            // are letters/numbers just permuted? 
-                            string longestString = "", shortestString = "";
-
-                            // find the longest string. 
-                            if (portionToExamine.Length > newYorkStateStreeName.Length)
-                            {
-                                longestString = portionToExamine;
-                                shortestString = newYorkStateStreeName;
-                            }
-                            else
-                            {
-                                longestString = newYorkStateStreeName;
-                                shortestString = portionToExamine;
-                            }
-
-                            // examine each character of the longest string. 
-                            bool justPermutation = false;
-                            for (int c = 0; c < longestString.Length; c++)
-                            {
-                                char toFind = longestString[c];
-                                bool found = false;
-                                // does it exist in the shortest string? 
-                                for (int d = 0; d < shortestString.Length; d++)
-                                {
-                                    if (shortestString[d] == longestString[c])
-                                    {
-                                        found = true;
-                                        break;
-                                    }
-                                }
-                                if (!found)
-                                {
-                                    // if it doesn't exist, then this isn't acceptable. 
-                                    justPermutation = false;
-                                    break;
-                                }
-                            }
-
-                            // if letters/numbers are just shuffled around, then be okay with distance 2. 
-                            if (justPermutation)
-                            {
-                                ret = match.Groups[1] + " " + newYorkStateStreeName;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            return ret;
+        static challenge.Matches FuzzyMatchStreetNames2(string[] rows, string[] truth)
+        {
+            return challenge.FastBKTreeGrouper.EditDistanceAtMostN(rows, truth, 1);
         }
 
         static void Main(string[] args)

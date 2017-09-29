@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace challenge
 {
-    class FastEditDistanceGrouper : FastAbstractGrouper
+    public class FastEditDistanceGrouper : FastAbstractGrouper
     {
         public override Matches EditDistanceAtMostN(string[] strings, int n)
         {
@@ -69,8 +69,7 @@ namespace challenge
         /// <returns></returns>
         public static Matches EditDistanceAtMostN(string[] S, string[] T, int n)
         {
-            int totalGraphSize = S.Length + T.Length;
-            Matches toReturn = new Matches(totalGraphSize);
+            Matches toReturn = new Matches(S.Length);
 
             Console.WriteLine("Creating the neighborhoods");
             List<BipartiteEditDistanceMatchObject> neighborHood = new List<BipartiteEditDistanceMatchObject>();
@@ -89,7 +88,7 @@ namespace challenge
             for (int i = 0; i < T.Length; i++)
             {
                 Console.Write($"\r{c++}/{T.Length} T neighborhoods computed");
-                var withoutParts = DeleteN(T[i], i + S.Length, n);
+                var withoutParts = DeleteN(T[i], i, n);
                 foreach (var edmo in withoutParts)
                 {
                     neighborHood.Add(new BipartiteEditDistanceMatchObject { EditDistanceMatchObject = edmo, Part = 1 });
@@ -114,14 +113,14 @@ namespace challenge
                 {
                     foreach(var s in groupS)
                         foreach(var t in groupT)
-                            toReturn.AddMatch(s.Index, t.Index);
+                            toReturn.AddDirectedMatch(s.Index, t.Index);
                 }
                 else
                 {
                     foreach (var s in groupS)
                         foreach (var t in groupT)
                             if (EditDistance(s, t) <= n)
-                                toReturn.AddMatch(s.Index, t.Index);
+                                toReturn.AddDirectedMatch(s.Index, t.Index);
                 }
             }
             Console.WriteLine();
@@ -337,6 +336,11 @@ namespace challenge
         {
             _matchArray[i].Add(j);
             _matchArray[j].Add(i);
+        }
+
+        public void AddDirectedMatch(int i, int j)
+        {
+            _matchArray[i].Add(j);
         }
 
         public bool HasMatch(int i, int j)

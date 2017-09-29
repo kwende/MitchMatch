@@ -10,38 +10,40 @@ namespace challenge
     {
         public override Matches EditDistanceAtMostN(string[] strings, int n)
         {
-            Matches toReturn = new Matches(strings.Length);
+            return EditDistanceAtMostN(strings, strings, n);
+        }
+
+        public static Matches EditDistanceAtMostN(string[] S, string[] T, int n)
+        {
+            Matches toReturn = new Matches(S.Length);
 
             //Create BKTree
-            var bkTree = BKTreeEngine.CreateBKTree(strings.ToList());
+            var bkTree = BKTreeEngine.CreateBKTree(S.ToList());
 
             //Create lookup table
             Dictionary<string, int> stringToInt = new Dictionary<string, int>();
-            for(int i = 0; i < strings.Length; i++)
+            for (int i = 0; i < S.Length; i++)
             {
-                stringToInt[strings[i]] = i;
+                stringToInt[S[i]] = i;
             }
 
             int c = 0;
             object cLock = new object();
             object matchLock = new object();
-            Parallel.For(0, strings.Length, i =>
+            Parallel.For(0, T.Length, j =>
             {
                 lock (cLock)
                 {
-                    Console.Write($"\r{c++}/{strings.Length}");
+                    Console.Write($"\r{c++}/{T.Length}");
                 }
 
-                var neighbors = BKTreeEngine.EditDistanceAtMostN(strings[i], bkTree, 2);
-                foreach(var neighbor in neighbors)
+                var neighbors = BKTreeEngine.EditDistanceAtMostN(T[j], bkTree, n);
+                foreach (var neighbor in neighbors)
                 {
-                    int j = stringToInt[neighbor];
-                    if (i <= j)
+                    int i = stringToInt[neighbor];
+                    lock (cLock)
                     {
-                        lock (cLock)
-                        {
-                            toReturn.AddMatch(i, j);
-                        }
+                        toReturn.AddDirectedMatch(i, j);
                     }
                 }
             }
