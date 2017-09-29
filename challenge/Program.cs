@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -26,12 +27,6 @@ namespace challenge
             // Clean Data
             DataCleaningManager.CleanData(ref allData, realData);
 
-            FastBKTreeGrouper fastBKTreeGrouper = new FastBKTreeGrouper();
-            var matchObject = fastBKTreeGrouper.EditDistanceAtMostN(allData, d => d.ADDRESS1, 2);
-            var serialized = Serialize(matchObject);
-            System.IO.File.WriteAllText(@"C:\Users\jbrownkramer\Desktop\addressMatchObject.xml", serialized);
-
-
             // Load Data
             ClosedSets originalMatches = FileManager.LoadOriginalMatches(allData);
             ClosedSets newMatches = FileManager.LoadOriginalMatches(allData); // create a copy to edit
@@ -45,19 +40,22 @@ namespace challenge
             Console.ReadLine();
         }
 
-        public static T Deserialize<T>(string toDeserialize)
+        public static T Deserialize<T>(string filePath)
         {
-            XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
-            StringReader textReader = new StringReader(toDeserialize);
-            return (T)xmlSerializer.Deserialize(textReader);
+            BinaryFormatter formatter = new BinaryFormatter();
+            using (FileStream fstream = new FileStream(filePath, FileMode.Open))
+            {
+                return (T)formatter.Deserialize(fstream);
+            }
         }
 
-        public static string Serialize<T>(T toSerialize)
+        public static void Serialize<T>(T toSerialize, string filePath)
         {
-            XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
-            StringWriter textWriter = new StringWriter();
-            xmlSerializer.Serialize(textWriter, toSerialize);
-            return textWriter.ToString();
+            BinaryFormatter formatter = new BinaryFormatter();
+            using (FileStream fstream = new FileStream(filePath, FileMode.Create))
+            {
+                formatter.Serialize(fstream, toSerialize);
+            }
         }
 
         private static List<List<Row>> ComputeDifference(ClosedSets originalMatches, ClosedSets newMatches)

@@ -281,6 +281,7 @@ namespace challenge
         public int Part { get; set; }
     }
 
+    [Serializable]
     public class RowMatchObject
     {
         public Matches Matches { get; set; }
@@ -288,10 +289,10 @@ namespace challenge
         public List<int>[] IndexToEids { get; set; }
     }
 
+    [Serializable]
     public class Matches
     {
         private List<int>[] _matchArray;
-
 
         public Matches(int n)
         {
