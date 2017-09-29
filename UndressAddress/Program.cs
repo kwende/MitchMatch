@@ -98,55 +98,55 @@ namespace UndressAddress
 
                 Address address = AddressUtility.InitializeAddress(data.FinalDataSet[c], data);
 
-                //if (address.MatchQuality == MatchQuality.NotMatched)
-                //{
-                //    string address1 = address.StreetName + " " + address.Suffix;
-                //    string matched = "";
-                //    // look for street name matching. 
+                if (address.MatchQuality == MatchQuality.NotMatched)
+                {
+                    string address1 = address.StreetName + " " + address.Suffix;
+                    string matched = "";
+                    // look for street name matching. 
 
-                //    const int MinimumLengthForEditDistance1ToStillCount = 7;
-                //    for (int e = 0; e < streetNameSubStrings.Count; e++)
-                //    {
-                //        string streetName = streetNames[e];
-                //        if ((address1 == streetName ||
-                //            StringUtility.Contains(address1, streetNameSubStrings[e]) ||
-                //            StringUtility.EndsWith(address1, streetNameEndsWith[e])) && streetName.Length > matched.Length)
-                //        {
-                //            matched = streetName;
-                //            address.MatchQuality = MatchQuality.StreetMatched;
-                //        }
-                //    }
+                    const int MinimumLengthForEditDistance1ToStillCount = 7;
+                    for (int e = 0; e < streetNameSubStrings.Count; e++)
+                    {
+                        string streetName = streetNames[e];
+                        if ((address1 == streetName ||
+                            StringUtility.Contains(address1, streetNameSubStrings[e]) ||
+                            StringUtility.EndsWith(address1, streetNameEndsWith[e])) && streetName.Length > matched.Length)
+                        {
+                            matched = streetName;
+                            address.MatchQuality = MatchQuality.StreetMatched;
+                        }
+                    }
 
-                //    if (address.MatchQuality == MatchQuality.StreetMatched)
-                //    {
-                //        lock (streetMatched)
-                //        {
-                //            streetMatched.Add($"{address.RawAddress1}=>{matched}");
-                //        }
-                //    }
-                //}
+                    if (address.MatchQuality == MatchQuality.StreetMatched)
+                    {
+                        lock (streetMatched)
+                        {
+                            streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                        }
+                    }
+                }
 
-                //if (address.MatchQuality == MatchQuality.Homeless)
-                //{
-                //    lock (homeless)
-                //    {
-                //        homeless.Add(address.RawAddress1);
-                //    }
-                //}
-                //else if (address.MatchQuality == MatchQuality.Unknown)
-                //{
-                //    lock (unknown)
-                //    {
-                //        unknown.Add(address.RawAddress1);
-                //    }
-                //}
-                //else if (address.MatchQuality == MatchQuality.NotMatched)
-                //{
-                //    lock (notMatched)
-                //    {
-                //        notMatched.Add(address.RawAddress1);
-                //    }
-                //}
+                if (address.MatchQuality == MatchQuality.Homeless)
+                {
+                    lock (homeless)
+                    {
+                        homeless.Add(address.RawAddress1);
+                    }
+                }
+                else if (address.MatchQuality == MatchQuality.Unknown)
+                {
+                    lock (unknown)
+                    {
+                        unknown.Add(address.RawAddress1);
+                    }
+                }
+                else if (address.MatchQuality == MatchQuality.NotMatched)
+                {
+                    lock (notMatched)
+                    {
+                        notMatched.Add(address.RawAddress1);
+                    }
+                }
 
                 //// is there an address left? 
                 //if (address1.Length != 0)
