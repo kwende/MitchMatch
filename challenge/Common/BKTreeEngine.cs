@@ -10,7 +10,9 @@ namespace challenge
     {
         public static BKTree CreateBKTree(List<string> strings)
         {
-            return CreateBKTree(strings, 0, strings.Count);
+            var toReturn = CreateBKTree(strings, 0, strings.Count);
+            Console.WriteLine();
+            return toReturn;
         }
 
         private static BKTree CreateBKTree(List<string> strings, int inserted, int originalStringCount)
@@ -27,7 +29,7 @@ namespace challenge
             int rootIndex = r.Next(strings.Count());
             string rootString = strings[rootIndex];
             BKTree toReturn = new BKTree();
-            toReturn.Root = rootString;
+            toReturn.StringValue = rootString;
             Console.Write($"\r{++inserted}/{originalStringCount} strings added to BK tree");
 
             for (int i = 0; i < strings.Count; i++)
@@ -66,17 +68,40 @@ namespace challenge
             if (bkTree == null)
                 return toReturn;
 
-            int d = EditDistance.Compute(s, bkTree.Root);
+            int d = EditDistance.Compute(s, bkTree.StringValue);
             if (d <= n)
-                toReturn.Add(bkTree.Root);
+            {
+                toReturn.Add(bkTree.StringValue);
+                int maxIndex = System.Math.Min(n - d, bkTree.Children.Length - 1);
+                for(int i = 0; i <= maxIndex; i++)
+                {
+                    toReturn.AddRange(AllChildren(bkTree.Children[i]));
+                }
+            }
 
 
-            int start = System.Math.Max(0, d - n);
+
+
+            int start = System.Math.Max(System.Math.Max(0, d - n), n - d + 1);
             int end = System.Math.Min(d + n, bkTree.Children.Length - 1);
 
             for(int i = start; i <= end; i++)
             {
                 toReturn.AddRange(EditDistanceAtMostN(s, bkTree.Children[i], n));
+            }
+
+            return toReturn;
+        }
+
+        public static List<string> AllChildren(BKTree tree)
+        {
+            if (tree == null)
+                return new List<string>();
+
+            List<string> toReturn = new List<string> { tree.StringValue };
+            for(int i = 0; i < tree.Children.Length; i++)
+            {
+                toReturn.AddRange(AllChildren(tree.Children[i]));
             }
 
             return toReturn;
@@ -90,7 +115,7 @@ namespace challenge
 
     public class BKTree
     {
-        public string Root;
+        public string StringValue;
         public BKTree[] Children;
     }
 }
