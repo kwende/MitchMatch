@@ -110,7 +110,8 @@ namespace UndressAddress
                         string streetName = streetNames[e];
                         if ((address1 == streetName ||
                             StringUtility.Contains(address1, streetNameSubStrings[e]) ||
-                            StringUtility.EndsWith(address1, streetNameEndsWith[e])) && streetName.Length > matched.Length)
+                            StringUtility.EndsWith(address1, streetNameEndsWith[e]) ||
+                            (address1.Length >= 7 && StringUtility.IsDistance1OrLessApart(address1, streetName)) && streetName.Length > matched.Length))
                         {
                             matched = streetName;
                             address.MatchQuality = MatchQuality.StreetMatched;
