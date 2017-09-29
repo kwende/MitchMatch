@@ -90,15 +90,14 @@ namespace UndressAddress
             if (Environment.UserName.Contains("brush"))
             {
                 data.FinalDataSet = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
-                string[] newYorkCityAddresses = File.ReadAllLines("c:/users/brush/desktop/city_of_new_york.csv").Skip(1).ToArray();
-                data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
             }
             else
             {
                 data.FinalDataSet = File.ReadAllLines("c:/users/ben/desktop/finaldataset.csv");
-                string[] newYorkCityAddresses = File.ReadAllLines("c:/users/ben/desktop/city_of_new_york.csv").Skip(1).ToArray();
-                data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
             }
+
+            string[] newYorkCityAddresses = File.ReadAllLines("city_of_new_york.csv").Skip(1).ToArray();
+            data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
 
             List<string> uniques = File.ReadAllLines("allStreets.csv").ToList();
 
