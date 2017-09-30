@@ -10,48 +10,53 @@ namespace UndressAddress
     {
         public static bool IsDistance1OrLessApart(string stringA, string stringB)
         {
-            string longerString = stringA, shorterString = stringB;
-            bool differentLengths = false;
-            if (stringA.Length != stringB.Length)
+            bool editDistance1Apart = false;
+            if (System.Math.Abs(stringA.Length - stringB.Length) <= 1)
             {
-                if (stringB.Length > stringA.Length)
+                string longerString = stringA, shorterString = stringB;
+                bool differentLengths = false;
+                if (stringA.Length != stringB.Length)
                 {
-                    longerString = stringB;
-                    shorterString = stringA;
-                }
-                differentLengths = true;
-            }
-
-            bool editDistance1Apart = true;
-            int dingCount = 0;
-            for (int longerIndex = 0, shorterIndex = 0;
-                shorterIndex < shorterString.Length && longerIndex < longerString.Length;)
-            {
-                if (longerString[longerIndex] != shorterString[shorterIndex])
-                {
-                    if (differentLengths)
+                    if (stringB.Length > stringA.Length)
                     {
-                        longerIndex++;
+                        longerString = stringB;
+                        shorterString = stringA;
+                    }
+                    differentLengths = true;
+                }
+
+                editDistance1Apart = true;
+                int dingCount = 0;
+                for (int longerIndex = 0, shorterIndex = 0;
+                    shorterIndex < shorterString.Length && longerIndex < longerString.Length;)
+                {
+                    if (longerString[longerIndex] != shorterString[shorterIndex])
+                    {
+                        if (differentLengths)
+                        {
+                            longerIndex++;
+                        }
+                        else
+                        {
+                            longerIndex++;
+                            shorterIndex++;
+                        }
+                        dingCount++;
                     }
                     else
                     {
                         longerIndex++;
                         shorterIndex++;
                     }
-                    dingCount++;
-                }
-                else
-                {
-                    longerIndex++;
-                    shorterIndex++;
-                }
 
-                if (dingCount > 1)
-                {
-                    editDistance1Apart = false;
-                    break;
+                    if (dingCount > 1)
+                    {
+                        editDistance1Apart = false;
+                        break;
+                    }
                 }
             }
+
 
             return editDistance1Apart;
         }

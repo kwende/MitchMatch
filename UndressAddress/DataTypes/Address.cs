@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace UndressAddress.DataTypes
 {
-    public class Address    
+    public class Address
     {
         public string ApartmentNumber { get; set; }
         public string StreetName { get; set; }
@@ -17,5 +17,11 @@ namespace UndressAddress.DataTypes
         public string Other { get; set; }
         public string RawAddress1 { get; set; }
         public MatchQuality MatchQuality { get; set; }
+        public bool StreetNameIsNumber { get; set; }
+
+        public override string ToString()
+        {
+            return $"Apartment#: {ApartmentNumber}, StreetName: {StreetName}, StreetNumber: {StreetNumber}, ZIP: {Zip}, City: {City}";
+        }
     }
 }
