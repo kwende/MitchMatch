@@ -138,6 +138,13 @@ namespace UndressAddress
                 data.Abbreviations.Add(bits[0], bits[1]);
             }
 
+            nameValuePairs = File.ReadAllLines("SuffixReplacementKey.txt");
+            foreach (string nameValuePair in nameValuePairs)
+            {
+                string[] bits = nameValuePair.Split(',').Select(n => n.Trim()).ToArray();
+                data.SuffixReplacementKey.Add(bits[0], bits[1]);
+            }
+
             return data;
         }
     }

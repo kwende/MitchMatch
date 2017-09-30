@@ -202,34 +202,43 @@ namespace UndressAddress
                         #region SuffixNormalization
                         string possibleSuffix = inputAddress1Bits[inputAddress1Bits.Length - 1];
                         string confirmedSuffix = null;
-                        for (int c = 0; c < data.Suffixes.LongSuffixes.Length; c++)
+
+                        // is this a known bad suffix? 
+                        if (data.SuffixReplacementKey.ContainsKey(possibleSuffix))
                         {
-                            string longSuffix = data.Suffixes.LongSuffixes[c];
-                            if (possibleSuffix == longSuffix)
-                            {
-                                confirmedSuffix = longSuffix;
-                                break;
-                            }
-                            else if (longSuffix.Length >= 4 && EditDistance.Compute(possibleSuffix, longSuffix) == 1)
-                            {
-                                confirmedSuffix = longSuffix;
-                                break;
-                            }
+                            // yes, replace
+                            confirmedSuffix = data.SuffixReplacementKey[possibleSuffix];
                         }
 
+                        // did we replace above? 
                         if (confirmedSuffix == null)
                         {
-                            for (int c = 0; c < data.Suffixes.ShortSuffixes.Length; c++)
+                            // no, so look for this suffix. 
+                            for (int c = 0; c < data.Suffixes.LongSuffixes.Length; c++)
                             {
-                                string shortSuffix = data.Suffixes.ShortSuffixes[c];
-
-                                if (possibleSuffix == shortSuffix)
+                                string longSuffix = data.Suffixes.LongSuffixes[c];
+                                if (possibleSuffix == longSuffix)
                                 {
-                                    confirmedSuffix = data.Suffixes.LongSuffixes[c];
+                                    confirmedSuffix = longSuffix;
                                     break;
                                 }
                             }
+
+                            if (confirmedSuffix == null)
+                            {
+                                for (int c = 0; c < data.Suffixes.ShortSuffixes.Length; c++)
+                                {
+                                    string shortSuffix = data.Suffixes.ShortSuffixes[c];
+
+                                    if (possibleSuffix == shortSuffix)
+                                    {
+                                        confirmedSuffix = data.Suffixes.LongSuffixes[c];
+                                        break;
+                                    }
+                                }
+                            }
                         }
+
                         ret.Suffix = confirmedSuffix;
                         if (confirmedSuffix != null && inputAddress1.Length > 0)
                         {
