@@ -114,7 +114,7 @@ namespace UndressAddress
 
                         // separate the East/West portion from the street number. 
                         // Ex: "460 E46 STREET"
-                        inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (N|S|W|E)(\d+) \b", "$1 $2 $3 ");
+                        inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (N|S|W|E)(\d+)", "$1 $2 $3");
 
                         // split apart the N/S/E/W if catenated to number. 
                         // Ex: 219E 121
