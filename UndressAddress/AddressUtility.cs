@@ -105,9 +105,6 @@ namespace UndressAddress
                         // replace multiple spaces with one. 
                         inputAddress1 = Regex.Replace(inputAddress1, " +", " ");
 
-                        // remove periods
-                        inputAddress1 = inputAddress1.Replace(".", "");
-
                         // remove the suffix at the end of 1st or 2nd or 3rd, etc. 
                         inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)(ST|ND|RD|TH)", "$1");
                         inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (ST|ND|RD|TH) ", " $1 ");
@@ -126,6 +123,9 @@ namespace UndressAddress
 
                         // 1668 W.6 ST
                         inputAddress1 = Regex.Replace(inputAddress1, @" (E|W|N|S)\.(\d+) ", " $1 $2 ");
+
+                        // remove periods
+                        inputAddress1 = inputAddress1.Replace(".", "");
 
                         // replace N/S/E/W with the appropriate cardinal if put at end. 
                         // Ex: "31 W MOSHOLU PRKWY N"

@@ -21,7 +21,7 @@ namespace UndressAddress.DataTypes
 
         public override string ToString()
         {
-            return $"Apartment#: {ApartmentNumber}, StreetName: {StreetName}, StreetNumber: {StreetNumber}, ZIP: {Zip}, City: {City}";
+            return $"Apartment#: {ApartmentNumber}, StreetName: {StreetName}, StreetNumber: {StreetNumber}, Suffix {Suffix}";
         }
     }
 }
