@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,8 +17,8 @@ namespace challenge
         static void Main(string[] args)
         {
             // Load Data
-            var lines = FileManager.GetLines();
-            var allData = lines.Skip(1).Where(l => l != ",,,,,,,,,,,,,,,,,,").Select(l => FileManager.ParseRow(l)).ToArray();
+            var lines = FileLibrary.GetLines();
+            var allData = lines.Skip(1).Where(l => l != ",,,,,,,,,,,,,,,,,,").Select(l => FileLibrary.ParseRow(l)).ToArray();
             var realData = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
 
 
@@ -25,8 +26,8 @@ namespace challenge
             DataCleaningManager.CleanData(ref allData, realData);
 
             // Load Data
-            ClosedSets originalMatches = FileManager.LoadOriginalMatches(allData);
-            ClosedSets newMatches = FileManager.LoadOriginalMatches(allData); // create a copy to edit
+            ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
+            ClosedSets newMatches = FileLibrary.LoadOriginalMatches(allData); // create a copy to edit
 
             // Match Data
             MatchingManager matchingManager = new MatchingManager(_printErrors, _printActuals, _printLargeGroupValues);

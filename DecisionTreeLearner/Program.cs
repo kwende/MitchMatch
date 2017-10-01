@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DecisionTreeLearner.Tree;
 using DecisionTreeLearner.DataTypes.MySQL;
-using DecisionTreeLearner.ForJosh;
 
 namespace DecisionTreeLearner
 {
@@ -119,12 +118,6 @@ namespace DecisionTreeLearner
 
             Console.WriteLine($"Whole operation took {sw.ElapsedMilliseconds / 1000.0 / 60.0} minutes");
         }
-
-        static void DoJoshInThe(List<List<int>> butt)
-        {
-            AutoPasser.DoIt(butt);
-        }
-
 
         static void Main(string[] args)
         {

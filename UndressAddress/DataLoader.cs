@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -87,19 +88,9 @@ namespace UndressAddress
             data.Suffixes.ShortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
             data.Suffixes.LongSuffixes = streetSuffixLines.Select(n => n.Split(',')[0]).ToArray();
 
-            if (Environment.UserName.Contains("brush"))
-            {
-                data.FinalDataSet = File.ReadAllLines("c:/users/brush/desktop/finaldataset.csv");
-                string[] newYorkCityAddresses = File.ReadAllLines("c:/users/brush/desktop/city_of_new_york.csv").Skip(1).ToArray();
-                data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
-            }
-            else
-            {
-                data.FinalDataSet = File.ReadAllLines("c:/users/ben/desktop/finaldataset.csv");
-                string[] newYorkCityAddresses = File.ReadAllLines("c:/users/ben/desktop/city_of_new_york.csv").Skip(1).ToArray();
-                data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
-            }
-
+            data.FinalDataSet = FileLibrary.GetLines().ToArray();
+            string[] newYorkCityAddresses = FileLibrary.GetNewYorkCityAddresses();
+            data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
             List<string> uniques = File.ReadAllLines("allStreets.csv").ToList();
 
             // go through and identify each street with a long suffix. 

@@ -51,12 +51,12 @@ namespace UndressAddress
             ret.MatchQuality = MatchQuality.Unknown;
 
             const int Address1Column = 8;
+            const int Address2Column = 9;
             const int ZipColumn = 10;
             const int CityColumn = 13;
 
             string[] bits = DecisionTreeLearner.Data.DataLoader.SmartSplit(input);
             string inputAddress1 = bits[Address1Column];
-
             ret.RawAddress1 = inputAddress1;
 
             if (inputAddress1.Length > 0)
@@ -76,13 +76,20 @@ namespace UndressAddress
 
                 if (!identifiedAsHomelessOrUnknown)
                 {
-                    foreach (string unknownAddress in data.UnknownAddresses)
+                    if (inputAddress1 == "UNKN3146 86TH STREE")
                     {
-                        if (inputAddress1.StartsWith(unknownAddress))
+                        inputAddress1 = "3146 86 ST";
+                    }
+                    else
+                    {
+                        foreach (string unknownAddress in data.UnknownAddresses)
                         {
-                            ret.MatchQuality = MatchQuality.Unknown;
-                            identifiedAsHomelessOrUnknown = true;
-                            break;
+                            if (inputAddress1.StartsWith(unknownAddress))
+                            {
+                                ret.MatchQuality = MatchQuality.Unknown;
+                                identifiedAsHomelessOrUnknown = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -232,13 +239,21 @@ namespace UndressAddress
                     #region ApartmentNumber
 
                     // this matching is kind of ... well, not great. I'd like to see examples. I'm not sure if want
-                    // to blindly take the text proceeding 'apartment' to just be the apartment number. maybe we do? 
+                    // to blindly take the text succeeding 'apartment' to just be the apartment number. maybe we do? 
                     Match apartmentNumberMatch = Regex.Match(inputAddress1, @" (APT|APARTMENT) ([0-9]+[A-Z]) ");
                     if (apartmentNumberMatch.Groups.Count == 3) // this is odd, always +1 the Number of matches. Groups[0] is the original string. 
                     {
                         ret.ApartmentNumber = apartmentNumberMatch.Groups[2].Value;
                     }
-
+                    else
+                    {
+                        string inputAddress2 = bits[Address2Column];
+                        if (inputAddress2.Length <= 3)
+                        {
+                            // Call these apartment numbers 
+                            ret.ApartmentNumber = inputAddress2;
+                        }
+                    }
                     #endregion
 
                     ret.MatchQuality = MatchQuality.NotMatched;

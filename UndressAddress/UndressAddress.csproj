@@ -96,6 +96,10 @@
       <Project>{28561ecc-5344-480e-baf0-f9f99a51802d}</Project>
       <Name>challenge</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{18e1c345-c049-4cb7-b1e7-83ec63266fc9}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DecisionTreeLearner\DecisionTreeLearner.csproj">
       <Project>{544315a6-dc64-4d04-992b-df44fdde97b9}</Project>
       <Name>DecisionTreeLearner</Name>
