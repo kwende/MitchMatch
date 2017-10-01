@@ -139,10 +139,14 @@ namespace UndressAddress
             }
 
             nameValuePairs = File.ReadAllLines("SuffixReplacementKey.txt");
+            data.SuffixReplacementKey = new Dictionary<string, string>();
             foreach (string nameValuePair in nameValuePairs)
             {
                 string[] bits = nameValuePair.Split(',').Select(n => n.Trim()).ToArray();
-                data.SuffixReplacementKey.Add(bits[0], bits[1]);
+                if (!data.SuffixReplacementKey.ContainsKey(bits[0]))
+                {
+                    data.SuffixReplacementKey.Add(bits[0], bits[1]);
+                }
             }
 
             return data;

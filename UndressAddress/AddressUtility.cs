@@ -105,6 +105,9 @@ namespace UndressAddress
                         // replace multiple spaces with one. 
                         inputAddress1 = Regex.Replace(inputAddress1, " +", " ");
 
+                        // 190E17ST
+                        inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)([A-Z]+)(\d+)", "$1 $2 $3");
+
                         // remove the suffix at the end of 1st or 2nd or 3rd, etc. 
                         inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)(ST|ND|RD|TH)", "$1");
                         inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (ST|ND|RD|TH) ", " $1 ");
@@ -115,7 +118,7 @@ namespace UndressAddress
 
                         // split apart the N/S/E/W if catenated to number. 
                         // Ex: 219E 121
-                        inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+)(N|S|E|W) ", "$1 $2");
+                        inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+)(N|S|E|W) ", "$1 $2 ");
 
                         // split up addresses that are stuck together. 
                         // Ex: 543 W180THST
@@ -123,6 +126,7 @@ namespace UndressAddress
 
                         // 1668 W.6 ST
                         inputAddress1 = Regex.Replace(inputAddress1, @" (E|W|N|S)\.(\d+) ", " $1 $2 ");
+
 
                         // remove periods
                         inputAddress1 = inputAddress1.Replace(".", "");
@@ -280,6 +284,7 @@ namespace UndressAddress
                         if (match.Success)
                         {
                             ret.StreetName = match.Groups[2].Value;
+                            ret.StreetName.Trim(); 
                         }
                         //}
 

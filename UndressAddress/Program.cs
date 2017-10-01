@@ -36,7 +36,7 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains(",219 E121ST")).Take(1).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("2780 GRANDCONCOURSE")).Take(1).ToArray();
 
             // precompute these strings because otherwise we compute them in a for() loop and 
             // string.concat() becomes a wasteful operation. 
@@ -101,7 +101,11 @@ namespace UndressAddress
 
                 if (address.MatchQuality == MatchQuality.NotMatched)
                 {
-                    string address1 = address.StreetName + " " + address.Suffix;
+                    string address1 = address.StreetName;
+                    if (!string.IsNullOrEmpty(address.Suffix))
+                    {
+                        address1 += " " + address.Suffix;
+                    }
                     string matched = "";
                     // look for street name matching. 
 
@@ -265,6 +269,9 @@ namespace UndressAddress
 
         static void Main(string[] args)
         {
+            int edit = EditDistance.Compute("GRANDCONCOURSE", "GRAND CONCOURSE");
+            bool yes = StringUtility.IsDistance1OrLessApart("GRANDCONCOURSE", "GRAND CONCOURSE");
+
             GetCleanedNYStreetList2();
 
             return;
