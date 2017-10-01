@@ -15,5 +15,6 @@ namespace UndressAddress.DataTypes
         public string[] UnknownAddresses { get; set; }
         public string[] HomelessAddresses { get; set; }
         public Dictionary<string, string> Abbreviations { get; set; }
+        public Dictionary<string, string> SuffixReplacementKey { get; set; }
     }
 }

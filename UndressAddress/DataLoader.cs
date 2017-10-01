@@ -89,8 +89,9 @@ namespace UndressAddress
             data.Suffixes.LongSuffixes = streetSuffixLines.Select(n => n.Split(',')[0]).ToArray();
 
             data.FinalDataSet = FileLibrary.GetLines().ToArray();
-            string[] newYorkCityAddresses = FileLibrary.GetNewYorkCityAddresses();
+            string[] newYorkCityAddresses = File.ReadAllLines("city_of_new_york.csv").Skip(1).ToArray();
             data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
+
             List<string> uniques = File.ReadAllLines("allStreets.csv").ToList();
 
             // go through and identify each street with a long suffix. 
@@ -128,6 +129,17 @@ namespace UndressAddress
             {
                 string[] bits = nameValuePair.Split(',').Select(n => n.Trim()).ToArray();
                 data.Abbreviations.Add(bits[0], bits[1]);
+            }
+
+            nameValuePairs = File.ReadAllLines("SuffixReplacementKey.txt");
+            data.SuffixReplacementKey = new Dictionary<string, string>();
+            foreach (string nameValuePair in nameValuePairs)
+            {
+                string[] bits = nameValuePair.Split(',').Select(n => n.Trim()).ToArray();
+                if (!data.SuffixReplacementKey.ContainsKey(bits[0]))
+                {
+                    data.SuffixReplacementKey.Add(bits[0], bits[1]);
+                }
             }
 
             return data;

@@ -78,6 +78,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />
+    <None Include="city_of_new_york.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="HomelessAddresses.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

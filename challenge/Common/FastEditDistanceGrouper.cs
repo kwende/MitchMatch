@@ -8,58 +8,9 @@ using System.Threading.Tasks;
 
 namespace challenge
 {
-    static class FastEditDistanceGrouper
+    public class FastEditDistanceGrouper : FastAbstractGrouper
     {
-        public static RowMatchObject EditDistanceAtMostN(Row[] data, Func<Row, string> fieldSelector, int n)
-        {
-            //Start by grouping the data into fields
-            Console.WriteLine("Grouping By Field Value");
-            Dictionary<string, List<Row>> rowsByFieldValue = new Dictionary<string, List<Row>>();
-            foreach (var d in data)
-            {
-                string field = fieldSelector(d);
-                if (field == "")
-                    continue;
-                if (!rowsByFieldValue.ContainsKey(field))
-                    rowsByFieldValue[field] = new List<Row>();
-
-                rowsByFieldValue[field].Add(d);
-            }
-
-            var strings = rowsByFieldValue.Select(p => p.Key).ToArray();
-            var stringMatches = EditDistanceAtMostN(strings, n);
-
-            Console.WriteLine("Creating EID <=> Index Maps");
-            int[] eidToIndex = new int[data.Max(d => d.EnterpriseID) + 1];
-            for (int i = 0; i < eidToIndex.Length; i++)
-                eidToIndex[i] = -1;
-            int groupIndex = 0;
-            List<int>[] indexToEids = new List<int>[rowsByFieldValue.Count()];
-            foreach (var pair in rowsByFieldValue)
-            {
-                foreach(var row in pair.Value)
-                    eidToIndex[row.EnterpriseID] = groupIndex;
-
-                indexToEids[groupIndex] = pair.Value.Select(r => r.EnterpriseID).ToList();
-                groupIndex++;
-            }
-
-
-            List<Row>[] rowsWithThisField = new List<Row>[strings.Length];
-            for (int i = 0; i < strings.Length; i++)
-                rowsWithThisField[i] = rowsByFieldValue[strings[i]];
-
-            RowMatchObject toReturn = new RowMatchObject
-            {
-                Matches = stringMatches,
-                EidToIndex = eidToIndex,
-                IndexToEids = indexToEids
-            };
-
-            return toReturn;
-        }
-
-        public static Matches EditDistanceAtMostN(string[] strings, int n)
+        public override Matches EditDistanceAtMostN(string[] strings, int n)
         {
             Matches toReturn = new Matches(strings.Count());
             //Every string matches itself
@@ -119,8 +70,7 @@ namespace challenge
         /// <returns></returns>
         public static Matches EditDistanceAtMostN(string[] S, string[] T, int n)
         {
-            int totalGraphSize = S.Length + T.Length;
-            Matches toReturn = new Matches(totalGraphSize);
+            Matches toReturn = new Matches(S.Length);
 
             Console.WriteLine("Creating the neighborhoods");
             List<BipartiteEditDistanceMatchObject> neighborHood = new List<BipartiteEditDistanceMatchObject>();
@@ -139,7 +89,7 @@ namespace challenge
             for (int i = 0; i < T.Length; i++)
             {
                 Console.Write($"\r{c++}/{T.Length} T neighborhoods computed");
-                var withoutParts = DeleteN(T[i], i + S.Length, n);
+                var withoutParts = DeleteN(T[i], i, n);
                 foreach (var edmo in withoutParts)
                 {
                     neighborHood.Add(new BipartiteEditDistanceMatchObject { EditDistanceMatchObject = edmo, Part = 1 });
@@ -164,14 +114,14 @@ namespace challenge
                 {
                     foreach(var s in groupS)
                         foreach(var t in groupT)
-                            toReturn.AddMatch(s.Index, t.Index);
+                            toReturn.AddDirectedMatch(s.Index, t.Index);
                 }
                 else
                 {
                     foreach (var s in groupS)
                         foreach (var t in groupT)
                             if (EditDistance(s, t) <= n)
-                                toReturn.AddMatch(s.Index, t.Index);
+                                toReturn.AddDirectedMatch(s.Index, t.Index);
                 }
             }
             Console.WriteLine();
@@ -331,6 +281,7 @@ namespace challenge
         public int Part { get; set; }
     }
 
+    [Serializable]
     public class RowMatchObject
     {
         public Matches Matches { get; set; }
@@ -338,10 +289,10 @@ namespace challenge
         public List<int>[] IndexToEids { get; set; }
     }
 
+    [Serializable]
     public class Matches
     {
         private List<int>[] _matchArray;
-
 
         public Matches(int n)
         {
@@ -386,6 +337,11 @@ namespace challenge
         {
             _matchArray[i].Add(j);
             _matchArray[j].Add(i);
+        }
+
+        public void AddDirectedMatch(int i, int j)
+        {
+            _matchArray[i].Add(j);
         }
 
         public bool HasMatch(int i, int j)

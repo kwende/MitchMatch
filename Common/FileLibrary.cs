@@ -35,32 +35,6 @@ namespace Common
             return lines;
         }
 
-        public static string[] GetNewYorkCityAddresses()
-        {
-            IEnumerable<string> lines = new string[0];
-            if (Environment.UserName.Contains("brush"))
-            {
-                lines = File.ReadAllLines("c:/users/brush/desktop/city_of_new_york.csv").Skip(1);
-            }
-            else if (Environment.UserName.ToLower().Contains("ben"))
-            {
-                lines = File.ReadAllLines("c:/users/ben/desktop/city_of_new_york.csv").Skip(1);
-            }
-            else if (Environment.UserName.ToLower().Contains("sabalka"))
-            {
-
-            }
-            else if (Environment.UserName.ToLower().Contains("jbrownkramer") ||
-                Environment.UserName.ToLower().Contains("josh"))
-            {
-
-            }
-
-
-
-            return lines.ToArray();
-        }
-
         static int ParseInt(string s)
         {
             string digits = "";
