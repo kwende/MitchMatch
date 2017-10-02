@@ -187,6 +187,14 @@ namespace UndressAddress
                 }
             });
 
+            using (StreamWriter fout = File.CreateText("streetMatched.txt"))
+            {
+                for (int c = 0; c < streetMatched.Count; c++)
+                {
+                    fout.WriteLine(streetMatched[c]);
+                }
+            }
+
             using (StreamWriter fout = File.CreateText("fullAddressMatched.txt"))
             {
                 for (int c = 0; c < fullAddressMatched.Count; c++)

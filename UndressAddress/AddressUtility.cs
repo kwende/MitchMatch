@@ -49,25 +49,28 @@ namespace UndressAddress
         {
             bool identifiedAsHomelessOrUnknown = false;
 
-            foreach (string homelessAddress in data.HomelessAddresses)
-            {
-                if (inputAddress1.StartsWith(homelessAddress))
-                {
-                    return MatchQuality.Homeless;
-                }
-            }
             if (inputAddress1 != "UNKN3146 86TH STREE")
             {
-                if (!identifiedAsHomelessOrUnknown)
+                foreach (string unknownAddress in data.UnknownAddresses)
                 {
-                    foreach (string unknownAddress in data.UnknownAddresses)
+                    if (inputAddress1.StartsWith(unknownAddress))
                     {
-                        if (inputAddress1.StartsWith(unknownAddress))
-                        {
-                            return MatchQuality.Unknown;
-                        }
+                        return MatchQuality.Unknown;
                     }
                 }
+                if (inputAddress1 == "UN" || Regex.IsMatch(inputAddress1, "^[A-Z]00000"))
+                {
+                    return MatchQuality.Unknown;
+                }
+                foreach (string homelessAddress in data.HomelessAddresses)
+                {
+                    if (inputAddress1.StartsWith(homelessAddress))
+                    {
+                        return MatchQuality.Homeless;
+                    }
+                }
+
+
             }
 
             return MatchQuality.NotMatched;
@@ -118,6 +121,18 @@ namespace UndressAddress
                 ret.City = bits[CityColumn];
 
 
+                // replace multiple spaces with one.
+                inputAddress1 = Regex.Replace(inputAddress1, " +", " ");
+
+                // remove periods and other punctuation
+                inputAddress1 = inputAddress1.Replace(".", "");
+                inputAddress1 = inputAddress1.Replace("]", " ");
+                inputAddress1 = inputAddress1.Replace("`", " ");
+                inputAddress1 = inputAddress1.Replace("'", " ");
+                inputAddress1 = inputAddress1.Replace(":", " ");
+                inputAddress1 = inputAddress1.Replace("~", " ");
+                inputAddress1 = inputAddress1.Trim();
+
                 if (inputAddress1 == "")
                 {
                     ret.MatchQuality = MatchQuality.Unknown;
@@ -132,12 +147,6 @@ namespace UndressAddress
                     {
 
                         #region GenericStringCleaning
-                        // replace multiple spaces with one.
-                        inputAddress1 = Regex.Replace(inputAddress1, " +", " ");
-
-                        // remove periods
-                        inputAddress1 = inputAddress1.Replace(".", "");
-
                         // Put spaces between numbers and letters
                         inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)([A-Z]+)", "$1 $2");
                         inputAddress1 = Regex.Replace(inputAddress1, @"([A-Z]+)(\d+)", "$1 $2");
