@@ -51,6 +51,7 @@ namespace UndressAddress
             List<string> homeless = new List<string>();
             List<string> streetMatched = new List<string>();
             List<string> fullAddressMatched = new List<string>();
+            List<string> couldNotParse = new List<string>();
 
             // counter variables. 
             int iterations = 0;
@@ -185,6 +186,13 @@ namespace UndressAddress
                         notMatched.Add($"{address.RawAddress1}");
                     }
                 }
+                else if (address.MatchQuality == MatchQuality.CouldNotParseFormat)
+                {
+                    lock (couldNotParse)
+                    {
+                        couldNotParse.Add($"{address.RawAddress1}");
+                    }
+                }
             });
 
             using (StreamWriter fout = File.CreateText("streetMatched.txt"))
@@ -224,6 +232,14 @@ namespace UndressAddress
                 for (int c = 0; c < notMatched.Count; c++)
                 {
                     fout.WriteLine(notMatched[c]);
+                }
+            }
+
+            using (StreamWriter fout = File.CreateText("couldNotParse.txt"))
+            {
+                for (int c = 0; c < couldNotParse.Count; c++)
+                {
+                    fout.WriteLine(couldNotParse[c]);
                 }
             }
 

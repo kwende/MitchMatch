@@ -352,13 +352,9 @@ namespace UndressAddress
                         #endregion
 
 
-                        if (ret.MatchQuality == MatchQuality.NotMatched)
+                        if (ret.MatchQuality == MatchQuality.NotMatched && string.IsNullOrEmpty(ret.StreetName))
                         {
-                            ret.MatchQuality = (string.IsNullOrEmpty(ret.StreetName)) ? MatchQuality.NotMatched : MatchQuality.FullAddressMatched;
-                            if (ret.MatchQuality == MatchQuality.NotMatched)
-                            {
-                                ret.StreetName = inputAddress1;
-                            }
+                            ret.MatchQuality = MatchQuality.CouldNotParseFormat;
                         }
                     }
                     if (print)

@@ -13,5 +13,6 @@ namespace UndressAddress.DataTypes
         NotMatched = 2,
         StreetMatched = 3,
         FullAddressMatched = 4,
+        CouldNotParseFormat = 5,
     }
 }
