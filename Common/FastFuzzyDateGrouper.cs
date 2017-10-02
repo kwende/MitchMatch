@@ -24,7 +24,7 @@ namespace Common
                 var groupArray = group.ToArray();
 
                 for (int i = 0; i < groupArray.Length; i++)
-                    for (int j = i + 1; j < groupArray.Length; j++)
+                    for (int j = i; j < groupArray.Length; j++)
                         toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
             }
 
