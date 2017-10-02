@@ -6,8 +6,29 @@ using System.Threading.Tasks;
 
 namespace challenge.Common
 {
-    public static class FastFuzzyDateGrouper
+    public class FastFuzzyDateGrouper : FastAbstractGrouper
     {
+        public override Matches EditDistanceAtMostN(string[] strings, int n)
+        {
+            DateTime[] dates = strings.Select(s => DateTime.Parse(s)).ToArray();
+
+            Matches toReturn = new Matches(dates.Length);
+
+            var dateIndices = dates.Select((d, i) => new DateIndex { Date = d, Index = i }).ToArray();
+
+            //First matches that require year
+            //Day month transpositions
+            var groupedByYearAndNormalizedDateTime = dateIndices.GroupBy(d => System.Math.Min(d.Date.Day,d.Date.Month) + "/" + System.Math.Max(d.Date.Day, d.Date.Month)+ "/" + d.Date.Year);
+            foreach (var group in groupedByYearAndNormalizedDateTime)
+            {
+                var groupArray = group.ToArray();
+
+                for (int i = 0; i < groupArray.Length; i++)
+                    for (int j = i + 1; j < groupArray.Length; j++)
+                        toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
+            }
+        }
+
         //RowMatchObject 
 
         //Duplicating this:
@@ -60,7 +81,7 @@ namespace challenge.Common
         //    //Off by one day
         //    if (d < daysInMonth) toReturn.Add(new DateTime(y, m, d + 1));
         //    if (d > 1) toReturn.Add(new DateTime(y, m, d - 1));
-            
+
         //}
 
         //static List<int> OffByOneDigit(int n)
