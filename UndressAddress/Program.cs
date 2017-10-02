@@ -34,7 +34,7 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("903 MYRTLE AVE 2FL,")).Take(1).ToArray();
+            data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("2156 LINDEN BLVD,")).Take(1).ToArray();
 
             // precompute these strings because otherwise we compute them in a for() loop and 
             // string.concat() becomes a wasteful operation. 
@@ -119,7 +119,7 @@ namespace UndressAddress
                                 StringUtility.Contains(address1, streetNameSubStrings[e]) ||
                                 StringUtility.EndsWith(address1, streetNameEndsWith[e]) ||
                                 (!address.StreetNameIsNumber && address1.Length >= MinimumLengthForEditDistance1ToStillCount &&
-                                    StringUtility.IsDistance1OrLessApart(address1, streetName)) && streetName.Length > matched.Length))
+                                    StringUtility.IsDistance1OrLessApart(address1, streetName))) && streetName.Length > matched.Length)
                             {
                                 matched = streetName;
                                 address.MatchQuality = MatchQuality.StreetMatched;
