@@ -1,47 +1,14 @@
-﻿using challenge;
-using Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace challenge
+namespace Common
 {
     public class EditDistance
     {
-        public static void WriteWorstToDisk<T>(List<IGrouping<T, Row>> groups, Row[] data, string outputFile, double threshold)
-        {
-            List<Tuple<double, int, int>> tuples = ErrorScrubber.ReturnMaxErrorForMatchedGroups<T>(groups);
-
-            using (StreamWriter sw = File.CreateText(outputFile))
-            {
-                foreach (Tuple<double, int, int> tuple in tuples)
-                {
-                    if (tuple.Item1 > threshold)
-                    {
-                        sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item2).First().ToString());
-                        sw.WriteLine(data.Where(n => n.EnterpriseID == tuple.Item3).First().ToString());
-                        sw.WriteLine();
-                    }
-                }
-            }
-        }
-
-        public static void GenerateScatterPlot<T>(List<IGrouping<T, Row>> groups, Row[] data, string outputFile)
-        {
-            List<Tuple<double, int, int>> tuples = ErrorScrubber.ReturnMaxErrorForMatchedGroups<T>(groups);
-
-            using (StreamWriter sw = File.CreateText(outputFile))
-            {
-                foreach (Tuple<double, int, int> tuple in tuples)
-                {
-                    sw.WriteLine($"{tuple.Item2},{tuple.Item3},{tuple.Item1}");
-                }
-            }
-        }
-
         public static double ComputeDistanceForRecordPair(Row row1, Row row2)
         {
             double distance1 = ComputeNormalized(row1.LAST, row2.LAST);

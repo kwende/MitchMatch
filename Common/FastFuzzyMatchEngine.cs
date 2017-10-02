@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace challenge.Common
+namespace Common
 {
     public class FastFuzzyMatchEngine
     {

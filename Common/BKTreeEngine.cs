@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace challenge
+namespace Common
 {
     public class BKTreeEngine
     {
@@ -55,7 +55,7 @@ namespace challenge
 
             for (int i = 0; i <= maxIndex; i++)
             {
-                toReturn.Children[i] = CreateBKTree(buckets[i],inserted,originalStringCount);
+                toReturn.Children[i] = CreateBKTree(buckets[i], inserted, originalStringCount);
                 inserted += buckets[i].Count;
             }
 
@@ -74,7 +74,7 @@ namespace challenge
             {
                 toReturn.Add(bkTree.StringValue);
                 int maxIndex = System.Math.Min(n - d, bkTree.Children.Length - 1);
-                for(int i = 0; i <= maxIndex; i++)
+                for (int i = 0; i <= maxIndex; i++)
                 {
                     toReturn.AddRange(AllChildren(bkTree.Children[i]));
                 }
@@ -86,7 +86,7 @@ namespace challenge
             int start = System.Math.Max(System.Math.Max(0, d - n), n - d + 1);
             int end = System.Math.Min(d + n, bkTree.Children.Length - 1);
 
-            for(int i = start; i <= end; i++)
+            for (int i = start; i <= end; i++)
             {
                 toReturn.AddRange(EditDistanceAtMostN(s, bkTree.Children[i], n));
             }
@@ -100,7 +100,7 @@ namespace challenge
                 return new List<string>();
 
             List<string> toReturn = new List<string> { tree.StringValue };
-            for(int i = 0; i < tree.Children.Length; i++)
+            for (int i = 0; i < tree.Children.Length; i++)
             {
                 toReturn.AddRange(AllChildren(tree.Children[i]));
             }

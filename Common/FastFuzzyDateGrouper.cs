@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace challenge.Common
+namespace Common
 {
     public static class FastFuzzyDateGrouper
     {
@@ -60,7 +60,7 @@ namespace challenge.Common
         //    //Off by one day
         //    if (d < daysInMonth) toReturn.Add(new DateTime(y, m, d + 1));
         //    if (d > 1) toReturn.Add(new DateTime(y, m, d - 1));
-            
+
         //}
 
         //static List<int> OffByOneDigit(int n)

@@ -1,5 +1,4 @@
-﻿using DecisionTreeLearner.Data;
-using DecisionTreeLearner.NLP;
+﻿using Common;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +6,6 @@ using System.Data.OleDb;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -52,10 +50,8 @@ namespace UndressAddress
             List<string> notMatched = new List<string>();
             List<string> homeless = new List<string>();
             List<string> streetMatched = new List<string>();
-
+            List<string> exactMatches = new List<string>();
             // counter variables. 
-            int exactMatches = 0;
-            int nonZeroAddress1 = 0;
             int iterations = 0;
 
             List<string> cleanedAddresses = new List<string>();
@@ -69,25 +65,25 @@ namespace UndressAddress
                 #region DebuggingOutput
                 // debugging purposes. 
                 Interlocked.Increment(ref iterations);
-                if (iterations % 1000 == 0)
+                if (iterations % 100000 == 0)
                 {
                     DateTime now = DateTime.Now;
                     double millisecondsSinceLast = (now - lastTime).TotalMilliseconds;
                     timeSpans.Add(millisecondsSinceLast);
 
-                    double averageTimeFor1000 = timeSpans.Average();
-                    double numberOf1000sLeft = (data.FinalDataSet.Length - iterations) / 1000.0f;
+                    double averageTime = timeSpans.Average();
+                    double numberOfChecksLeft = (data.FinalDataSet.Length - iterations) / 10000.0f;
 
-                    double hoursLeft = (averageTimeFor1000 * numberOf1000sLeft) / 1000.0f / 60.0f / 60.0f;
+                    double hoursLeft = (averageTime * numberOfChecksLeft) / 1000.0f / 60.0f / 60.0f;
 
                     if (timeSpans.Count > 100)
                     {
                         timeSpans.RemoveAt(0);
                     }
 
-                    double percentage = (exactMatches / (iterations * 1.0)) * 100;
+                    double percentage = ((exactMatches.Count + homeless.Count + unknown.Count + streetMatched.Count) / (iterations * 1.0)) * 100;
 
-                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}:{exactMatches}. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
+                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}:{exactMatches.Count}E {streetMatched.Count}S {homeless.Count}H {unknown.Count}U {notMatched.Count}N. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
 
                     lastTime = now;
                 }
@@ -98,33 +94,36 @@ namespace UndressAddress
                 if (address.MatchQuality == MatchQuality.NotMatched)
                 {
                     string address1 = address.StreetName;
-                    if (!string.IsNullOrEmpty(address.Suffix))
+                    if (address1 != null)
                     {
-                        address1 += " " + address.Suffix;
-                    }
-                    string matched = "";
-                    // look for street name matching. 
-
-                    const int MinimumLengthForEditDistance1ToStillCount = 7;
-                    for (int e = 0; e < streetNameSubStrings.Count; e++)
-                    {
-                        string streetName = streetNames[e];
-                        if ((address1 == streetName ||
-                            StringUtility.Contains(address1, streetNameSubStrings[e]) ||
-                            StringUtility.EndsWith(address1, streetNameEndsWith[e]) ||
-                            (!address.StreetNameIsNumber && address1.Length >= MinimumLengthForEditDistance1ToStillCount &&
-                                StringUtility.IsDistance1OrLessApart(address1, streetName)) && streetName.Length > matched.Length))
+                        if (!string.IsNullOrEmpty(address.Suffix))
                         {
-                            matched = streetName;
-                            address.MatchQuality = MatchQuality.StreetMatched;
+                            address1 += " " + address.Suffix;
                         }
-                    }
+                        string matched = "";
+                        // look for street name matching. 
 
-                    if (address.MatchQuality == MatchQuality.StreetMatched)
-                    {
-                        lock (streetMatched)
+                        const int MinimumLengthForEditDistance1ToStillCount = 7;
+                        for (int e = 0; e < streetNameSubStrings.Count; e++)
                         {
-                            streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                            string streetName = streetNames[e];
+                            if ((address1 == streetName ||
+                                StringUtility.Contains(address1, streetNameSubStrings[e]) ||
+                                StringUtility.EndsWith(address1, streetNameEndsWith[e]) ||
+                                (!address.StreetNameIsNumber && address1.Length >= MinimumLengthForEditDistance1ToStillCount &&
+                                    StringUtility.IsDistance1OrLessApart(address1, streetName)) && streetName.Length > matched.Length))
+                            {
+                                matched = streetName;
+                                address.MatchQuality = MatchQuality.StreetMatched;
+                            }
+                        }
+
+                        if (address.MatchQuality == MatchQuality.StreetMatched)
+                        {
+                            lock (streetMatched)
+                            {
+                                streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                            }
                         }
                     }
                 }
@@ -147,7 +146,14 @@ namespace UndressAddress
                 {
                     lock (notMatched)
                     {
-                        notMatched.Add($"{address.RawAddress1}=>'{address}'");
+                        notMatched.Add($"{address.RawAddress1}");
+                    }
+                }
+                else if (address.MatchQuality == MatchQuality.FullAddressMatched)
+                {
+                    lock(exactMatches)
+                    {
+                        exactMatches.Add($"{address.RawAddress1}=>{address}");
                     }
                 }
             });
@@ -160,27 +166,28 @@ namespace UndressAddress
                 }
             }
 
-            using (StreamWriter fout = File.CreateText("streetMatched.txt"))
+            using (StreamWriter fout = File.CreateText("fullAddressMatched.txt"))
             {
-                for (int c = 0; c < streetMatched.Count; c++)
+                for (int c = 0; c < exactMatches.Count; c++)
                 {
-                    fout.WriteLine(streetMatched[c]);
+                    fout.WriteLine(exactMatches[c]);
                 }
             }
 
-            Console.WriteLine($"Exact matches: {exactMatches}/{nonZeroAddress1}");
+            Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}:{exactMatches.Count}E {streetMatched.Count}S {homeless.Count}H {unknown.Count}U {notMatched.Count}N.");
+            Console.ReadLine();
 
             return null;
         }
 
-        static challenge.Matches FuzzyMatchStreetNames(string[] rows, string[] truth)
+        static Matches FuzzyMatchStreetNames(string[] rows, string[] truth)
         {
-            return challenge.FastEditDistanceGrouper.EditDistanceAtMostN(rows, truth, 1);
+            return FastEditDistanceGrouper.EditDistanceAtMostN(rows, truth, 1);
         }
 
-        static challenge.Matches FuzzyMatchStreetNames2(string[] rows, string[] truth)
+        static Matches FuzzyMatchStreetNames2(string[] rows, string[] truth)
         {
-            return challenge.FastBKTreeGrouper.EditDistanceAtMostN(rows, truth, 1);
+            return FastBKTreeGrouper.EditDistanceAtMostN(rows, truth, 1);
         }
 
         static void Main(string[] args)

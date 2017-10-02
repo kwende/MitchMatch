@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace challenge
+namespace Common
 {
     public class FastEditDistanceGrouper : FastAbstractGrouper
     {
@@ -81,7 +81,7 @@ namespace challenge
                 var withoutParts = DeleteN(S[i], i, n);
                 foreach (var edmo in withoutParts)
                 {
-                    neighborHood.Add(new BipartiteEditDistanceMatchObject {EditDistanceMatchObject = edmo, Part = 0 });
+                    neighborHood.Add(new BipartiteEditDistanceMatchObject { EditDistanceMatchObject = edmo, Part = 0 });
                 }
             }
 
@@ -112,8 +112,8 @@ namespace challenge
                 Console.Write($"\r{c++}/{grouped.Length} edit distance groups checked");
                 if (group.Key == "")  //In this case, both of the original strings had length at most n, so they have edit distance at most n.  We are probably avoiding a lot of work on a huge component by doing this
                 {
-                    foreach(var s in groupS)
-                        foreach(var t in groupT)
+                    foreach (var s in groupS)
+                        foreach (var t in groupT)
                             toReturn.AddDirectedMatch(s.Index, t.Index);
                 }
                 else
@@ -362,7 +362,7 @@ namespace challenge
         private List<string> AsLines()
         {
             List<string> toReturn = new List<string>();
-            foreach(var list in _matchArray)
+            foreach (var list in _matchArray)
             {
                 toReturn.Add(string.Join(",", list));
             }
