@@ -76,317 +76,365 @@ namespace UndressAddress
             return MatchQuality.NotMatched;
         }
 
+        public static Address HandleParticularlyProblematicStreets(Address address)
+        {
+            string streetName = address.StreetName;
+
+            if(!string.IsNullOrEmpty(streetName))
+            {
+                // grand concourse has been a bitch
+                Match weirdStreetMatch = Regex.Match(streetName, "GRAND ?CO[A-Z ]+");
+                if (weirdStreetMatch.Success)
+                {
+                    string toReplace = weirdStreetMatch.Value;
+                    streetName = streetName.Replace(toReplace, "GRAND CONCOURSE");
+
+                    // some people put AVENUE at the end
+                    address.Suffix = "";
+                }
+
+                // BROADWAY
+                weirdStreetMatch = Regex.Match(streetName, @"([A-Z]+)? (B[A-Z]+DWAY)$");
+                if (weirdStreetMatch.Success)
+                {
+                    if (weirdStreetMatch.Groups[1].Value != "")
+                    {
+                        streetName = $"{weirdStreetMatch.Groups[1].Value} BROADWAY";
+                    }
+                    else
+                    {
+                        streetName = "BROADWAY";
+                    }
+                }
+                address.StreetName = streetName;
+            }
+
+            return address;
+        }
+
         public static Address CheckForBuildingsAndCenters(Address input, Data data)
         {
             Address ret = input;
-            foreach (string knownCenter in data.KnownCenters.Keys)
+
+            // this could be done in a simple .Contains() function, but I think the diversity of the 
+            // way these buildings are spelled, etc. might require some regex for now. 
+            // we can revisit later. 
+
+            Match buildingMatch = Regex.Match(input.StreetName, @"^MABON ");
+            if (buildingMatch.Success)
             {
-                if (input.RawAddress1.Contains(knownCenter))
-                {
-                    ret = data.KnownCenters[knownCenter];
-                    ret.MatchQuality = MatchQuality.FullAddressMatched;
-                    break;
-                }
+                ret.StreetName = "MABON BUILDING 13 WARDS ISLAND";
+                ret.City = "NEW YORK";
+                ret.Zip = 10035;
             }
+
+            buildingMatch = Regex.Match(input.StreetName, @"METRO ?TECH");
+            if (buildingMatch.Success)
+            {
+                ret.StreetNumber = "9";
+                ret.StreetName = "METROTECH CENTER";
+                ret.City = "BROOKLYN";
+                ret.Zip = 11201;
+            }
+
+            //foreach (string knownCenter in data.KnownCenters.Keys)
+            //{
+            //    if (input.RawAddress1.Contains(knownCenter))
+            //    {
+            //        ret = data.KnownCenters[knownCenter];
+            //        ret.MatchQuality = MatchQuality.FullAddressMatched;
+            //        break;
+            //    }
+            //}
             return ret;
         }
 
         public static Address InitializeAddress(string input, Data data)
         {
-            try
+            //try
+            //{
+            bool print = false;
+
+            Address ret = new Address();
+            ret.MatchQuality = MatchQuality.NotMatched;
+
+            const int Address1Column = 8;
+            const int Address2Column = 9;
+            const int ZipColumn = 10;
+            const int CityColumn = 13;
+
+            string[] bits = DecisionTreeLearner.Data.DataLoader.SmartSplit(input);
+
+
+            // RawAddress1
+            string inputAddress1 = bits[Address1Column];
+            ret.RawAddress1 = inputAddress1;
+
+            // Zip/City
+            int possibleZip = 0;
+            if (int.TryParse(bits[ZipColumn], out possibleZip))
             {
-                bool print = false;
-
-                Address ret = new Address();
-                ret.MatchQuality = MatchQuality.NotMatched;
-
-                const int Address1Column = 8;
-                const int Address2Column = 9;
-                const int ZipColumn = 10;
-                const int CityColumn = 13;
-
-                string[] bits = DecisionTreeLearner.Data.DataLoader.SmartSplit(input);
+                ret.Zip = possibleZip;
+            }
+            ret.City = bits[CityColumn];
 
 
-                // RawAddress1
-                string inputAddress1 = bits[Address1Column];
-                ret.RawAddress1 = inputAddress1;
+            // replace multiple spaces with one.
+            inputAddress1 = Regex.Replace(inputAddress1, " + ", " ");
 
-                // Zip/City
-                int possibleZip = 0;
-                if (int.TryParse(bits[ZipColumn], out possibleZip))
+            // remove periods and other punctuation
+            inputAddress1 = inputAddress1.Replace(".", "");
+            inputAddress1 = inputAddress1.Replace("]", " ");
+            inputAddress1 = inputAddress1.Replace("`", " ");
+            inputAddress1 = inputAddress1.Replace("'", " ");
+            inputAddress1 = inputAddress1.Replace(":", " ");
+            inputAddress1 = inputAddress1.Replace("~", " ");
+            inputAddress1 = inputAddress1.Trim();
+
+            if (inputAddress1 == "")
+            {
+                ret.MatchQuality = MatchQuality.Unknown;
+            }
+            else
+            {
+                ret.MatchQuality = IsHomelessOrUnknown(inputAddress1, data);
+                bool identifiedAsHomelessOrUnknown = ret.MatchQuality == MatchQuality.Homeless || ret.MatchQuality == MatchQuality.Unknown;
+
+
+                if (!identifiedAsHomelessOrUnknown)
                 {
-                    ret.Zip = possibleZip;
-                }
-                ret.City = bits[CityColumn];
+
+                    #region GenericStringCleaning
+                    // Put spaces between numbers and letters
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (\d+)(TH)([A-Z])", " $1 $2 $3");
+                    inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)([A-Z]+)", "$1 $2");
+                    inputAddress1 = Regex.Replace(inputAddress1, @"([A-Z]+)(\d+)", "$1 $2");
+
+                    // remove the suffix at the end of 1st or 2nd or 3rd, etc. 
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (RST|ND|RD|TH) ", " $1 ");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (RST|ND|TH)$", " $1");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (ST) (ST|AVE)", " $1 $3");
 
 
-                // replace multiple spaces with one.
-                inputAddress1 = Regex.Replace(inputAddress1, " +", " ");
+                    // Replace "FTJOHN" with "FORT JOHN"
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (FT)([A-Z]+) ", " FORT $2 ");
 
-                // remove periods and other punctuation
-                inputAddress1 = inputAddress1.Replace(".", "");
-                inputAddress1 = inputAddress1.Replace("]", " ");
-                inputAddress1 = inputAddress1.Replace("`", " ");
-                inputAddress1 = inputAddress1.Replace("'", " ");
-                inputAddress1 = inputAddress1.Replace(":", " ");
-                inputAddress1 = inputAddress1.Replace("~", " ");
-                inputAddress1 = inputAddress1.Trim();
+                    // Replace "1387 STJOHNS PL" with "1387 ST JOHNS PL"
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (ST)([BCDFGHJKLMNPQSTVWXZ])([A-Z]+) ", " $1 $2$3 ");
 
-                if (inputAddress1 == "")
-                {
-                    ret.MatchQuality = MatchQuality.Unknown;
-                }
-                else
-                {
-                    ret.MatchQuality = IsHomelessOrUnknown(inputAddress1, data);
-                    bool identifiedAsHomelessOrUnknown = ret.MatchQuality == MatchQuality.Homeless || ret.MatchQuality == MatchQuality.Unknown;
-
-
-                    if (!identifiedAsHomelessOrUnknown)
+                    if (inputAddress1 == "UNKN3146 86TH STREE")
                     {
+                        inputAddress1 = "3146 86 ST";
+                    }
 
-                        #region GenericStringCleaning
-                        // Put spaces between numbers and letters
-                        inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)([A-Z]+)", "$1 $2");
-                        inputAddress1 = Regex.Replace(inputAddress1, @"([A-Z]+)(\d+)", "$1 $2");
+                    // replace N/S/E/W with the appropriate cardinal if put at end. 
+                    // Ex: "31 W MOSHOLU PRKWY N"
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (N)$", " NORTH");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (S)$", " SOUTH");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (E)$", " EAST");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (W)$", " WEST");
 
-                        // remove the suffix at the end of 1st or 2nd or 3rd, etc. 
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (RST|ND|RD|TH) ", " $1 ");
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (RST|ND|TH)$", " $1");
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (ST) (ST|AVE)", " $1 $3");
+                    inputAddress1 = Regex.Replace(inputAddress1, @"^(N) ", "NORTH ");
+                    inputAddress1 = Regex.Replace(inputAddress1, @"^(S) ", "SOUTH ");
+                    inputAddress1 = Regex.Replace(inputAddress1, @"^(E) ", "EAST ");
+                    inputAddress1 = Regex.Replace(inputAddress1, @"^(W) ", "WEST ");
 
-
-                        // Replace "FTJOHN" with "FORT JOHN"
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (FT)([A-Z]+) ", " FORT $2 ");
-
-                        // Replace "1387 STJOHNS PL" with "1387 ST JOHNS PL"
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (ST)([BCDFGHJKLMNPQSTVWXZ])([A-Z]+) ", " $1 $2$3 ");
-
-                        if (inputAddress1 == "UNKN3146 86TH STREE")
-                        {
-                            inputAddress1 = "3146 86 ST";
-                        }
-
-                        // replace N/S/E/W with the appropriate cardinal if put at end. 
-                        // Ex: "31 W MOSHOLU PRKWY N"
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (N)$", " NORTH");
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (S)$", " SOUTH");
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (E)$", " EAST");
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (W)$", " WEST");
-
-                        inputAddress1 = Regex.Replace(inputAddress1, @"^(N) ", "NORTH ");
-                        inputAddress1 = Regex.Replace(inputAddress1, @"^(S) ", "SOUTH ");
-                        inputAddress1 = Regex.Replace(inputAddress1, @"^(E) ", "EAST ");
-                        inputAddress1 = Regex.Replace(inputAddress1, @"^(W) ", "WEST ");
-
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (N) ", " NORTH ");
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (S) ", " SOUTH ");
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (E) ", " EAST ");
-                        inputAddress1 = Regex.Replace(inputAddress1, @" (W) ", " WEST ");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (N) ", " NORTH ");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (S) ", " SOUTH ");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (E) ", " EAST ");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (W) ", " WEST ");
 
 
-                        // put street at the end if it's just a number at the end. 
-                        // Ex: 360 E 193
-                        inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (WEST|NORTH|EAST|SOUTH) (\d+)$", "$1 $2 $3 STREET");
-                        inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (\d+)$", "$1 $2 STREET");
+                    // put street at the end if it's just a number at the end. 
+                    // Ex: 360 E 193
+                    inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (WEST|NORTH|EAST|SOUTH) (\d+)$", "$1 $2 $3 STREET");
+                    inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (\d+)$", "$1 $2 STREET");
 
 
 
-                        // generic abbreviations. 
-                        foreach (KeyValuePair<string, string> pair in data.Abbreviations)
-                        {
-                            inputAddress1 = inputAddress1.Replace(" " + pair.Key + " ", " " + pair.Value + " ");
-                        }
-                        #endregion
+                    // generic abbreviations. 
+                    foreach (KeyValuePair<string, string> pair in data.Abbreviations)
+                    {
+                        inputAddress1 = inputAddress1.Replace(" " + pair.Key + " ", " " + pair.Value + " ");
+                    }
+                    #endregion
 
-                        #region ApartmentNumber
+                    #region ApartmentNumber
 
-                        Match apartmentNumberMatch = Regex.Match(inputAddress1, @" (UNIT|STE|SUITE|APT|APARTMENT) ([0-9]? ?[A-Z]? ?[0-9]?)+");
-                        string partToDelete = "";
+                    Match apartmentNumberMatch = Regex.Match(inputAddress1, @" (UNIT|STE|SUITE|APT|APARTMENT) ([0-9]? ?[A-Z]? ?[0-9]?)+");
+                    string partToDelete = "";
+                    if (apartmentNumberMatch.Success)
+                    {
+                        partToDelete = apartmentNumberMatch.Value;
+                        ret.ApartmentNumber = apartmentNumberMatch.Groups[2].Value;  // this is odd, always +1 the Number of matches. Groups[0] is the original string.
+                        ret.ApartmentNumber = Regex.Replace(ret.ApartmentNumber, " ", "");
+                    }
+                    else
+                    {
+                        // motivation: 202 E91ST ST B16
+                        apartmentNumberMatch = Regex.Match(inputAddress1, @"^(\d+) ([A-Z0-9]+) ([A-Z 0-9]+) ([0-9]+|[A-Z] [0-9]{1,2}|[0-9]{1,2} [A-Z])$");
                         if (apartmentNumberMatch.Success)
                         {
-                            partToDelete = apartmentNumberMatch.Value;
-                            ret.ApartmentNumber = apartmentNumberMatch.Groups[2].Value;  // this is odd, always +1 the Number of matches. Groups[0] is the original string.
+                            partToDelete = apartmentNumberMatch.Groups[apartmentNumberMatch.Groups.Count - 1].Value;
+                            ret.ApartmentNumber = partToDelete;
                             ret.ApartmentNumber = Regex.Replace(ret.ApartmentNumber, " ", "");
                         }
-                        else
+                    }
+
+                    apartmentNumberMatch = Regex.Match(inputAddress1, @" (ST)(\d{1,2}[A-Z]{1,2}|\d{1,2})$");
+                    if (apartmentNumberMatch.Success)
+                    {
+                        partToDelete = apartmentNumberMatch.Groups[2].Value;
+                        ret.ApartmentNumber = partToDelete;
+                    }
+
+                    apartmentNumberMatch = Regex.Match(inputAddress1, @" (\d+) FL$");
+                    if (apartmentNumberMatch.Success)
+                    {
+                        partToDelete = apartmentNumberMatch.Value;
+                        ret.ApartmentNumber = apartmentNumberMatch.Groups[1].Value + " FLOOR";
+                    }
+
+                    if (!string.IsNullOrEmpty(partToDelete))
+                    {
+                        inputAddress1 = inputAddress1.Replace(partToDelete, " ");
+                        inputAddress1 = inputAddress1.Trim();
+                    }
+
+                    string inputAddress2 = bits[Address2Column];
+                    if (ret.ApartmentNumber == default(string) && inputAddress2.Length <= 5)
+                    {
+                        // Call these apartment numbers 
+                        ret.ApartmentNumber = inputAddress2;
+                    }
+
+                    #endregion
+
+                    #region SuffixNormalization
+                    string[] inputAddress1Bits = inputAddress1.Split(' ');
+                    string possibleSuffix = inputAddress1Bits[inputAddress1Bits.Length - 1];
+                    string confirmedSuffix = null;
+
+                    // is this a known bad suffix? 
+                    if (data.SuffixReplacementKey.ContainsKey(possibleSuffix))
+                    {
+                        // yes, replace
+                        confirmedSuffix = data.SuffixReplacementKey[possibleSuffix];
+                    }
+
+                    // did we replace above? 
+                    if (confirmedSuffix == null)
+                    {
+                        // no, so look for this suffix. 
+                        for (int c = 0; c < data.Suffixes.LongSuffixes.Length; c++)
                         {
-                            // motivation: 202 E91ST ST B16
-                            apartmentNumberMatch = Regex.Match(inputAddress1, @"^(\d+) ([A-Z0-9]+) ([A-Z 0-9]+) ([0-9]+|[A-Z] [0-9]{1,2}|[0-9]{1,2} [A-Z])$");
-                            if (apartmentNumberMatch.Success)
+                            string longSuffix = data.Suffixes.LongSuffixes[c];
+                            if (possibleSuffix == longSuffix)
                             {
-                                partToDelete = apartmentNumberMatch.Groups[apartmentNumberMatch.Groups.Count - 1].Value;
-                                ret.ApartmentNumber = partToDelete;
-                                ret.ApartmentNumber = Regex.Replace(ret.ApartmentNumber, " ", "");
+                                confirmedSuffix = longSuffix;
+                                break;
                             }
                         }
 
-                        apartmentNumberMatch = Regex.Match(inputAddress1, @" (ST)(\d{1,2}[A-Z]{1,2}|\d{1,2})$");
-                        if (apartmentNumberMatch.Success)
-                        {
-                            partToDelete = apartmentNumberMatch.Groups[2].Value;
-                            ret.ApartmentNumber = partToDelete;
-                        }
-
-                        apartmentNumberMatch = Regex.Match(inputAddress1, @" (\d+) FL$");
-                        if (apartmentNumberMatch.Success)
-                        {
-                            partToDelete = apartmentNumberMatch.Value;
-                            ret.ApartmentNumber = apartmentNumberMatch.Groups[1].Value + " FLOOR";
-                        }
-
-                        if (!string.IsNullOrEmpty(partToDelete))
-                        {
-                            inputAddress1 = inputAddress1.Replace(partToDelete, " ");
-                            inputAddress1 = inputAddress1.Trim();
-                        }
-
-                        string inputAddress2 = bits[Address2Column];
-                        if (ret.ApartmentNumber == default(string) && inputAddress2.Length <= 5)
-                        {
-                            // Call these apartment numbers 
-                            ret.ApartmentNumber = inputAddress2;
-                        }
-
-                        #endregion
-
-                        #region SuffixNormalization
-                        string[] inputAddress1Bits = inputAddress1.Split(' ');
-                        string possibleSuffix = inputAddress1Bits[inputAddress1Bits.Length - 1];
-                        string confirmedSuffix = null;
-
-                        // is this a known bad suffix? 
-                        if (data.SuffixReplacementKey.ContainsKey(possibleSuffix))
-                        {
-                            // yes, replace
-                            confirmedSuffix = data.SuffixReplacementKey[possibleSuffix];
-                        }
-
-                        // did we replace above? 
                         if (confirmedSuffix == null)
                         {
-                            // no, so look for this suffix. 
-                            for (int c = 0; c < data.Suffixes.LongSuffixes.Length; c++)
+                            for (int c = 0; c < data.Suffixes.ShortSuffixes.Length; c++)
                             {
-                                string longSuffix = data.Suffixes.LongSuffixes[c];
-                                if (possibleSuffix == longSuffix)
+                                string shortSuffix = data.Suffixes.ShortSuffixes[c];
+
+                                if (possibleSuffix == shortSuffix)
                                 {
-                                    confirmedSuffix = longSuffix;
+                                    confirmedSuffix = data.Suffixes.LongSuffixes[c];
                                     break;
                                 }
                             }
-
-                            if (confirmedSuffix == null)
-                            {
-                                for (int c = 0; c < data.Suffixes.ShortSuffixes.Length; c++)
-                                {
-                                    string shortSuffix = data.Suffixes.ShortSuffixes[c];
-
-                                    if (possibleSuffix == shortSuffix)
-                                    {
-                                        confirmedSuffix = data.Suffixes.LongSuffixes[c];
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        ret.Suffix = confirmedSuffix;
-                        if (confirmedSuffix != null && inputAddress1.Length > 0)
-                        {
-                            // identify index of suffix to remove. 
-                            int toRemove = inputAddress1.LastIndexOf(possibleSuffix);
-                            if (toRemove == 0)
-                            {
-                                // if the entire name IS the suffix, then remove it, we have crap data. 
-                                inputAddress1 = "";
-                            }
-                            else
-                            {
-                                // remove the suffix. 
-                                inputAddress1 = inputAddress1.Substring(0, toRemove - 1);
-                            }
-                        }
-
-                        #endregion
-
-                        #region StreetNumber
-                        // is there a street number? 
-                        if (Regex.IsMatch(inputAddress1, @"^(\d+) .+"))
-                        {
-                            Match streetNumberMatch = Regex.Match(inputAddress1, @"^(\d+)");
-                            ret.StreetNumber = streetNumberMatch.Value;
-                        }
-                        #endregion
-
-                        #region StreetName
-
-                        Match match = Regex.Match(inputAddress1, @"^(\d+ )?([A-Z 0-9]+)$");
-                        if (match.Success)
-                        {
-                            ret.StreetName = match.Groups[2].Value;
-                            ret.StreetName.Trim();
-                        }
-
-                        // BROADWAY
-                        match = Regex.Match(inputAddress1, @"([A-Z]+)? (B[A-Z]+DWAY)$");
-                        if (match.Success)
-                        {
-                            if (match.Groups[1].Value != "")
-                            {
-                                ret.StreetName = $"{match.Groups[1].Value} BROADWAY";
-                            }
-                            else
-                            {
-                                ret.StreetName = "BROADWAY";
-                            }
-                        }
-
-                        // PO BOX
-                        match = Regex.Match(inputAddress1, @"(P ?O ?BOX|POB) ?(\d+)");
-                        if (match.Success)
-                        {
-                            ret.POBoxNumber = int.Parse(match.Groups[2].Value);
-                            ret.StreetName = "PO BOX " + match.Groups[2].Value;
-                        }
-
-                        if (ret.StreetName != null)
-                        {
-                            ret.StreetNameIsNumber = Regex.IsMatch(ret.StreetName, @" ?(\d+)$");
-                        }
-
-                        #endregion
-
-
-                        if (ret.MatchQuality == MatchQuality.NotMatched && string.IsNullOrEmpty(ret.StreetName))
-                        {
-                            ret.MatchQuality = MatchQuality.CouldNotParseFormat;
                         }
                     }
-                    if (print)
+
+                    ret.Suffix = confirmedSuffix;
+                    if (confirmedSuffix != null && inputAddress1.Length > 0)
                     {
-                        string addressRaw = $"{ret.RawAddress1}";
-                        if (bits[Address2Column].Length <= 5)
+                        // identify index of suffix to remove. 
+                        int toRemove = inputAddress1.LastIndexOf(possibleSuffix);
+                        if (toRemove == 0)
                         {
-                            addressRaw += $" / {bits[Address2Column]}";
+                            // if the entire name IS the suffix, then remove it, we have crap data. 
+                            inputAddress1 = "";
                         }
-                        string addressCleaned = $"{ ret.StreetNumber } / { ret.StreetName} / { ret.Suffix}";
-                        if (!string.IsNullOrEmpty(ret.ApartmentNumber))
+                        else
                         {
-                            addressCleaned += $" / {ret.ApartmentNumber}";
+                            // remove the suffix. 
+                            inputAddress1 = inputAddress1.Substring(0, toRemove - 1);
                         }
-                        Console.WriteLine($"{addressRaw} => {addressCleaned}");
+                    }
+
+                    #endregion
+
+                    #region StreetNumber
+                    // is there a street number? 
+                    if (Regex.IsMatch(inputAddress1, @"^(\d+) .+"))
+                    {
+                        Match streetNumberMatch = Regex.Match(inputAddress1, @"^(\d+)");
+                        ret.StreetNumber = streetNumberMatch.Value;
+                    }
+                    #endregion
+
+                    #region StreetName
+
+                    Match match = Regex.Match(inputAddress1, @"^(\d+ )?([A-Z 0-9]+)$");
+                    if (match.Success)
+                    {
+                        ret.StreetName = match.Groups[2].Value;
+                        ret.StreetName.Trim();
+                    }
+
+                    // handle addresses
+                    ret = HandleParticularlyProblematicStreets(ret);
+
+                    // PO BOX
+                    match = Regex.Match(inputAddress1, @"(P ?O ?BOX|POB) ?(\d+)");
+                    if (match.Success)
+                    {
+                        ret.POBoxNumber = int.Parse(match.Groups[2].Value);
+                        ret.StreetName = "PO BOX " + match.Groups[2].Value;
+                    }
+
+                    if (ret.StreetName != null)
+                    {
+                        ret.StreetNameIsNumber = Regex.IsMatch(ret.StreetName, @" ?(\d+)$");
+                    }
+
+                    #endregion
+
+
+                    if (ret.MatchQuality == MatchQuality.NotMatched && string.IsNullOrEmpty(ret.StreetName))
+                    {
+                        ret.MatchQuality = MatchQuality.CouldNotParseFormat;
                     }
                 }
-                return ret;
+                if (print)
+                {
+                    string addressRaw = $"{ret.RawAddress1}";
+                    if (bits[Address2Column].Length <= 5)
+                    {
+                        addressRaw += $" / {bits[Address2Column]}";
+                    }
+                    string addressCleaned = $"{ ret.StreetNumber } / { ret.StreetName} / { ret.Suffix}";
+                    if (!string.IsNullOrEmpty(ret.ApartmentNumber))
+                    {
+                        addressCleaned += $" / {ret.ApartmentNumber}";
+                    }
+                    Console.WriteLine($"{addressRaw} => {addressCleaned}");
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(input);
-                Console.WriteLine();
-                throw ex;
-            }
+            return ret;
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(input);
+            //    Console.WriteLine();
+            //    throw ex;
+            //}
         }
     }
 }
