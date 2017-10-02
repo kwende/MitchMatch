@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -80,8 +81,7 @@ namespace challenge
 
         private static string TakeCareOfHomelessAddresses(string str)
         {
-            if (str.StartsWith("UNKNO") ||
-                str.StartsWith("HOM") ||
+            if (str.StartsWith("HOM") ||
                 str.StartsWith("UND") ||
                 str.StartsWith("INDOM") ||
                 str.StartsWith("NONDOM") ||
@@ -103,7 +103,7 @@ namespace challenge
         private static Dictionary<string, string> _suffixReplacementKey = null;
         public static string TakeCareOfAddress1Suffix(string address1Line)
         {
-            throw new Exception("DONT USE YET."); 
+            throw new Exception("DONT USE YET.");
 
             lock (_lockObject)
             {

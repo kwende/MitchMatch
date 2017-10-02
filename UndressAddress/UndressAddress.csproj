@@ -13,7 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -62,19 +62,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NewYorkCityAddress.cs" />
+    <Compile Include="AddressUtility.cs" />
+    <Compile Include="DataLoader.cs" />
+    <Compile Include="DataTypes\AddressSuffixes.cs" />
+    <Compile Include="DataTypes\Address.cs" />
+    <Compile Include="DataTypes\Data.cs" />
+    <Compile Include="DataTypes\MatchQuality.cs" />
+    <Compile Include="DataTypes\StateOfNewYorkAddressRange.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="allStreets.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />
-    <None Include="NewYorkStateStreets.csv">
+    <None Include="city_of_new_york.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="HomelessAddresses.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="StateOfNewYorkAddress.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="StreetSuffixes.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="UnknownAddresses.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -83,12 +99,22 @@
       <Project>{28561ecc-5344-480e-baf0-f9f99a51802d}</Project>
       <Name>challenge</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{18e1c345-c049-4cb7-b1e7-83ec63266fc9}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DecisionTreeLearner\DecisionTreeLearner.csproj">
       <Project>{544315a6-dc64-4d04-992b-df44fdde97b9}</Project>
       <Name>DecisionTreeLearner</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Abbreviations.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="KnownCenters.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SuffixReplacementKey.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

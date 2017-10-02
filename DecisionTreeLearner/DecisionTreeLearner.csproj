@@ -56,15 +56,11 @@
     <Compile Include="Data\AddressSuffixLoader.cs" />
     <Compile Include="Data\DataLoader.cs" />
     <Compile Include="Data\LargeResidenceFileLoader.cs" />
-    <Compile Include="Data\MySQLConnector.cs" />
-    <Compile Include="Data\MySQLToObjectReader.cs" />
-    <Compile Include="ForJosh\AutoPasser.cs" />
     <Compile Include="NLP\DataCleaner.cs" />
     <Compile Include="NLP\EditDistance.cs" />
     <Compile Include="NLP\MatchTypeMatcher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Testers\EndNodeMLMatchFinders.cs" />
     <Compile Include="Testers\IterativeLearner.cs" />
     <Compile Include="Testers\ListAllMatches.cs" />
     <Compile Include="Testers\TestSplitDirection.cs" />

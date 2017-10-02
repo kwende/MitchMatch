@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -344,7 +345,7 @@ namespace challenge
 
                                 if (_printActuals)
                                 {
-                                    PrintingManager.PrintPair(row1, row2);
+                                    PrintingLibrary.PrintPair(row1, row2);
                                 }
                             }
                             else
@@ -353,7 +354,7 @@ namespace challenge
 
                                 if (_printErrors)
                                 {
-                                    PrintingManager.PrintPair(row1, row2);
+                                    PrintingLibrary.PrintPair(row1, row2);
                                 }
                             }
                         }
@@ -365,7 +366,7 @@ namespace challenge
             Console.WriteLine($"Match added: {addedCounter}");
             Console.WriteLine($"Match modified: {modifiedCounter}");
 
-            PrintingManager.PrintRemainingRowCount(data, matches);
+            PrintingLibrary.PrintRemainingRowCount(data, matches);
 
             return toReturn;
         }
@@ -373,49 +374,6 @@ namespace challenge
 
         public void FindAllMatches(Row[] allData, ref ClosedSets newMatches)
         {
-            //AddMatches("SSN + soft match", allData, r => MatchingManager.HardSelector(r, new FieldInclusions
-            //{
-            //    SSN = true,
-
-            //}), 1, (r1, r2) => MatchingManager.SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    //SSN = true,
-            //    First = true,
-            //    Last = true,
-            //    Phone = true,
-            //    DOB = true,
-            //    Address = true,
-            //}), ref newMatches);
-
-
-            //AddMatches("Name + soft match", allData, r => MatchingManager.HardSelector(r, new FieldInclusions
-            //{
-            //    Name = true,
-            //}), 1, (r1, r2) => MatchingManager.SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    //First = true,
-            //    //Last = true,
-            //    Phone = true,
-            //    DOB = true,
-            //    Address = true,
-            //}), ref newMatches);
-
-            //AddMatches("Phone + soft match", allData, r => MatchingManager.HardSelector(r, new FieldInclusions
-            //{
-            //    Phone = true,
-            //}), 1, (r1, r2) => MatchingManager.SoftMatchCount(r1, r2, new FieldInclusions
-            //{
-            //    SSN = true,
-            //    First = true,
-            //    Last = true,
-            //    //Phone = true,
-            //    DOB = true,
-            //    Address = true,
-            //}), ref newMatches);
-
-
-
             //******************  SOLID MATCHES   ******************//
             AddMatches("SSN + LAST", allData, r => HardSelector(r, new FieldInclusions
             {
