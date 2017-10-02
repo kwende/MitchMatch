@@ -72,7 +72,7 @@ namespace UndressAddress
 
             return MatchQuality.NotMatched;
         }
-        
+
         public static Address CheckForBuildingsAndCenters(Address input, Data data)
         {
             Address ret = input;
@@ -118,7 +118,7 @@ namespace UndressAddress
                 ret.City = bits[CityColumn];
 
 
-                if(inputAddress1 == "")
+                if (inputAddress1 == "")
                 {
                     ret.MatchQuality = MatchQuality.Unknown;
                 }
@@ -315,7 +315,7 @@ namespace UndressAddress
 
                         // BROADWAY
                         match = Regex.Match(inputAddress1, @"([A-Z]+)? (B[A-Z]+DWAY)$");
-                        if(match.Success)
+                        if (match.Success)
                         {
                             if (match.Groups[1].Value != "")
                             {
@@ -325,7 +325,6 @@ namespace UndressAddress
                             {
                                 ret.StreetName = "BROADWAY";
                             }
-                            print = true;
                         }
 
                         // PO BOX
@@ -347,7 +346,7 @@ namespace UndressAddress
                         if (ret.MatchQuality == MatchQuality.NotMatched)
                         {
                             ret.MatchQuality = (string.IsNullOrEmpty(ret.StreetName)) ? MatchQuality.NotMatched : MatchQuality.FullAddressMatched;
-                            if(ret.MatchQuality == MatchQuality.NotMatched)
+                            if (ret.MatchQuality == MatchQuality.NotMatched)
                             {
                                 ret.StreetName = inputAddress1;
                             }
