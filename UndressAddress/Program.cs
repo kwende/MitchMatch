@@ -67,14 +67,14 @@ namespace UndressAddress
                 #region DebuggingOutput
                 // debugging purposes. 
                 Interlocked.Increment(ref iterations);
-                if (iterations % 100000 == 0)
+                if (iterations % 1000 == 0)
                 {
                     DateTime now = DateTime.Now;
                     double millisecondsSinceLast = (now - lastTime).TotalMilliseconds;
                     timeSpans.Add(millisecondsSinceLast);
 
                     double averageTime = timeSpans.Average();
-                    double numberOfChecksLeft = (data.FinalDataSet.Length - iterations) / 10000.0f;
+                    double numberOfChecksLeft = (data.FinalDataSet.Length - iterations) / 1000.0f;
 
                     double hoursLeft = (averageTime * numberOfChecksLeft) / 1000.0f / 60.0f / 60.0f;
 
@@ -85,7 +85,7 @@ namespace UndressAddress
 
                     double percentage = ((fullAddressMatched.Count + homeless.Count + unknown.Count + streetMatched.Count) / (iterations * 1.0)) * 100;
 
-                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}:{fullAddressMatched.Count}F {streetMatched.Count}S {homeless.Count}H {unknown.Count}U {notMatched.Count}N. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
+                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full {streetMatched.Count} Street {homeless.Count} Homeless {unknown.Count} Unknown {couldNotParse.Count} Couln't parse {notMatched.Count} Not matched. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
 
                     lastTime = now;
                 }
@@ -243,7 +243,7 @@ namespace UndressAddress
                 }
             }
 
-            Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}:{fullAddressMatched.Count}F {streetMatched.Count}S {homeless.Count}H {unknown.Count}U {notMatched.Count}N.");
+            Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full {streetMatched.Count} Street {homeless.Count} Homeless {unknown.Count} Unknown {couldNotParse.Count} Couln't parse {notMatched.Count} Not matched.");
             Console.ReadLine();
 
             return null;
