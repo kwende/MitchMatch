@@ -36,7 +36,7 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("2780 GRANDCONCOURSE")).Take(1).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("1 MAPLE AVENUE APT 512,")).Take(1).ToArray();
 
             // precompute these strings because otherwise we compute them in a for() loop and 
             // string.concat() becomes a wasteful operation. 
@@ -56,6 +56,7 @@ namespace UndressAddress
             List<string> notMatched = new List<string>();
             List<string> homeless = new List<string>();
             List<string> streetMatched = new List<string>();
+            List<string> fullAddressMatched = new List<string>();
 
             // counter variables. 
             int exactMatches = 0;
@@ -99,37 +100,75 @@ namespace UndressAddress
 
                 Address address = AddressUtility.InitializeAddress(data.FinalDataSet[c], data);
 
+                string matched = "";
+
                 if (address.MatchQuality == MatchQuality.NotMatched)
                 {
-                    string address1 = address.StreetName;
-                    if (!string.IsNullOrEmpty(address.Suffix))
+                    if (address.POBoxNumber > 0)
                     {
-                        address1 += " " + address.Suffix;
+                        address.MatchQuality = MatchQuality.StreetMatched;
+                        matched = address.StreetName;
                     }
-                    string matched = "";
-                    // look for street name matching. 
-
-                    const int MinimumLengthForEditDistance1ToStillCount = 7;
-                    for (int e = 0; e < streetNameSubStrings.Count; e++)
+                    else
                     {
-                        string streetName = streetNames[e];
-                        if ((address1 == streetName ||
-                            StringUtility.Contains(address1, streetNameSubStrings[e]) ||
-                            StringUtility.EndsWith(address1, streetNameEndsWith[e]) ||
-                            (!address.StreetNameIsNumber && address1.Length >= MinimumLengthForEditDistance1ToStillCount &&
-                                StringUtility.IsDistance1OrLessApart(address1, streetName)) && streetName.Length > matched.Length))
+                        string address1 = address.StreetName;
+                        if (!string.IsNullOrEmpty(address.Suffix))
                         {
-                            matched = streetName;
-                            address.MatchQuality = MatchQuality.StreetMatched;
+                            address1 += " " + address.Suffix;
+                        }
+                        // look for street name matching. 
+
+                        const int MinimumLengthForEditDistance1ToStillCount = 7;
+                        for (int e = 0; e < streetNameSubStrings.Count; e++)
+                        {
+                            string streetName = streetNames[e];
+                            if ((address1 == streetName ||
+                                StringUtility.Contains(address1, streetNameSubStrings[e]) ||
+                                StringUtility.EndsWith(address1, streetNameEndsWith[e]) ||
+                                (!address.StreetNameIsNumber && address1.Length >= MinimumLengthForEditDistance1ToStillCount &&
+                                    StringUtility.IsDistance1OrLessApart(address1, streetName)) && streetName.Length > matched.Length))
+                            {
+                                matched = streetName;
+                                address.MatchQuality = MatchQuality.StreetMatched;
+                            }
+                            else if (string.IsNullOrEmpty(address.Suffix))
+                            {
+                                // street is a far and away the most common name.
+                                // what happens if we just append that? 
+                                string adjustedAddress1 = address1 + " STREET";
+                                if ((adjustedAddress1 == streetName ||
+                                    StringUtility.Contains(adjustedAddress1, streetNameSubStrings[e]) ||
+                                    StringUtility.EndsWith(adjustedAddress1, streetNameEndsWith[e])
+                                    && streetName.Length > matched.Length))
+                                {
+                                    matched = streetName;
+                                    address.MatchQuality = MatchQuality.StreetMatched;
+                                }
+                            }
                         }
                     }
 
-                    if (address.MatchQuality == MatchQuality.StreetMatched)
+                    // do we have a match? 
+                    if (address.MatchQuality != MatchQuality.StreetMatched)
                     {
-                        lock (streetMatched)
-                        {
-                            streetMatched.Add($"{address.RawAddress1}=>{matched}");
-                        }
+                        // no? let's see if we can normalize by building name. 
+                        address = AddressUtility.CheckForBuildingsAndCenters(address, data);
+                    }
+                }
+
+                if (address.MatchQuality == MatchQuality.StreetMatched)
+                {
+                    lock (streetMatched)
+                    {
+                        streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                    }
+                }
+
+                if (address.MatchQuality == MatchQuality.FullAddressMatched)
+                {
+                    lock (fullAddressMatched)
+                    {
+                        fullAddressMatched.Add(address.StreetName);
                     }
                 }
 
@@ -154,71 +193,15 @@ namespace UndressAddress
                         notMatched.Add($"{address.RawAddress1}=>'{address}'");
                     }
                 }
-
-                //// is there an address left? 
-                //if (address1.Length != 0)
-                //{
-                //    // look for matches. 
-                //    Interlocked.Increment(ref nonZeroAddress1);
-                //    bool exactMatchFound = false, noMatchButFormatSeemsGood = false;
-                //    string matched = "";
-
-                //    // go through all of the uniques and find the 
-                //    // longest match that matches. 
-                //    foreach (string unique in uniques)
-                //    {
-                //        if ((address1 == unique ||
-                //            address1.Contains(" " + unique + " ") ||
-                //            address1.EndsWith(" " + unique)) && unique.Length > matched.Length)
-                //        {
-                //            exactMatchFound = true;
-                //            matched = unique;
-                //        }
-                //    }
-
-                //    // if no match found, is the format of this line at least sane? 
-                //    if (!exactMatchFound)
-                //    {
-                //        string[] address1Parts = address1.Split(' ');
-                //        if (address1Parts.Length >= 3)
-                //        {
-                //            string firstPart = address1Parts[0];
-                //            string lastPart = address1Parts[address1Parts.Length - 1];
-
-                //            if (IsNumber(firstPart) &&
-                //                (data.Suffixes.ShortSuffixes.Contains(lastPart) || data.Suffixes.LongSuffixes.Contains(lastPart)))
-                //            {
-                //                string alternative = FindBestMatchedStreetNameWithinEditDistance(
-                //                    address1, data);
-
-                //                if (!string.IsNullOrEmpty(alternative))
-                //                {
-                //                    exactMatchFound = true;
-                //                    matched = alternative;
-                //                }
-                //                else
-                //                {
-                //                    noMatchButFormatSeemsGood = true;
-                //                }
-                //            }
-                //        }
-                //    }
-
-                //    if (exactMatchFound)
-                //    {
-                //        exactMatchesFound.Add($"{address1Raw} => {matched}");
-                //        exactMatches++;
-                //    }
-                //    else if (noMatchButFormatSeemsGood)
-                //    {
-                //        notMatchedButFormatIsGood.Add(address1);
-                //    }
-                //    else
-                //    {
-                //        notMatched.Add(address1);
-                //    }
-                //}
             });
+
+            using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/fullAddressMatched.txt"))
+            {
+                for (int c = 0; c < fullAddressMatched.Count; c++)
+                {
+                    fout.WriteLine(fullAddressMatched[c]);
+                }
+            }
 
             using (StreamWriter fout = File.CreateText("C:/users/brush/desktop/homeless.txt"))
             {

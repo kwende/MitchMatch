@@ -45,6 +45,21 @@ namespace UndressAddress
             return address;
         }
 
+        public static Address CheckForBuildingsAndCenters(Address input, Data data)
+        {
+            Address ret = input;
+            foreach (string knownCenter in data.KnownCenters.Keys)
+            {
+                if (input.RawAddress1.Contains(knownCenter))
+                {
+                    ret = data.KnownCenters[knownCenter];
+                    ret.MatchQuality = MatchQuality.FullAddressMatched;
+                    break;
+                }
+            }
+            return ret;
+        }
+
         public static Address InitializeAddress(string input, Data data)
         {
             try
@@ -112,6 +127,9 @@ namespace UndressAddress
                         inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)(ST|ND|RD|TH)", "$1");
                         inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (ST|ND|RD|TH) ", " $1 ");
 
+                        //3411IRWIN AVE
+                        inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+)([A-Z]+) ", "$1 $2 ");
+
                         // separate the East/West portion from the street number. 
                         // Ex: "460 E46 STREET"
                         inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (N|S|W|E)(\d+)", "$1 $2 $3");
@@ -127,6 +145,8 @@ namespace UndressAddress
                         // 1668 W.6 ST
                         inputAddress1 = Regex.Replace(inputAddress1, @" (E|W|N|S)\.(\d+) ", " $1 $2 ");
 
+                        // 95STR
+                        inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)(STR)", "$1 $2");
 
                         // remove periods
                         inputAddress1 = inputAddress1.Replace(".", "");
@@ -148,10 +168,6 @@ namespace UndressAddress
                         inputAddress1 = Regex.Replace(inputAddress1, @" (E) ", " EAST ");
                         inputAddress1 = Regex.Replace(inputAddress1, @" (W) ", " WEST ");
 
-                        // put street at the end if it's just a number at the end. 
-                        // Ex: 360 E 193
-                        inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (.+) (\d+)$", "$1 $2 $3 STREET");
-
                         // Replace WEST132 with WEST 132
                         inputAddress1 = Regex.Replace(inputAddress1, @" (WEST|NORTH|SOUTH|EAST)(\d+) ", " $1 $2 ");
 
@@ -172,15 +188,12 @@ namespace UndressAddress
                         {
                             inputAddress1 = inputAddress1.Replace(" " + pair.Key + " ", " " + pair.Value + " ");
                         }
-
                         #endregion
-
-                        string[] inputAddress1Bits = inputAddress1.Split(' ');
 
                         #region ApartmentNumber
                         // this matching is kind of ... well, not great. I'd like to see examples. I'm not sure if want
                         // to blindly take the text proceeding 'apartment' to just be the apartment number. maybe we do? 
-                        Match apartmentNumberMatch = Regex.Match(inputAddress1, @" (APT|APARTMENT) ([0-9]+[A-Z]) ");
+                        Match apartmentNumberMatch = Regex.Match(inputAddress1, @" (APT|APARTMENT) ([0-9]+[A-Z]+|[0-9]+)( |$)");
                         string partToDelete = "";
                         if (apartmentNumberMatch.Success) // this is odd, always +1 the Number of matches. Groups[0] is the original string. 
                         {
@@ -195,6 +208,13 @@ namespace UndressAddress
                             ret.ApartmentNumber = apartmentNumberMatch.Groups[3].Value;
                         }
 
+                        apartmentNumberMatch = Regex.Match(inputAddress1, @" (ST)(\d{1,2}[A-Z]{1,2}|\d{1,2})$");
+                        if (apartmentNumberMatch.Success)
+                        {
+                            partToDelete = apartmentNumberMatch.Groups[2].Value;
+                            ret.ApartmentNumber = partToDelete;
+                        }
+
                         if (!string.IsNullOrEmpty(partToDelete))
                         {
                             inputAddress1 = inputAddress1.Replace(partToDelete, " ");
@@ -204,6 +224,7 @@ namespace UndressAddress
                         #endregion
 
                         #region SuffixNormalization
+                        string[] inputAddress1Bits = inputAddress1.Split(' ');
                         string possibleSuffix = inputAddress1Bits[inputAddress1Bits.Length - 1];
                         string confirmedSuffix = null;
 
@@ -272,21 +293,19 @@ namespace UndressAddress
                         #endregion
 
                         #region StreetName
-                        // examine standard format
-                        //if (Regex.IsMatch(inputAddress1, @"^(\d+) ([A-Z 0-9]+)"))
-                        //{
-                        //    Match standardAddressPortion = Regex.Match(inputAddress1, @"^(\d+) ([A-Z 0-9]+)");
-                        //    ret.StreetName = standardAddressPortion.Groups[2].Value;
-                        //}
-                        //else
-                        //{
+
                         Match match = Regex.Match(inputAddress1, @"^(\d+ )?([A-Z 0-9]+)$");
                         if (match.Success)
                         {
                             ret.StreetName = match.Groups[2].Value;
-                            ret.StreetName.Trim(); 
+                            ret.StreetName.Trim();
                         }
-                        //}
+                        match = Regex.Match(inputAddress1, @"(P ?O ?BOX|POB) ?(\d+)");
+                        if (match.Success)
+                        {
+                            ret.POBoxNumber = int.Parse(match.Groups[2].Value);
+                            ret.StreetName = "PO BOX " + match.Groups[2].Value;
+                        }
 
                         if (ret.StreetName != null)
                         {
