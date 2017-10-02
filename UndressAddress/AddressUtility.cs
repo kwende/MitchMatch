@@ -229,6 +229,13 @@ namespace UndressAddress
                             ret.ApartmentNumber = partToDelete;
                         }
 
+                        apartmentNumberMatch = Regex.Match(inputAddress1, @" (\d+) FL$");
+                        if (apartmentNumberMatch.Success)
+                        {
+                            partToDelete = apartmentNumberMatch.Value;
+                            ret.ApartmentNumber = apartmentNumberMatch.Groups[1].Value + " FLOOR";
+                        }
+
                         if (!string.IsNullOrEmpty(partToDelete))
                         {
                             inputAddress1 = inputAddress1.Replace(partToDelete, " ");

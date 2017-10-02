@@ -34,7 +34,7 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("1 MAPLE AVENUE APT 512,")).Take(1).ToArray();
+            data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("903 MYRTLE AVE 2FL,")).Take(1).ToArray();
 
             // precompute these strings because otherwise we compute them in a for() loop and 
             // string.concat() becomes a wasteful operation. 
