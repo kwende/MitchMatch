@@ -18,6 +18,7 @@ namespace UndressAddress.DataTypes
         public string RawAddress1 { get; set; }
         public MatchQuality MatchQuality { get; set; }
         public bool StreetNameIsNumber { get; set; }
+        public int POBoxNumber { get; set; }
 
         public override string ToString()
         {

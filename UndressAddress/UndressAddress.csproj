@@ -112,6 +112,9 @@
     <Content Include="Abbreviations.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="KnownCenters.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SuffixReplacementKey.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

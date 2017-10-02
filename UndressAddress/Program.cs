@@ -34,7 +34,7 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("2780 GRANDCONCOURSE")).Take(1).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("1 MAPLE AVENUE APT 512,")).Take(1).ToArray();
 
             // precompute these strings because otherwise we compute them in a for() loop and 
             // string.concat() becomes a wasteful operation. 
@@ -50,7 +50,8 @@ namespace UndressAddress
             List<string> notMatched = new List<string>();
             List<string> homeless = new List<string>();
             List<string> streetMatched = new List<string>();
-            List<string> exactMatches = new List<string>();
+            List<string> fullAddressMatched = new List<string>();
+
             // counter variables. 
             int iterations = 0;
 
@@ -81,9 +82,9 @@ namespace UndressAddress
                         timeSpans.RemoveAt(0);
                     }
 
-                    double percentage = ((exactMatches.Count + homeless.Count + unknown.Count + streetMatched.Count) / (iterations * 1.0)) * 100;
+                    double percentage = ((fullAddressMatched.Count + homeless.Count + unknown.Count + streetMatched.Count) / (iterations * 1.0)) * 100;
 
-                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}:{exactMatches.Count}E {streetMatched.Count}S {homeless.Count}H {unknown.Count}U {notMatched.Count}N. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
+                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}:{fullAddressMatched.Count}F {streetMatched.Count}S {homeless.Count}H {unknown.Count}U {notMatched.Count}N. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
 
                     lastTime = now;
                 }
@@ -91,16 +92,22 @@ namespace UndressAddress
 
                 Address address = AddressUtility.InitializeAddress(data.FinalDataSet[c], data);
 
+                string matched = "";
+
                 if (address.MatchQuality == MatchQuality.NotMatched)
                 {
-                    string address1 = address.StreetName;
-                    if (address1 != null)
+                    if (address.POBoxNumber > 0)
                     {
+                        address.MatchQuality = MatchQuality.StreetMatched;
+                        matched = address.StreetName;
+                    }
+                    else
+                    {
+                        string address1 = address.StreetName;
                         if (!string.IsNullOrEmpty(address.Suffix))
                         {
                             address1 += " " + address.Suffix;
                         }
-                        string matched = "";
                         // look for street name matching. 
 
                         const int MinimumLengthForEditDistance1ToStillCount = 7;
@@ -116,15 +123,44 @@ namespace UndressAddress
                                 matched = streetName;
                                 address.MatchQuality = MatchQuality.StreetMatched;
                             }
-                        }
-
-                        if (address.MatchQuality == MatchQuality.StreetMatched)
-                        {
-                            lock (streetMatched)
+                            else if (string.IsNullOrEmpty(address.Suffix))
                             {
-                                streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                                // street is a far and away the most common name.
+                                // what happens if we just append that? 
+                                string adjustedAddress1 = address1 + " STREET";
+                                if ((adjustedAddress1 == streetName ||
+                                    StringUtility.Contains(adjustedAddress1, streetNameSubStrings[e]) ||
+                                    StringUtility.EndsWith(adjustedAddress1, streetNameEndsWith[e])
+                                    && streetName.Length > matched.Length))
+                                {
+                                    matched = streetName;
+                                    address.MatchQuality = MatchQuality.StreetMatched;
+                                }
                             }
                         }
+                    }
+
+                    // do we have a match? 
+                    if (address.MatchQuality != MatchQuality.StreetMatched)
+                    {
+                        // no? let's see if we can normalize by building name. 
+                        address = AddressUtility.CheckForBuildingsAndCenters(address, data);
+                    }
+                }
+
+                if (address.MatchQuality == MatchQuality.StreetMatched)
+                {
+                    lock (streetMatched)
+                    {
+                        streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                    }
+                }
+
+                if (address.MatchQuality == MatchQuality.FullAddressMatched)
+                {
+                    lock (fullAddressMatched)
+                    {
+                        fullAddressMatched.Add(address.StreetName);
                     }
                 }
 
@@ -149,14 +185,31 @@ namespace UndressAddress
                         notMatched.Add($"{address.RawAddress1}");
                     }
                 }
-                else if (address.MatchQuality == MatchQuality.FullAddressMatched)
-                {
-                    lock(exactMatches)
-                    {
-                        exactMatches.Add($"{address.RawAddress1}=>{address}");
-                    }
-                }
             });
+
+            using (StreamWriter fout = File.CreateText("fullAddressMatched.txt"))
+            {
+                for (int c = 0; c < fullAddressMatched.Count; c++)
+                {
+                    fout.WriteLine(fullAddressMatched[c]);
+                }
+            }
+
+            using (StreamWriter fout = File.CreateText("homeless.txt"))
+            {
+                for (int c = 0; c < homeless.Count; c++)
+                {
+                    fout.WriteLine(homeless[c]);
+                }
+            }
+
+            using (StreamWriter fout = File.CreateText("unknown.txt"))
+            {
+                for (int c = 0; c < unknown.Count; c++)
+                {
+                    fout.WriteLine(unknown[c]);
+                }
+            }
 
             using (StreamWriter fout = File.CreateText("notMatched.txt"))
             {
@@ -166,15 +219,7 @@ namespace UndressAddress
                 }
             }
 
-            using (StreamWriter fout = File.CreateText("fullAddressMatched.txt"))
-            {
-                for (int c = 0; c < exactMatches.Count; c++)
-                {
-                    fout.WriteLine(exactMatches[c]);
-                }
-            }
-
-            Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}:{exactMatches.Count}E {streetMatched.Count}S {homeless.Count}H {unknown.Count}U {notMatched.Count}N.");
+            Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}:{fullAddressMatched.Count}F {streetMatched.Count}S {homeless.Count}H {unknown.Count}U {notMatched.Count}N.");
             Console.ReadLine();
 
             return null;
