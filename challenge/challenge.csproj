@@ -67,8 +67,6 @@
   <ItemGroup>
     <Compile Include="Ben\ErrorScrubber.cs" />
     <Compile Include="Common\DataCleaningManager.cs" />
-    <Compile Include="Common\FieldInclusions.cs" />
-    <Compile Include="Common\MatchingManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

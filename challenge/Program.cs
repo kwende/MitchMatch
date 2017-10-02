@@ -28,6 +28,11 @@ namespace challenge
             // Clean Data
             DataCleaningManager.CleanData(ref allData, realData);
 
+            Console.WriteLine("Grouping by fuzzy date");
+            FastFuzzyDateGrouper bob = new FastFuzzyDateGrouper();
+            var shit = bob.EditDistanceAtMostN(allData, d => d.DOB == default(DateTime) ? "" : d.ToString(), 1);
+            Console.WriteLine("That shit's done");
+
             // Load Data
             ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
             ClosedSets newMatches = FileLibrary.LoadOriginalMatches(allData); // create a copy to edit
