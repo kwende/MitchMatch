@@ -29,7 +29,7 @@ namespace challenge
             DataCleaningManager.CleanData(ref allData, realData);
 
             // Load Data
-            ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
+        ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
             ClosedSets newMatches = FileLibrary.LoadOriginalMatches(allData); // create a copy to edit
 
             // Match Data

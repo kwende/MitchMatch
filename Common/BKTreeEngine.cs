@@ -113,11 +113,4 @@ namespace Common
             return data.Select(d => fieldSelector(d)).Distinct().Where(s => s != "").ToArray();
         }
     }
-
-    public class BKTree
-    {
-        public string StringValue;
-        public int Index;
-        public BKTree[] Children;
-    }
 }

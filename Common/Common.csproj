@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="BKTreeEngine.cs" />
     <Compile Include="DataContracts\BipartiteEditDistanceMatchObject.cs" />
+    <Compile Include="DataContracts\BKTree.cs" />
     <Compile Include="DataContracts\ClosedSets.cs" />
     <Compile Include="DataContracts\EditDistanceMatchObject.cs" />
     <Compile Include="DataContracts\IndexDistancePair.cs" />
