@@ -9,11 +9,11 @@ namespace UndressAddress.DataTypes
     [Serializable]
     public class StateOfNewYorkAddressRange
     {
-        public string NonNumberBuildingNumber { get; set; }
-        public int BuildingNumberStart { get; set; }
-        public int BuildingNumberEnd { get; set; }
+        public StreetNumberRange StreetNumber { get; set; }
         public string StreetName { get; set; }
-        public string ZipCode { get; set; }
+        public int ZipCode { get; set; }
         public string City { get; set; }
+        public string CardinalDirection { get; set; }
+        public string Suffix { get; set; }
     }
 }

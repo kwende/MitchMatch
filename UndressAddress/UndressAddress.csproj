@@ -69,6 +69,7 @@
     <Compile Include="DataTypes\Data.cs" />
     <Compile Include="DataTypes\MatchQuality.cs" />
     <Compile Include="DataTypes\StateOfNewYorkAddressRange.cs" />
+    <Compile Include="DataTypes\StreetNumberRange.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringUtility.cs" />

@@ -25,11 +25,85 @@ namespace UndressAddress
 
                 string addressBit = bits[3];
                 string numberBit = bits[2];
-                string zip = bits[8];
+                int zip = -1;
+                int.TryParse(bits[8], out zip);
                 string city = bits[5];
                 string nonNumberNumberAddress = "";
 
-                string cleanedAddress = AddressUtility.CleanNYDatabaseAddress(addressBit, suffixes);
+                addressBit = Regex.Replace(addressBit, " +", " ");
+
+                string[] cardinalDirections = { "N", "S", "E", "W" };
+
+                string identifiedDirection = "";
+                foreach (string cardinalDirection in cardinalDirections)
+                {
+                    int startIndex = -1, length = -1;
+                    string endsWithString = " " + cardinalDirection;
+                    string startsWithString = cardinalDirection + " ";
+                    string containsString = " " + cardinalDirection + " ";
+
+                    if (addressBit.EndsWith(endsWithString))
+                    {
+                        startIndex = addressBit.LastIndexOf(endsWithString);
+                        length = endsWithString.Length;
+                    }
+                    else if (addressBit.StartsWith(cardinalDirection + " "))
+                    {
+                        startIndex = addressBit.IndexOf(startsWithString);
+                        length = startsWithString.Length;
+                    }
+                    else if (address.Contains(containsString))
+                    {
+                        startIndex = addressBit.IndexOf(containsString);
+                        length = containsString.Length;
+                    }
+
+                    if (startIndex != -1)
+                    {
+                        identifiedDirection = cardinalDirection;
+                        addressBit = addressBit.Remove(startIndex, length).Trim();
+                        break;
+                    }
+                }
+
+                string identifiedSuffix = "";
+                for (int c = 0; c < suffixes.LongSuffixes.Length; c++)
+                {
+                    string targetSuffix = " " + suffixes.LongSuffixes[c];
+                    if (addressBit.EndsWith(targetSuffix))
+                    {
+                        identifiedSuffix = suffixes.ShortSuffixes[c]; 
+                        int lastIndexOf = addressBit.LastIndexOf(targetSuffix);
+                        addressBit = addressBit.Remove(lastIndexOf, targetSuffix.Length); 
+                        break;
+                    }
+
+                    targetSuffix = " " + suffixes.ShortSuffixes[c];
+                    if (addressBit.EndsWith(targetSuffix))
+                    {
+                        identifiedSuffix = suffixes.ShortSuffixes[c];
+                        int lastIndexOf = addressBit.LastIndexOf(targetSuffix);
+                        addressBit = addressBit.Remove(lastIndexOf, targetSuffix.Length);
+                        break;
+                    }
+                }
+
+                //addressBit = Regex.Replace(addressBit, @" (N)$", " NORTH");
+                //addressBit = Regex.Replace(addressBit, @" (S)$", " SOUTH");
+                //addressBit = Regex.Replace(addressBit, @" (E)$", " EAST");
+                //addressBit = Regex.Replace(addressBit, @" (W)$", " WEST");
+
+                //addressBit = Regex.Replace(addressBit, @"^(N) ", "NORTH ");
+                //addressBit = Regex.Replace(addressBit, @"^(S) ", "SOUTH ");
+                //addressBit = Regex.Replace(addressBit, @"^(E) ", "EAST ");
+                //addressBit = Regex.Replace(addressBit, @"^(W) ", "WEST ");
+
+                //addressBit = Regex.Replace(addressBit, @" (N) ", " NORTH ");
+                //addressBit = Regex.Replace(addressBit, @" (S) ", " SOUTH ");
+                //addressBit = Regex.Replace(addressBit, @" (E) ", " EAST ");
+                //addressBit = Regex.Replace(addressBit, @" (W) ", " WEST ");
+
+                string cleanedAddress = addressBit;
 
                 int startNumber = -1, endNumber = -1;
 
@@ -56,6 +130,7 @@ namespace UndressAddress
                 else if (Regex.IsMatch(numberBit, @"^\d+$"))
                 {
                     startNumber = int.Parse(numberBit);
+                    endNumber = int.Parse(numberBit);
                 }
                 else if (numberBit.Length > 0)
                 {
@@ -64,15 +139,30 @@ namespace UndressAddress
 
                 lock (ret)
                 {
-                    ret.Add(new StateOfNewYorkAddressRange
+                    if (!string.IsNullOrEmpty(nonNumberNumberAddress))
                     {
-                        BuildingNumberEnd = endNumber,
-                        BuildingNumberStart = startNumber,
-                        City = city,
-                        StreetName = cleanedAddress,
-                        ZipCode = zip,
-                        NonNumberBuildingNumber = nonNumberNumberAddress,
-                    });
+                        ret.Add(new StateOfNewYorkAddressRange
+                        {
+                            StreetNumber = new StreetNumberRange(nonNumberNumberAddress),
+                            City = city,
+                            StreetName = cleanedAddress,
+                            ZipCode = zip,
+                            CardinalDirection = identifiedDirection,
+                            Suffix = identifiedSuffix,
+                        });
+                    }
+                    else
+                    {
+                        ret.Add(new StateOfNewYorkAddressRange
+                        {
+                            StreetNumber = new StreetNumberRange(startNumber, endNumber),
+                            City = city,
+                            StreetName = cleanedAddress,
+                            ZipCode = zip,
+                            CardinalDirection = identifiedDirection,
+                            Suffix = identifiedSuffix,
+                        });
+                    }
                 }
             });
 

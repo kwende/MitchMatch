@@ -12,39 +12,6 @@ namespace UndressAddress
 {
     public static class AddressUtility
     {
-        public static string CleanNYDatabaseAddress(string address, AddressSuffixes suffixes)
-        {
-            address = Regex.Replace(address, " +", " ");
-
-            for (int c = 0; c < suffixes.LongSuffixes.Length; c++)
-            {
-                string targetSuffix = " " + suffixes.LongSuffixes[c];
-                if (address.EndsWith(targetSuffix))
-                {
-                    int lastIndexOf = address.LastIndexOf(targetSuffix);
-                    address = address.Substring(0, lastIndexOf) + " " + suffixes.ShortSuffixes[c];
-                    break;
-                }
-            }
-
-            address = Regex.Replace(address, @" (N)$", " NORTH");
-            address = Regex.Replace(address, @" (S)$", " SOUTH");
-            address = Regex.Replace(address, @" (E)$", " EAST");
-            address = Regex.Replace(address, @" (W)$", " WEST");
-
-            address = Regex.Replace(address, @"^(N) ", "NORTH ");
-            address = Regex.Replace(address, @"^(S) ", "SOUTH ");
-            address = Regex.Replace(address, @"^(E) ", "EAST ");
-            address = Regex.Replace(address, @"^(W) ", "WEST ");
-
-            address = Regex.Replace(address, @" (N) ", " NORTH ");
-            address = Regex.Replace(address, @" (S) ", " SOUTH ");
-            address = Regex.Replace(address, @" (E) ", " EAST ");
-            address = Regex.Replace(address, @" (W) ", " WEST ");
-
-            return address;
-        }
-
         private static MatchQuality IsHomelessOrUnknown(string inputAddress1, Data data)
         {
             if (inputAddress1 != "UNKN3146 86TH STREE")

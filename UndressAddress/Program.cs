@@ -34,7 +34,7 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("760 BWAY,")).Take(1).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("755 WHITE PLNS RD,")).Take(1).ToArray();
 
             // precompute these strings because otherwise we compute them in a for() loop and 
             // string.concat() becomes a wasteful operation. 
@@ -52,6 +52,7 @@ namespace UndressAddress
             List<string> streetMatched = new List<string>();
             List<string> fullAddressMatched = new List<string>();
             List<string> couldNotParse = new List<string>();
+            List<string> databaseCorrected = new List<string>();
 
             // counter variables. 
             int iterations = 0;
@@ -85,7 +86,7 @@ namespace UndressAddress
 
                     double percentage = ((fullAddressMatched.Count + homeless.Count + unknown.Count + streetMatched.Count) / (iterations * 1.0)) * 100;
 
-                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full {streetMatched.Count} Street {homeless.Count} Homeless {unknown.Count} Unknown {couldNotParse.Count} Couln't parse {notMatched.Count} Not matched. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
+                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full. {streetMatched.Count} Street. {homeless.Count} Homeless. {unknown.Count} Unknown. {couldNotParse.Count} Couln't parse. {notMatched.Count} Not matched. {databaseCorrected.Count} database corrected. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
 
                     lastTime = now;
                 }
@@ -158,50 +159,85 @@ namespace UndressAddress
                     }
                 }
 
-                if (address.MatchQuality == MatchQuality.StreetMatched)
+                bool isDatabaseCorrected = false;
+                if (address.MatchQuality == MatchQuality.NotMatched && address.Zip != null &&
+                    !string.IsNullOrEmpty(address.StreetName) && !string.IsNullOrEmpty(address.StreetNumber))
                 {
-                    lock (streetMatched)
+                    StateOfNewYorkAddressRange[] addrs =
+                        data.AllAddresses.Where(n => n.StreetNumber.IsInRange(address.StreetNumber) && n.ZipCode == address.Zip.Value).ToArray();
+
+                    StateOfNewYorkAddressRange best = null;
+                    double lowestEditDistance = double.MaxValue;
+
+                    foreach (StateOfNewYorkAddressRange addr in addrs)
                     {
-                        streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                        double editDistance = EditDistance.ComputeNormalized(address.StreetName, addr.StreetName);
+                        if (editDistance < lowestEditDistance)
+                        {
+                            lowestEditDistance = editDistance;
+                            best = addr;
+                        }
+                    }
+
+                    if (best != null)
+                    {
+                        lock (databaseCorrected)
+                        {
+                            string corrected = $"{best.StreetNumber} {best.CardinalDirection} {best.StreetName} {best.Suffix}".Trim();
+                            databaseCorrected.Add($"{address.RawAddress1}=>{corrected}");
+                            isDatabaseCorrected = true;
+                        }
                     }
                 }
 
-                if (address.MatchQuality == MatchQuality.FullAddressMatched)
+                if (!isDatabaseCorrected)
                 {
-                    lock (fullAddressMatched)
+                    if (address.MatchQuality == MatchQuality.StreetMatched)
                     {
-                        fullAddressMatched.Add(address.StreetName);
+                        lock (streetMatched)
+                        {
+                            streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                        }
+                    }
+
+                    if (address.MatchQuality == MatchQuality.FullAddressMatched)
+                    {
+                        lock (fullAddressMatched)
+                        {
+                            fullAddressMatched.Add(address.StreetName);
+                        }
+                    }
+
+                    if (address.MatchQuality == MatchQuality.Homeless)
+                    {
+                        lock (homeless)
+                        {
+                            homeless.Add(address.RawAddress1);
+                        }
+                    }
+                    else if (address.MatchQuality == MatchQuality.Unknown)
+                    {
+                        lock (unknown)
+                        {
+                            unknown.Add(address.RawAddress1);
+                        }
+                    }
+                    else if (address.MatchQuality == MatchQuality.NotMatched)
+                    {
+                        lock (notMatched)
+                        {
+                            notMatched.Add($"{address.RawAddress1}");
+                        }
+                    }
+                    else if (address.MatchQuality == MatchQuality.CouldNotParseFormat)
+                    {
+                        lock (couldNotParse)
+                        {
+                            couldNotParse.Add($"{address.RawAddress1}");
+                        }
                     }
                 }
 
-                if (address.MatchQuality == MatchQuality.Homeless)
-                {
-                    lock (homeless)
-                    {
-                        homeless.Add(address.RawAddress1);
-                    }
-                }
-                else if (address.MatchQuality == MatchQuality.Unknown)
-                {
-                    lock (unknown)
-                    {
-                        unknown.Add(address.RawAddress1);
-                    }
-                }
-                else if (address.MatchQuality == MatchQuality.NotMatched)
-                {
-                    lock (notMatched)
-                    {
-                        notMatched.Add($"{address.RawAddress1}");
-                    }
-                }
-                else if (address.MatchQuality == MatchQuality.CouldNotParseFormat)
-                {
-                    lock (couldNotParse)
-                    {
-                        couldNotParse.Add($"{address.RawAddress1}");
-                    }
-                }
             });
 
             using (StreamWriter fout = File.CreateText("streetMatched.txt"))
@@ -209,6 +245,14 @@ namespace UndressAddress
                 for (int c = 0; c < streetMatched.Count; c++)
                 {
                     fout.WriteLine(streetMatched[c]);
+                }
+            }
+
+            using (StreamWriter fout = File.CreateText("databaseCorrected.txt"))
+            {
+                for (int c = 0; c < databaseCorrected.Count; c++)
+                {
+                    fout.WriteLine(databaseCorrected[c]);
                 }
             }
 
