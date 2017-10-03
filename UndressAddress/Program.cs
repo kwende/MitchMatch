@@ -34,7 +34,7 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("2895 GRAND CONCOURSE AVENUE,")).Take(1).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("760 BWAY,")).Take(1).ToArray();
 
             // precompute these strings because otherwise we compute them in a for() loop and 
             // string.concat() becomes a wasteful operation. 
@@ -126,16 +126,25 @@ namespace UndressAddress
                             }
                             else if (string.IsNullOrEmpty(address.Suffix))
                             {
+                                string[] commonSuffixes = { " STREET", " AVENUE" };
                                 // street is a far and away the most common name.
                                 // what happens if we just append that? 
-                                string adjustedAddress1 = address1 + " STREET";
-                                if ((adjustedAddress1 == streetName ||
-                                    StringUtility.Contains(adjustedAddress1, streetNameSubStrings[e]) ||
-                                    StringUtility.EndsWith(adjustedAddress1, streetNameEndsWith[e])
-                                    && streetName.Length > matched.Length))
+                                foreach (string commonSuffix in commonSuffixes)
                                 {
-                                    matched = streetName;
-                                    address.MatchQuality = MatchQuality.StreetMatched;
+                                    string adjustedAddress1 = address1 + commonSuffix;
+                                    if ((adjustedAddress1 == streetName ||
+                                        StringUtility.Contains(adjustedAddress1, streetNameSubStrings[e]) ||
+                                        StringUtility.EndsWith(adjustedAddress1, streetNameEndsWith[e])
+                                        && streetName.Length > matched.Length))
+                                    {
+                                        matched = streetName;
+                                        address.MatchQuality = MatchQuality.StreetMatched;
+                                    }
+
+                                    if (address.MatchQuality == MatchQuality.StreetMatched)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
