@@ -43,19 +43,25 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BKTreeEngine.cs" />
-    <Compile Include="ClosedSets.cs" />
-    <Compile Include="EditDistance.cs" />
+    <Compile Include="DataContracts\BipartiteEditDistanceMatchObject.cs" />
+    <Compile Include="DataContracts\ClosedSets.cs" />
+    <Compile Include="DataContracts\EditDistanceMatchObject.cs" />
+    <Compile Include="DataContracts\Matches.cs" />
+    <Compile Include="DataContracts\RowMatchObject.cs" />
+    <Compile Include="EditDistanceEngine.cs" />
     <Compile Include="FastAbstractGrouper.cs" />
     <Compile Include="FastBKTreeGrouper.cs" />
     <Compile Include="FastEditDistanceGrouper.cs" />
     <Compile Include="FastFuzzyDateGrouper.cs" />
     <Compile Include="FastFuzzyMatchEngine.cs" />
-    <Compile Include="FieldInclusions.cs" />
+    <Compile Include="DataContracts\FieldInclusions.cs" />
     <Compile Include="FileLibrary.cs" />
+    <Compile Include="MatchesEngine.cs" />
     <Compile Include="MatchingManager.cs" />
     <Compile Include="PrintingLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Row.cs" />
+    <Compile Include="DataContracts\Row.cs" />
+    <Compile Include="Serializer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

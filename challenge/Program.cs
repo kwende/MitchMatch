@@ -41,24 +41,6 @@ namespace challenge
             Console.ReadLine();
         }
 
-        public static T Deserialize<T>(string filePath)
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-            using (FileStream fstream = new FileStream(filePath, FileMode.Open))
-            {
-                return (T)formatter.Deserialize(fstream);
-            }
-        }
-
-        public static void Serialize<T>(T toSerialize, string filePath)
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-            using (FileStream fstream = new FileStream(filePath, FileMode.Create))
-            {
-                formatter.Serialize(fstream, toSerialize);
-            }
-        }
-
         private static List<List<Row>> ComputeDifference(ClosedSets originalMatches, ClosedSets newMatches)
         {
             List<Row>[] originals = originalMatches.RowToClosedRowSet;

@@ -152,7 +152,7 @@ namespace Common
             if (a.ADDRESS1 == b.ADDRESS1)
                 return true;
 
-            int editDistance = EditDistance.Compute(a.ADDRESS1, b.ADDRESS1);
+            int editDistance = EditDistanceEngine.Compute(a.ADDRESS1, b.ADDRESS1);
 
             return editDistance <= 1;
         }
