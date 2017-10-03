@@ -18,21 +18,27 @@ namespace Common
 
             //Do fuzzy match on two fields
             Console.WriteLine("Matching Last Names");
-            var lastNameMatches = fastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.LAST, 2);
+            var lastNameMatches = fastEditDistanceGrouper.DistanceAtMostN(allData, d => d.LAST, 2);
 
             Console.WriteLine("Matching First Names");
-            var firstNameMatches = fastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.FIRST, 2);
+            var firstNameMatches = fastEditDistanceGrouper.DistanceAtMostN(allData, d => d.FIRST, 2);
 
             Console.WriteLine("Matching SSN");
-            var ssnMatches = fastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.SSN <= 0 ? "" : d.SSN.ToString(), 1);
+            var ssnMatches = fastEditDistanceGrouper.DistanceAtMostN(allData, d => d.SSN <= 0 ? "" : d.SSN.ToString(), 1);
 
             Console.WriteLine("Matching Address");
-            var addressMatches = fastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.ADDRESS1, 2); //Note : should work much better when address normalization comes in
+            FastBKTreeGrouper fastBKTreeGrouper = new FastBKTreeGrouper();
+            var addressMatches = fastBKTreeGrouper.DistanceAtMostN(allData, d => d.ADDRESS1, 2); //Note : should work much better when address normalization comes in
+
+            Console.WriteLine("Matching DOB");
+            FastFuzzyDateGrouper fastFuzzyDateGrouper = new FastFuzzyDateGrouper();
+            var dobMatches = fastFuzzyDateGrouper.DistanceAtMostN(allData, d => d.DOB == default(DateTime) ? "" : d.DOB.ToString(), 1);
 
             Console.WriteLine("Matching Phone");
-            var phoneMatches = fastEditDistanceGrouper.EditDistanceAtMostN(allData, d => d.PHONE <= 0 ? "" : d.PHONE.ToString(), 1);
+            var phoneMatches = fastEditDistanceGrouper.DistanceAtMostN(allData, d => d.PHONE <= 0 ? "" : d.PHONE.ToString(), 1);
+            
 
-            List<RowMatchObject> matchObjects = new List<RowMatchObject> { lastNameMatches, firstNameMatches, ssnMatches, addressMatches };
+            List<RowMatchObject> matchObjects = new List<RowMatchObject> { lastNameMatches, firstNameMatches, ssnMatches, addressMatches, dobMatches, phoneMatches };
 
             int c = 0;
             int[] eidToMatchCount = new int[maxEid + 1];
