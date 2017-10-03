@@ -10,7 +10,7 @@ namespace Common
     {
         public abstract Matches EditDistanceAtMostN(string[] strings, int n);
 
-        public RowMatchObject EditDistanceAtMostN(Row[] data, Func<Row, string> fieldSelector, int n)
+        public RowMatchObject DistanceAtMostN(Row[] data, Func<Row, string> fieldSelector, int n)
         {
             //Start by grouping the data into fields
             Console.WriteLine("Grouping By Field Value");
