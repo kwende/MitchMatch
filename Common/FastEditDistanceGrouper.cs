@@ -36,19 +36,14 @@ namespace Common
             {
                 Console.Write($"\r{c++}/{grouped.Length} edit distance groups checked");
                 var groupArray = group.ToArray();
-                if (group.Key == "")  //In this case, both of the original strings had length at most n, so they have edit distance at most n.  We are probably avoiding a lot of work on a huge component by doing this
-                {
-                    for (int i = 0; i < groupArray.Length; i++)
-                        for (int j = i + 1; j < groupArray.Length; j++)
-                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
-                }
-                else
-                {
-                    for (int i = 0; i < groupArray.Length; i++)
-                        for (int j = i + 1; j < groupArray.Length; j++)
-                            if (EditDistance(groupArray[i], groupArray[j]) <= n)
-                                toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
-                }
+
+                for (int i = 0; i < groupArray.Length; i++)
+                    for (int j = i + 1; j < groupArray.Length; j++)
+                    {
+                        int ed = EditDistance(groupArray[i], groupArray[j]);
+                        if (ed <= n)
+                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index,ed);
+                    }
             }
             Console.WriteLine();
 
@@ -110,19 +105,13 @@ namespace Common
                 var groupT = group.Where(bedmo => bedmo.Part == 1).Select(bedmo => bedmo.EditDistanceMatchObject).ToArray();
 
                 Console.Write($"\r{c++}/{grouped.Length} edit distance groups checked");
-                if (group.Key == "")  //In this case, both of the original strings had length at most n, so they have edit distance at most n.  We are probably avoiding a lot of work on a huge component by doing this
-                {
-                    foreach (var s in groupS)
-                        foreach (var t in groupT)
-                            toReturn.AddDirectedMatch(s.Index, t.Index);
-                }
-                else
-                {
-                    foreach (var s in groupS)
-                        foreach (var t in groupT)
-                            if (EditDistance(s, t) <= n)
-                                toReturn.AddDirectedMatch(s.Index, t.Index);
-                }
+                foreach (var s in groupS)
+                    foreach (var t in groupT)
+                    {
+                        int ed = EditDistance(s, t);
+                        if (ed <= n)
+                            toReturn.AddDirectedMatch(s.Index, t.Index, ed);
+                    } 
             }
             Console.WriteLine();
 

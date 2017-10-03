@@ -43,7 +43,7 @@ namespace Common
                     int i = stringToInt[neighbor];
                     lock (cLock)
                     {
-                        toReturn.AddDirectedMatch(i, j);
+                        toReturn.AddDirectedMatch(i, j, EditDistanceEngine.Compute(T[j],neighbor));
                     }
                 }
             }
