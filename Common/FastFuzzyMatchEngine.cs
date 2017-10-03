@@ -12,7 +12,7 @@ namespace Common
         public static Matches EasiestAgreementMatch(Row[] allData)
         {
             int maxEid = allData.Max(d => d.EnterpriseID);
-            Matches toReturn = new Matches(maxEid + 1);
+            Matches toReturn =  MatchesEngine.NewMatches(maxEid + 1);
 
             FastEditDistanceGrouper fastEditDistanceGrouper = new FastEditDistanceGrouper();
 

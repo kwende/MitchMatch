@@ -15,7 +15,7 @@ namespace Common
 
         public static Matches EditDistanceAtMostN(string[] S, string[] T, int n)
         {
-            Matches toReturn = new Matches(S.Length);
+            Matches toReturn = MatchesEngine.NewMatches(S.Length);
 
             //Create BKTree
             var bkTree = BKTreeEngine.CreateBKTree(S.ToList());

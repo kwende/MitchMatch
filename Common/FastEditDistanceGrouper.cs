@@ -12,10 +12,10 @@ namespace Common
     {
         public override Matches EditDistanceAtMostN(string[] strings, int n)
         {
-            Matches toReturn = new Matches(strings.Count());
+            Matches toReturn = MatchesEngine.NewMatches(strings.Count());
             //Every string matches itself
             for (int i = 0; i < strings.Length; i++)
-                toReturn.AddMatch(i, i);
+                toReturn.AddMatch(i, i, 0);
 
             Console.WriteLine("Creating the neighborhoods");
             List<EditDistanceMatchObject> neighborHood = new List<EditDistanceMatchObject>();
@@ -70,7 +70,7 @@ namespace Common
         /// <returns></returns>
         public static Matches EditDistanceAtMostN(string[] S, string[] T, int n)
         {
-            Matches toReturn = new Matches(S.Length);
+            Matches toReturn = MatchesEngine.NewMatches(S.Length);
 
             Console.WriteLine("Creating the neighborhoods");
             List<BipartiteEditDistanceMatchObject> neighborHood = new List<BipartiteEditDistanceMatchObject>();
@@ -192,7 +192,7 @@ namespace Common
                 {
                     foreach (var neighbor in neighbors)
                     {
-                        Console.Write($"{strings[neighbor]} ");
+                        Console.Write($"{strings[neighbor.Index]} ");
                     }
                 }
                 else
@@ -200,7 +200,7 @@ namespace Common
                     for (int i = 0; i < 5; i++)
                     {
                         int mii = r.Next(matchCount);
-                        int mi = neighbors[mii];
+                        int mi = neighbors[mii].Index;
                         Console.Write($"{strings[mi]} ");
                     }
                 }

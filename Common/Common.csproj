@@ -46,6 +46,7 @@
     <Compile Include="DataContracts\BipartiteEditDistanceMatchObject.cs" />
     <Compile Include="DataContracts\ClosedSets.cs" />
     <Compile Include="DataContracts\EditDistanceMatchObject.cs" />
+    <Compile Include="DataContracts\IndexDistancePair.cs" />
     <Compile Include="DataContracts\Matches.cs" />
     <Compile Include="DataContracts\RowMatchObject.cs" />
     <Compile Include="EditDistanceEngine.cs" />

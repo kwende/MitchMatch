@@ -11,7 +11,7 @@ namespace Common
     /// </summary>
     public static class MatchesEngine
     {
-        public static Matches CreateMatches(int n)
+        public static Matches NewMatches(int n)
         {
             Matches toReturn = new Matches();
 
@@ -24,7 +24,7 @@ namespace Common
             return toReturn;
         }
 
-        public static Matches CreateMatches(string filePath)
+        public static Matches NewMatches(string filePath)
         {
             return Serializer.Deserialize<Matches>(filePath);
         }
@@ -43,7 +43,16 @@ namespace Common
             var matchArray = matches.MatchArray;
             for (int i = 0; i < matchArray.Length; i++)
             {
-                matchArray[i] = matchArray[i].Distinct().ToList();
+                List<IndexDistancePair> newList = new List<IndexDistancePair>();
+                var groupedByIndex = matchArray[i].GroupBy(pair => pair.Index);
+                foreach(var group in groupedByIndex)
+                {
+                    if (group.Count() == 1)
+                        newList.Add(group.First());
+                    else
+                        newList.Add(new IndexDistancePair { Index = group.Key, Distance = group.Min(p => p.Distance) });
+                }
+                matchArray[i] = newList;
             }
         }
 

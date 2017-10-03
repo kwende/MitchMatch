@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Common
 {
-    public class IndexDistancePair
+    public struct IndexDistancePair
     {
-        public int Index { get; set; }
-        public double Distance { get; set; }
+        public int Index;
+        public double Distance;
     }
 }
