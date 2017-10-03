@@ -28,42 +28,6 @@ namespace challenge
             // Clean Data
             DataCleaningManager.CleanData(ref allData, realData);
 
-            Console.WriteLine("Grouping by fuzzy date");
-            FastFuzzyDateGrouper bob = new FastFuzzyDateGrouper();
-            var shit = bob.EditDistanceAtMostN(allData, d => d.DOB == default(DateTime) ? "" : d.DOB.ToString(), 1);
-            Console.WriteLine("That shit's done");
-
-            //Pick a person at random and make sure we matched em right
-            Random random = new Random();
-            while(true)
-            {
-                var person = allData[random.Next(allData.Count())];
-
-                if (person.DOB == default(DateTime))
-                    continue;
-
-                int index = shit.EidToIndex[person.EnterpriseID];
-                int totalNeighbors = 0;
-                foreach(var neighbor in shit.Matches.Neighbors(index))
-                {
-                    totalNeighbors += shit.IndexToEids[neighbor].Count();
-                }
-
-                Console.WriteLine(totalNeighbors);
-                int theOldFashionedWay = 0;
-                foreach(var person2 in allData)
-                {
-                    if (person2.DOB == default(DateTime))
-                        continue;
-
-                    if (MatchingManager.FuzzyDateEquals(person.DOB, person2.DOB))
-                        theOldFashionedWay++;
-                }
-
-                Console.WriteLine(theOldFashionedWay);
-                Console.ReadLine();
-            }
-
             // Load Data
             ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
             ClosedSets newMatches = FileLibrary.LoadOriginalMatches(allData); // create a copy to edit
