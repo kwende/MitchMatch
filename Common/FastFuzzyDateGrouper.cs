@@ -12,7 +12,7 @@ namespace Common
         {
             DateTime[] dates = strings.Select(s => DateTime.Parse(s)).ToArray();
 
-            Matches toReturn = new Matches(dates.Length);
+            Matches toReturn = MatchesEngine.NewMatches(dates.Length);
 
             var dateIndices = dates.Select((d, i) => new DateIndex { Date = d, Index = i }).ToArray();
 
@@ -25,7 +25,15 @@ namespace Common
 
                 for (int i = 0; i < groupArray.Length; i++)
                     for (int j = i; j < groupArray.Length; j++)
-                        toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
+                    {
+                        double distance;
+                        if (groupArray[i].Date == groupArray[j].Date)
+                            distance = 0;
+                        else
+                            distance = 1;
+
+                        toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index, distance);
+                    }
             }
 
             //Day transposed, or off by one, or off by 1 digit
@@ -39,7 +47,7 @@ namespace Common
                         int day1 = groupArray[i].Date.Day;
                         int day2 = groupArray[j].Date.Day;
                         if (MatchingManager.OneOrOneDigit(day1, day2) || MatchingManager.TransposedDigit(day1, day2))
-                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
+                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index,1);
                     }
                         
             }
@@ -55,7 +63,7 @@ namespace Common
                         int month1 = groupArray[i].Date.Month;
                         int month2 = groupArray[j].Date.Month;
                         if (MatchingManager.OneOrOneDigit(month1, month2) || MatchingManager.TransposedDigit(month1, month2))
-                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
+                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index, 1);
                     }
             }
 
@@ -70,7 +78,7 @@ namespace Common
                         int year1 = groupArray[i].Date.Year;
                         int year2 = groupArray[j].Date.Year;
                         if (MatchingManager.OneOrOneDigit(year1, year2) || MatchingManager.TransposedDigit(year1, year2) || MatchingManager.OffBy100(year1,year2))
-                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
+                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index, 1);
                     }
                         
             }

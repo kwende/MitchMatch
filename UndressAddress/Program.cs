@@ -314,7 +314,7 @@ namespace UndressAddress
 
         static void Main(string[] args)
         {
-            int edit = EditDistance.Compute("GRANDCONCOURSE", "GRAND CONCOURSE");
+            int edit = EditDistanceEngine.Compute("GRANDCONCOURSE", "GRAND CONCOURSE");
             bool yes = StringUtility.IsDistance1OrLessApart("GRANDCONCOURSE", "GRAND CONCOURSE");
 
             GetCleanedNYStreetList2();

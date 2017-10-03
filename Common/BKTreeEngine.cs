@@ -40,7 +40,7 @@ namespace Common
 
                 string currentString = strings[i];
 
-                int d = EditDistance.Compute(rootString, currentString);
+                int d = EditDistanceEngine.Compute(rootString, currentString);
                 buckets[d].Add(currentString);
             }
 
@@ -69,7 +69,7 @@ namespace Common
             if (bkTree == null)
                 return toReturn;
 
-            int d = EditDistance.Compute(s, bkTree.StringValue);
+            int d = EditDistanceEngine.Compute(s, bkTree.StringValue);
             if (d <= n)
             {
                 toReturn.Add(bkTree.StringValue);
@@ -112,11 +112,5 @@ namespace Common
         {
             return data.Select(d => fieldSelector(d)).Distinct().Where(s => s != "").ToArray();
         }
-    }
-
-    public class BKTree
-    {
-        public string StringValue;
-        public BKTree[] Children;
     }
 }

@@ -29,7 +29,7 @@ namespace challenge
             DataCleaningManager.CleanData(ref allData, realData);
 
             // Load Data
-            ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
+        ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
             ClosedSets newMatches = FileLibrary.LoadOriginalMatches(allData); // create a copy to edit
 
             // Match Data
@@ -39,24 +39,6 @@ namespace challenge
             //FileManager.SaveFinalSubmission(newMatches.ClosedRowSets(), @"C:\Users\jbrownkramer\Desktop\submission.csv");
 
             Console.ReadLine();
-        }
-
-        public static T Deserialize<T>(string filePath)
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-            using (FileStream fstream = new FileStream(filePath, FileMode.Open))
-            {
-                return (T)formatter.Deserialize(fstream);
-            }
-        }
-
-        public static void Serialize<T>(T toSerialize, string filePath)
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-            using (FileStream fstream = new FileStream(filePath, FileMode.Create))
-            {
-                formatter.Serialize(fstream, toSerialize);
-            }
         }
 
         private static List<List<Row>> ComputeDifference(ClosedSets originalMatches, ClosedSets newMatches)
