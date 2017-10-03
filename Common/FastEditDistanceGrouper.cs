@@ -12,10 +12,10 @@ namespace Common
     {
         public override Matches EditDistanceAtMostN(string[] strings, int n)
         {
-            Matches toReturn = new Matches(strings.Count());
+            Matches toReturn = MatchesEngine.NewMatches(strings.Count());
             //Every string matches itself
             for (int i = 0; i < strings.Length; i++)
-                toReturn.AddMatch(i, i);
+                toReturn.AddMatch(i, i, 0);
 
             Console.WriteLine("Creating the neighborhoods");
             List<EditDistanceMatchObject> neighborHood = new List<EditDistanceMatchObject>();
@@ -36,19 +36,14 @@ namespace Common
             {
                 Console.Write($"\r{c++}/{grouped.Length} edit distance groups checked");
                 var groupArray = group.ToArray();
-                if (group.Key == "")  //In this case, both of the original strings had length at most n, so they have edit distance at most n.  We are probably avoiding a lot of work on a huge component by doing this
-                {
-                    for (int i = 0; i < groupArray.Length; i++)
-                        for (int j = i + 1; j < groupArray.Length; j++)
-                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
-                }
-                else
-                {
-                    for (int i = 0; i < groupArray.Length; i++)
-                        for (int j = i + 1; j < groupArray.Length; j++)
-                            if (EditDistance(groupArray[i], groupArray[j]) <= n)
-                                toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index);
-                }
+
+                for (int i = 0; i < groupArray.Length; i++)
+                    for (int j = i + 1; j < groupArray.Length; j++)
+                    {
+                        int ed = EditDistance(groupArray[i], groupArray[j]);
+                        if (ed <= n)
+                            toReturn.AddMatch(groupArray[i].Index, groupArray[j].Index,ed);
+                    }
             }
             Console.WriteLine();
 
@@ -70,7 +65,7 @@ namespace Common
         /// <returns></returns>
         public static Matches EditDistanceAtMostN(string[] S, string[] T, int n)
         {
-            Matches toReturn = new Matches(S.Length);
+            Matches toReturn = MatchesEngine.NewMatches(S.Length);
 
             Console.WriteLine("Creating the neighborhoods");
             List<BipartiteEditDistanceMatchObject> neighborHood = new List<BipartiteEditDistanceMatchObject>();
@@ -110,19 +105,13 @@ namespace Common
                 var groupT = group.Where(bedmo => bedmo.Part == 1).Select(bedmo => bedmo.EditDistanceMatchObject).ToArray();
 
                 Console.Write($"\r{c++}/{grouped.Length} edit distance groups checked");
-                if (group.Key == "")  //In this case, both of the original strings had length at most n, so they have edit distance at most n.  We are probably avoiding a lot of work on a huge component by doing this
-                {
-                    foreach (var s in groupS)
-                        foreach (var t in groupT)
-                            toReturn.AddDirectedMatch(s.Index, t.Index);
-                }
-                else
-                {
-                    foreach (var s in groupS)
-                        foreach (var t in groupT)
-                            if (EditDistance(s, t) <= n)
-                                toReturn.AddDirectedMatch(s.Index, t.Index);
-                }
+                foreach (var s in groupS)
+                    foreach (var t in groupT)
+                    {
+                        int ed = EditDistance(s, t);
+                        if (ed <= n)
+                            toReturn.AddDirectedMatch(s.Index, t.Index, ed);
+                    } 
             }
             Console.WriteLine();
 
@@ -192,7 +181,7 @@ namespace Common
                 {
                     foreach (var neighbor in neighbors)
                     {
-                        Console.Write($"{strings[neighbor]} ");
+                        Console.Write($"{strings[neighbor.Index]} ");
                     }
                 }
                 else
@@ -200,7 +189,7 @@ namespace Common
                     for (int i = 0; i < 5; i++)
                     {
                         int mii = r.Next(matchCount);
-                        int mi = neighbors[mii];
+                        int mi = neighbors[mii].Index;
                         Console.Write($"{strings[mi]} ");
                     }
                 }
@@ -261,110 +250,6 @@ namespace Common
                 toAdd.DeletedIndices.Add(i);
 
                 toReturn.Add(toAdd);
-            }
-
-            return toReturn;
-        }
-    }
-
-    class EditDistanceMatchObject
-    {
-        public int Index { get; set; }
-        public string Substring { get; set; }
-        //These are stored in the indexing scheme for the original string
-        public List<int> DeletedIndices { get; set; }
-    }
-
-    class BipartiteEditDistanceMatchObject
-    {
-        public EditDistanceMatchObject EditDistanceMatchObject;
-        public int Part { get; set; }
-    }
-
-    [Serializable]
-    public class RowMatchObject
-    {
-        public Matches Matches { get; set; }
-        public int[] EidToIndex { get; set; }
-        public List<int>[] IndexToEids { get; set; }
-    }
-
-    [Serializable]
-    public class Matches
-    {
-        private List<int>[] _matchArray;
-
-        public Matches(int n)
-        {
-            _matchArray = new List<int>[n];
-            for (int i = 0; i < n; i++)
-            {
-                _matchArray[i] = new List<int>();
-            }
-        }
-
-        public Matches(string filePath)
-        {
-            var lines = System.IO.File.ReadAllLines(filePath);
-            _matchArray = new List<int>[lines.Count()];
-            int i = 0;
-            foreach (var line in lines)
-            {
-                List<int> asList = line.Split(',').Select(s => int.Parse(s)).ToList();
-                _matchArray[i++] = asList;
-            }
-        }
-
-        public long Pairs()
-        {
-            long toReturn = 0;
-            for (int i = 0; i < _matchArray.Length; i++)
-                toReturn += _matchArray[i].Count();
-
-            return toReturn / 2;
-        }
-
-        public void Clean()
-        {
-            for (int i = 0; i < _matchArray.Length; i++)
-            {
-                _matchArray[i] = _matchArray[i].Distinct().ToList();
-            }
-        }
-
-
-        public void AddMatch(int i, int j)
-        {
-            _matchArray[i].Add(j);
-            _matchArray[j].Add(i);
-        }
-
-        public void AddDirectedMatch(int i, int j)
-        {
-            _matchArray[i].Add(j);
-        }
-
-        public bool HasMatch(int i, int j)
-        {
-            return _matchArray[i].Contains(j);
-        }
-
-        public List<int> Neighbors(int i)
-        {
-            return _matchArray[i];
-        }
-
-        public void Serialize(string path)
-        {
-            System.IO.File.WriteAllLines(path, AsLines());
-        }
-
-        private List<string> AsLines()
-        {
-            List<string> toReturn = new List<string>();
-            foreach (var list in _matchArray)
-            {
-                toReturn.Add(string.Join(",", list));
             }
 
             return toReturn;

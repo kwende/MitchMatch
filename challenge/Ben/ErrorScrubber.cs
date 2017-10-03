@@ -55,7 +55,7 @@ namespace challenge
                     {
                         if (row1 != row2)
                         {
-                            double distance = EditDistance.ComputeDistanceForRecordPair(row1, row2);
+                            double distance = EditDistanceEngine.ComputeDistanceForRecordPair(row1, row2);
                             if (distance > maxDifference)
                             {
                                 maxDifference = distance;

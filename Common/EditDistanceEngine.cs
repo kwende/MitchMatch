@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Common
 {
-    public class EditDistance
+    public class EditDistanceEngine
     {
         public static double ComputeDistanceForRecordPair(Row row1, Row row2)
         {

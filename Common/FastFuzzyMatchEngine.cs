@@ -12,7 +12,7 @@ namespace Common
         public static Matches EasiestAgreementMatch(Row[] allData)
         {
             int maxEid = allData.Max(d => d.EnterpriseID);
-            Matches toReturn = new Matches(maxEid + 1);
+            Matches toReturn =  MatchesEngine.NewMatches(maxEid + 1);
 
             FastEditDistanceGrouper fastEditDistanceGrouper = new FastEditDistanceGrouper();
 
@@ -56,7 +56,7 @@ namespace Common
                     var stringNeigborIndices = matchObject.Matches.Neighbors(index);
                     foreach (var neighborIndex in stringNeigborIndices)
                     {
-                        var eids = matchObject.IndexToEids[neighborIndex];
+                        var eids = matchObject.IndexToEids[neighborIndex.Index];
                         foreach (var eid in eids)
                         {
                             if (eid <= rowEid)  //We will do the exact same computation when we find all the matches for eid.
@@ -70,7 +70,7 @@ namespace Common
                 foreach (var eid in usedEids)
                 {
                     if (eidToMatchCount[eid] >= 2)
-                        toReturn.AddMatch(rowEid, eid);
+                        toReturn.AddMatch(rowEid, eid, 1);
 
                     eidToMatchCount[eid] = 0;
                 }
