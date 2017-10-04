@@ -134,7 +134,7 @@ namespace Common
             for (int i = start; i <= end; i++)
             {
                 int oldBound = bound;
-                var subtreeList = LeastEditDistance(s, bkTree, ref bound);
+                var subtreeList = LeastEditDistance(s, bkTree.Children[i], ref bound);
                 if (oldBound == bound)
                 {
                     toReturn.AddRange(subtreeList);
