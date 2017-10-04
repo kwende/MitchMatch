@@ -108,6 +108,46 @@ namespace Common
             return toReturn;
         }
 
+        public static List<string> LeastEditDistance(string s, BKTree tree)
+        {
+            int distance = int.MaxValue;
+            return LeastEditDistance(s, tree, ref distance);
+        }
+
+        public static List<string> LeastEditDistance(string s, BKTree bkTree, ref int bound)
+        {
+            List<string> toReturn = new List<string>();
+
+            if (bkTree == null)
+                return toReturn;
+
+            int d = EditDistanceEngine.Compute(s, bkTree.StringValue);
+            if (d <= bound)
+            {
+                bound = d;
+                toReturn.Add(bkTree.StringValue);
+            }
+            
+            int start = System.Math.Max(0, d - bound);
+            int end = System.Math.Min(d + bound, bkTree.Children.Length - 1);
+
+            for (int i = start; i <= end; i++)
+            {
+                int oldBound = bound;
+                var subtreeList = LeastEditDistance(s, bkTree, ref bound);
+                if (oldBound == bound)
+                {
+                    toReturn.AddRange(subtreeList);
+                }
+                else
+                {
+                    toReturn = subtreeList;
+                }
+            }
+
+            return toReturn;
+        }
+
         public static string[] DistinctNonEmptyStrings(IEnumerable<Row> data, Func<Row, string> fieldSelector)
         {
             return data.Select(d => fieldSelector(d)).Distinct().Where(s => s != "").ToArray();
