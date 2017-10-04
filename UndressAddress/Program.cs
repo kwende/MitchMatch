@@ -35,12 +35,12 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("23 OLYMPUS STREET,")).Take(1).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("23 OLYMPUS STREET,")).Take(1).ToArray();
 
             // precompute these strings because otherwise we compute them in a for() loop and 
             // string.concat() becomes a wasteful operation. 
             List<string> streetNameSubStrings = new List<string>();
-            streetNameSubStrings.AddRange(data.NewYorkStateStreetNames.Select(n => " " + n + " "));
+            streetNameSubStrings.AddRange(data.NewYorkStateStreetNames.Select(n => n));
             List<string> streetNameEndsWith = new List<string>();
             streetNameEndsWith.AddRange(data.NewYorkStateStreetNames.Select(n => " " + n));
             List<string> streetNames = new List<string>();
@@ -58,7 +58,7 @@ namespace UndressAddress
             // counter variables. 
             int iterations = 0;
 
-            List<string> cleanedAddresses = new List<string>();
+            List<Address> cleanedAddresses = new List<Address>();
 
             DateTime lastTime = DateTime.Now;
             List<double> timeSpans = new List<double>();
@@ -113,6 +113,21 @@ namespace UndressAddress
                         }
                         // look for street name matching. 
 
+
+
+                        string addressToMatch = $"{address.StreetName} {address.Suffix}";
+                        string bestMatch = "";
+                        int matchBadness = int.MaxValue;
+                        for (int streetIndex = 0; streetIndex < data.NewYorkStateStreetNames.Length; streetIndex++)
+                        {
+                            // Is this a better match?
+                            if ()
+                        }
+
+
+
+
+
                         const int MinimumLengthForEditDistance1ToStillCount = 7;
                         for (int e = 0; e < streetNameSubStrings.Count; e++)
                         {
@@ -151,6 +166,43 @@ namespace UndressAddress
                             }
                         }
                     }
+
+
+
+
+
+
+                    if (matched != $"{address.StreetName} {address.Suffix}")
+                    {
+                        const int Address2Column = 9;
+                        string[] bits = DecisionTreeLearner.Data.DataLoader.SmartSplit(data.FinalDataSet[c]);
+                        string addressRaw = $"{address.RawAddress1}";
+                        if (bits[Address2Column].Length <= 5)
+                        {
+                            addressRaw += $" / {bits[Address2Column]}";
+                        }
+                        string addressCleaned = $"{ address.StreetNumber } / { address.StreetName} / { address.Suffix}";
+                        if (!string.IsNullOrEmpty(address.ApartmentNumber))
+                        {
+                            addressCleaned += $" / {address.ApartmentNumber}";
+                        }
+                        string addressCleanedBen = matched;
+                        Console.WriteLine($"{addressRaw} => {addressCleaned} OR {addressCleanedBen}");
+                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     // do we have a match? 
                     if (address.MatchQuality != MatchQuality.StreetMatched)
