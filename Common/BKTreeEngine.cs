@@ -142,6 +142,8 @@ namespace Common
                 else
                 {
                     toReturn = subtreeList;
+                    i = System.Math.Max(i, d - bound);
+                    end = System.Math.Min(d + bound, bkTree.Children.Length - 1);
                 }
             }
 
