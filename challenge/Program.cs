@@ -24,12 +24,12 @@ namespace challenge
             var allData = lines.Skip(1).Where(l => l != ",,,,,,,,,,,,,,,,,,").Select(l => FileLibrary.ParseRow(l)).ToArray();
             var realData = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
 
-
             // Clean Data
+            Console.WriteLine("Cleaning");
             DataCleaningManager.CleanData(ref allData, realData);
 
             // Load Data
-        ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
+            ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
             ClosedSets newMatches = FileLibrary.LoadOriginalMatches(allData); // create a copy to edit
 
             // Match Data
