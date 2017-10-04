@@ -15,5 +15,6 @@ namespace UndressAddress.DataTypes
         public string City { get; set; }
         public string CardinalDirection { get; set; }
         public string Suffix { get; set; }
+        public string FullStreetName { get; set; }
     }
 }

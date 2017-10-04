@@ -11,6 +11,7 @@ namespace UndressAddress.DataTypes
         public string ApartmentNumber { get; set; }
         public string StreetName { get; set; }
         public string Suffix { get; set; }
+        public string FullStreetName { get; set; }
         public string StreetNumber { get; set; }
         public int? Zip { get; set; }
         public string City { get; set; }

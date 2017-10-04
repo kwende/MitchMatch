@@ -137,6 +137,32 @@ namespace UndressAddress
                     nonNumberNumberAddress = numberBit;
                 }
 
+                string fullStreetName = "";
+                if(identifiedDirection != "")
+                {
+                    switch(identifiedDirection)
+                    {
+                        case "E":
+                            fullStreetName = "EAST ";
+                            break;
+                        case "W":
+                            fullStreetName = "WEST ";
+                            break;
+                        case "N":
+                            fullStreetName = "NORTH ";
+                            break;
+                        case "S":
+                            fullStreetName = "SOUTH ";
+                            break;
+                    }
+                }
+                fullStreetName += cleanedAddress;
+                if(identifiedSuffix != "")
+                {
+                    fullStreetName += " " + identifiedSuffix;
+                }
+
+
                 lock (ret)
                 {
                     if (!string.IsNullOrEmpty(nonNumberNumberAddress))
@@ -149,6 +175,7 @@ namespace UndressAddress
                             ZipCode = zip,
                             CardinalDirection = identifiedDirection,
                             Suffix = identifiedSuffix,
+                            FullStreetName = fullStreetName,
                         });
                     }
                     else
@@ -161,6 +188,7 @@ namespace UndressAddress
                             ZipCode = zip,
                             CardinalDirection = identifiedDirection,
                             Suffix = identifiedSuffix,
+                            FullStreetName = fullStreetName,
                         });
                     }
                 }
@@ -182,7 +210,7 @@ namespace UndressAddress
             string[] newYorkCityAddresses = File.ReadAllLines("city_of_new_york.csv").Skip(1).ToArray();
             data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
 
-            List<string> uniques = File.ReadAllLines("allStreets.csv").ToList();
+            List<string> uniques = File.ReadAllLines("allStreets.csv").Distinct().ToList();
 
             // go through and identify each street with a long suffix. 
             // add to it the corresponding short suffix. 

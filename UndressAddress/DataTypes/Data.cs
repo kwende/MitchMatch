@@ -12,6 +12,7 @@ namespace UndressAddress.DataTypes
         public string[] FinalDataSet { get; set; }
         public List<StateOfNewYorkAddressRange> AllAddresses { get; set; }
         public string[] NewYorkStateStreetNames { get; set; }
+        public string[] NewYorkStateStreetNamesWithZip { get; set; }
         public string[] UnknownAddresses { get; set; }
         public string[] HomelessAddresses { get; set; }
         public Dictionary<string, string> Abbreviations { get; set; }
