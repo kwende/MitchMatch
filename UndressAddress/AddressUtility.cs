@@ -37,17 +37,11 @@ namespace UndressAddress
                 }
 
                 // match repeats of the same character 5 or more times. 
-                if (Regex.IsMatch(inputAddress1, @"(.)\1{5,}"))
-                {
-                    return MatchQuality.Unknown;
-                }
-                //DFSFSDF
-                if (Regex.IsMatch(inputAddress1, @"DFS"))
-                {
-                    return MatchQuality.Unknown;
-                }
-                //13846 ST. Numbers way too high for street address
-                if (Regex.IsMatch(inputAddress1, @"(\d+){6,20}"))
+                if (Regex.IsMatch(inputAddress1, @"(.)\1{5,}") ||
+                    Regex.IsMatch(inputAddress1, @"(^| )NOT ") ||
+                    Regex.IsMatch(inputAddress1, @"DFS") || ////DFSFSDF
+                    Regex.IsMatch(inputAddress1, @"(\d+){6,20}") ||//13846 ST. Numbers way too high for street address
+                    Regex.IsMatch(inputAddress1, @"^([A-Z]){2}$")) // only 2 characters
                 {
                     return MatchQuality.Unknown;
                 }

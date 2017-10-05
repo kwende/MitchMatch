@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BKTreeEngine.cs" />
+    <Compile Include="BKTreeSerializer.cs" />
     <Compile Include="DataContracts\BipartiteEditDistanceMatchObject.cs" />
     <Compile Include="DataContracts\BKTree.cs" />
     <Compile Include="DataContracts\ClosedSets.cs" />

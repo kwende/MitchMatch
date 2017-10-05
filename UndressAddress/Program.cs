@@ -7,6 +7,7 @@ using System.Data.OleDb;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -35,7 +36,7 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("23 OLYMPUS STREET,")).Take(1).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("WHITE PLNS RD,")).Take(1).ToArray();
 
             // precompute these strings because otherwise we compute them in a for() loop and 
             // string.concat() becomes a wasteful operation. 
@@ -54,6 +55,8 @@ namespace UndressAddress
             List<string> fullAddressMatched = new List<string>();
             List<string> couldNotParse = new List<string>();
             List<string> databaseCorrected = new List<string>();
+
+            int numberCouldntProcess = 0;
 
             // counter variables. 
             int iterations = 0;
@@ -161,33 +164,41 @@ namespace UndressAddress
                 }
 
                 bool isDatabaseCorrected = false;
-                if (address.MatchQuality == MatchQuality.NotMatched && address.Zip != null &&
-                    !string.IsNullOrEmpty(address.StreetName) && !string.IsNullOrEmpty(address.StreetNumber))
+                if (address.MatchQuality == MatchQuality.NotMatched)
                 {
-                    StateOfNewYorkAddressRange[] addrs =
-                        data.AllAddresses.Where(n => n.StreetNumber.IsInRange(address.StreetNumber) && n.ZipCode == address.Zip.Value).ToArray();
-
-                    StateOfNewYorkAddressRange best = null;
-                    double lowestEditDistance = double.MaxValue;
-
-                    foreach (StateOfNewYorkAddressRange addr in addrs)
+                    if (address.Zip != null && !string.IsNullOrEmpty(address.StreetName) && !string.IsNullOrEmpty(address.StreetNumber))
                     {
-                        double editDistance = EditDistance.ComputeNormalized(address.StreetName, addr.StreetName);
-                        if (editDistance < lowestEditDistance)
+                        StateOfNewYorkAddressRange[] addrs =
+                        data.AllAddresses.Where(n => n.StreetNumber.IsInRange(address.StreetNumber) && n.ZipCode == address.Zip.Value && !string.IsNullOrEmpty(n.StreetName)).ToArray();
+
+                        StateOfNewYorkAddressRange best = null;
+                        double lowestEditDistance = double.MaxValue;
+
+                        foreach (StateOfNewYorkAddressRange addr in addrs)
                         {
-                            lowestEditDistance = editDistance;
-                            best = addr;
+                            // first characters seem to usually match. 
+                            double editDistance = EditDistance.ComputeNormalized(address.StreetName, addr.StreetName);
+                            if (editDistance < .5 || (address.StreetName[0] == addr.StreetName[0]) && editDistance < .85)
+                                if (editDistance < lowestEditDistance)
+                                {
+                                    lowestEditDistance = editDistance;
+                                    best = addr;
+                                }
+                        }
+
+                        if (best != null)
+                        {
+                            lock (databaseCorrected)
+                            {
+                                string corrected = $"{best.StreetNumber} {best.CardinalDirection} {best.StreetName} {best.Suffix}: edit distance {lowestEditDistance}".Trim();
+                                databaseCorrected.Add($"{address.RawAddress1}=>{corrected}");
+                                isDatabaseCorrected = true;
+                            }
                         }
                     }
-
-                    if (best != null && lowestEditDistance < .75f)
+                    else
                     {
-                        lock (databaseCorrected)
-                        {
-                            string corrected = $"{best.StreetNumber} {best.CardinalDirection} {best.StreetName} {best.Suffix}".Trim();
-                            databaseCorrected.Add($"{address.RawAddress1}=>{corrected}");
-                            isDatabaseCorrected = true;
-                        }
+                        Interlocked.Increment(ref numberCouldntProcess);
                     }
                 }
 
@@ -298,6 +309,8 @@ namespace UndressAddress
             }
 
             Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full {streetMatched.Count} Street {homeless.Count} Homeless {unknown.Count} Unknown {couldNotParse.Count} Couln't parse {notMatched.Count} Not matched.");
+
+            Console.WriteLine($"Couldn't process {numberCouldntProcess}");
             Console.ReadLine();
 
             return null;
@@ -315,10 +328,45 @@ namespace UndressAddress
 
         static void Main(string[] args)
         {
-            int edit = EditDistanceEngine.Compute("GRANDCONCOURSE", "GRAND CONCOURSE");
-            bool yes = StringUtility.IsDistance1OrLessApart("GRANDCONCOURSE", "GRAND CONCOURSE");
+            Console.WriteLine("Read");
+            string[] stateWide = File.ReadAllLines(@"C:\Users\brush\Downloads\openaddr-collected-us_northeast\us\ny\statewide.csv");
+            string[] newYork = File.ReadAllLines(@"D:\repos\MitchMatch\UndressAddress\city_of_new_york.csv");
 
-            GetCleanedNYStreetList2();
+            List<string> entireSet = new List<string>();
+            entireSet.AddRange(stateWide);
+            entireSet.AddRange(newYork);
+
+            stateWide = null;
+            newYork = null;
+
+            Console.WriteLine("Done");
+
+            Console.WriteLine("Distinct...");
+            List<string> distincts = entireSet.Distinct().ToList();
+            Console.WriteLine(distincts.Count.ToString() + "...done");
+
+            BKTree tree = BKTreeEngine.CreateBKTree(distincts.Take(100).ToList());
+
+            BKTreeSerializer.SerializeTo(tree, "C:/users/brush/desktop/serialized.dat");
+
+            BKTree clone = BKTreeSerializer.DeserializeFrom("c:/users/brush/desktop/serialized.dat"); 
+
+
+
+            List<string> closestNeigbor = BKTreeEngine.LeastEditDistance("RUOLLCRAST", tree);
+
+            //BinaryFormatter bf = new BinaryFormatter();
+            //using (FileStream fout = File.Create("c:/users/brush/desktop/bkTree.dat"))
+            //{
+            //    bf.Serialize(fout, tree);
+            //}
+
+            foreach (string closest in closestNeigbor)
+            {
+                Console.WriteLine(closest);
+            }
+
+            //GetCleanedNYStreetList2();
 
             return;
         }
