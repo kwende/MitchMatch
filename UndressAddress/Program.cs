@@ -329,42 +329,44 @@ namespace UndressAddress
         static void Main(string[] args)
         {
             Console.WriteLine("Read");
-            string[] stateWide = File.ReadAllLines(@"C:\Users\brush\Downloads\openaddr-collected-us_northeast\us\ny\statewide.csv");
-            string[] newYork = File.ReadAllLines(@"D:\repos\MitchMatch\UndressAddress\city_of_new_york.csv");
+            //string[] stateWide = File.ReadAllLines(@"C:\Users\brush\Downloads\openaddr-collected-us_northeast\us\ny\statewide.csv");
+            //string[] newYork = File.ReadAllLines(@"D:\repos\MitchMatch\UndressAddress\city_of_new_york.csv");
 
-            List<string> entireSet = new List<string>();
-            entireSet.AddRange(stateWide);
-            entireSet.AddRange(newYork);
+            //List<string> entireSet = new List<string>();
+            //entireSet.AddRange(stateWide);
+            //entireSet.AddRange(newYork);
 
-            stateWide = null;
-            newYork = null;
+            //stateWide = null;
+            //newYork = null;
 
-            Console.WriteLine("Done");
+            //Console.WriteLine("Done");
 
-            Console.WriteLine("Distinct...");
-            List<string> distincts = entireSet.Distinct().ToList();
-            Console.WriteLine(distincts.Count.ToString() + "...done");
+            //Console.WriteLine("Distinct...");
+            //List<string> distincts = entireSet.Distinct().ToList();
+            //Console.WriteLine(distincts.Count.ToString() + "...done");
 
-            BKTree tree = BKTreeEngine.CreateBKTree(distincts.Take(100).ToList());
+            //BKTree tree = BKTreeEngine.CreateBKTree(distincts);
 
-            BKTreeSerializer.SerializeTo(tree, "C:/users/brush/desktop/serialized.dat");
+            //BKTreeSerializer.SerializeTo(tree, "C:/users/brush/desktop/bensBKTree.dat");
 
-            BKTree clone = BKTreeSerializer.DeserializeFrom("c:/users/brush/desktop/serialized.dat"); 
+            Console.WriteLine("Read file..."); 
+            BKTree tree = BKTreeSerializer.DeserializeFrom("C:/users/brush/desktop/bensBKTree.dat");
+            Console.WriteLine("Done...");
 
-
-
+            Console.WriteLine("Finding..."); 
             List<string> closestNeigbor = BKTreeEngine.LeastEditDistance("RUOLLCRAST", tree);
+            Console.WriteLine("Done..."); 
 
-            //BinaryFormatter bf = new BinaryFormatter();
-            //using (FileStream fout = File.Create("c:/users/brush/desktop/bkTree.dat"))
+            ////BinaryFormatter bf = new BinaryFormatter();
+            ////using (FileStream fout = File.Create("c:/users/brush/desktop/bkTree.dat"))
+            ////{
+            ////    bf.Serialize(fout, tree);
+            ////}
+
+            //foreach (string closest in closestNeigbor)
             //{
-            //    bf.Serialize(fout, tree);
+            //    Console.WriteLine(closest);
             //}
-
-            foreach (string closest in closestNeigbor)
-            {
-                Console.WriteLine(closest);
-            }
 
             //GetCleanedNYStreetList2();
 
