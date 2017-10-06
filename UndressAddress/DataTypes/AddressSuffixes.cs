@@ -11,28 +11,28 @@ namespace UndressAddress.DataTypes
         public string[] ShortSuffixes { get; set; }
         public string[] LongSuffixes { get; set; }
 
-        public bool Contains(string input)
+        public int IndexOf(string input)
         {
-            bool contains = false;
-            foreach (string shortSuffix in ShortSuffixes)
+            int index = -1;
+            for (int c = 0; c < ShortSuffixes.Length; c++)
             {
-                if (shortSuffix == input)
+                if (ShortSuffixes[c] == input)
                 {
-                    contains = true;
+                    index = c;
                     break;
                 }
             }
 
-            foreach (string longSuffix in LongSuffixes)
+            for (int c = 0; c < LongSuffixes.Length; c++)
             {
-                if (longSuffix == input)
+                if (LongSuffixes[c] == input)
                 {
-                    contains = true;
+                    index = c;
                     break;
                 }
             }
 
-            return contains;
+            return index;
         }
     }
 }

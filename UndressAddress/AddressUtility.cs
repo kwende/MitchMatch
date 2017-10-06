@@ -256,6 +256,7 @@ namespace UndressAddress
                     inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (WEST|NORTH|EAST|SOUTH) (\d+)$", "$1 $2 $3 STREET");
                     inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (\d+)$", "$1 $2 STREET");
                     inputAddress1 = Regex.Replace(inputAddress1, " ([A-Z]+)(DR)$", " $1 DRIVE");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (DRI)$", " DRIVE");
 
                     // generic abbreviations. 
                     foreach (KeyValuePair<string, string> pair in data.Abbreviations)
@@ -347,7 +348,7 @@ namespace UndressAddress
                                             {
                                                 string wordPart = apartmentNumberMatch.Groups[4].Value;
 
-                                                if (data.Suffixes.Contains(wordPart))
+                                                if (data.Suffixes.IndexOf(wordPart) != -1)
                                                 {
                                                     ret.ApartmentNumber = apartmentNumberMatch.Groups[1].Value + "-" +
                                                         apartmentNumberMatch.Groups[2].Value;

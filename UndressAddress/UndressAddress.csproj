@@ -122,6 +122,9 @@
     <Content Include="KnownCenters.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="streetToSuffixTable.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SuffixReplacementKey.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

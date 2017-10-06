@@ -239,6 +239,15 @@ namespace UndressAddress
 
             data.BKTree = BKTreeSerializer.DeserializeFrom("bkTree.dat");
 
+            string[] lines = File.ReadAllLines("streetToSuffixTable.txt");
+            data.AlternateSuffixList = new Dictionary<string, List<string>>();
+            foreach (string line in lines)
+            {
+                string[] halves = line.Split(':');
+                List<string> alternates = halves[1].Split(',').ToList();
+                data.AlternateSuffixList.Add(halves[0], alternates);
+            }
+
             BinaryFormatter bf = new BinaryFormatter();
             using (FileStream fin = File.OpenRead("addressDictionary.dat"))
             {
