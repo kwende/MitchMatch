@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -72,9 +73,9 @@ namespace UndressAddress
                     string targetSuffix = " " + suffixes.LongSuffixes[c];
                     if (addressBit.EndsWith(targetSuffix))
                     {
-                        identifiedSuffix = suffixes.ShortSuffixes[c]; 
+                        identifiedSuffix = suffixes.ShortSuffixes[c];
                         int lastIndexOf = addressBit.LastIndexOf(targetSuffix);
-                        addressBit = addressBit.Remove(lastIndexOf, targetSuffix.Length); 
+                        addressBit = addressBit.Remove(lastIndexOf, targetSuffix.Length);
                         break;
                     }
 
@@ -87,21 +88,6 @@ namespace UndressAddress
                         break;
                     }
                 }
-
-                //addressBit = Regex.Replace(addressBit, @" (N)$", " NORTH");
-                //addressBit = Regex.Replace(addressBit, @" (S)$", " SOUTH");
-                //addressBit = Regex.Replace(addressBit, @" (E)$", " EAST");
-                //addressBit = Regex.Replace(addressBit, @" (W)$", " WEST");
-
-                //addressBit = Regex.Replace(addressBit, @"^(N) ", "NORTH ");
-                //addressBit = Regex.Replace(addressBit, @"^(S) ", "SOUTH ");
-                //addressBit = Regex.Replace(addressBit, @"^(E) ", "EAST ");
-                //addressBit = Regex.Replace(addressBit, @"^(W) ", "WEST ");
-
-                //addressBit = Regex.Replace(addressBit, @" (N) ", " NORTH ");
-                //addressBit = Regex.Replace(addressBit, @" (S) ", " SOUTH ");
-                //addressBit = Regex.Replace(addressBit, @" (E) ", " EAST ");
-                //addressBit = Regex.Replace(addressBit, @" (W) ", " WEST ");
 
                 string cleanedAddress = addressBit;
 
@@ -249,6 +235,14 @@ namespace UndressAddress
                     Zip = int.Parse(rhsAddressParts[3]),
                     RawAddress1 = rhsAddressParts[0]
                 });
+            }
+
+            data.BKTree = BKTreeSerializer.DeserializeFrom("bkTree.dat");
+
+            BinaryFormatter bf = new BinaryFormatter();
+            using (FileStream fin = File.OpenRead("addressDictionary.dat"))
+            {
+                data.StreetNamesToStreetNumbers = (Dictionary<string, Dictionary<int, List<string>>>)bf.Deserialize(fin);
             }
 
             return data;

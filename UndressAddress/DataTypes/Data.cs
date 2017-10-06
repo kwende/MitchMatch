@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,7 @@ namespace UndressAddress.DataTypes
         public Dictionary<string, string> Abbreviations { get; set; }
         public Dictionary<string, string> SuffixReplacementKey { get; set; }
         public Dictionary<string, Address> KnownCenters { get; set; }
-        public Dictionary<string, Dictionary<int,int[]>> StreetNamesAndNumbers { get; set; }
+        public BKTree BKTree { get; set; }
+        public Dictionary<string, Dictionary<int, List<string>>> StreetNamesToStreetNumbers;
     }
 }
