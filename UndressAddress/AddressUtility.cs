@@ -37,17 +37,12 @@ namespace UndressAddress
                 }
 
                 // match repeats of the same character 5 or more times. 
-                if (Regex.IsMatch(inputAddress1, @"(.)\1{5,}"))
-                {
-                    return MatchQuality.Unknown;
-                }
-                //DFSFSDF
-                if (Regex.IsMatch(inputAddress1, @"DFS"))
-                {
-                    return MatchQuality.Unknown;
-                }
-                //13846 ST. Numbers way too high for street address
-                if (Regex.IsMatch(inputAddress1, @"(\d+){6,20}"))
+                if (Regex.IsMatch(inputAddress1, @"(.)\1{5,}") ||
+                    Regex.IsMatch(inputAddress1, @"(^| )NOT ") ||
+                    Regex.IsMatch(inputAddress1, @"DFS") || ////DFSFSDF
+                    Regex.IsMatch(inputAddress1, @"(\d+){6,20}") ||//13846 ST. Numbers way too high for street address
+                    Regex.IsMatch(inputAddress1, @"^([A-Z]){2}$") ||// only 2 characters
+                    Regex.IsMatch(inputAddress1, @"^U ?T ?O$"))
                 {
                     return MatchQuality.Unknown;
                 }
@@ -75,7 +70,7 @@ namespace UndressAddress
             if (!string.IsNullOrEmpty(streetName))
             {
                 // grand concourse has been a bitch
-                Match weirdStreetMatch = Regex.Match(streetName, "GRAND ?CO[A-Z ]+");
+                Match weirdStreetMatch = Regex.Match(streetName, "(GRAND|GR) ?CO[A-Z ]+");
                 if (weirdStreetMatch.Success)
                 {
                     string toReplace = weirdStreetMatch.Value;
@@ -128,6 +123,16 @@ namespace UndressAddress
                 ret.StreetName = "METROTECH CENTER";
                 ret.City = "BROOKLYN";
                 ret.Zip = 11201;
+                ret.MatchQuality = MatchQuality.FullAddressMatched;
+            }
+
+            buildingMatch = Regex.Match(input.StreetName, @"KEENER");
+            if (buildingMatch.Success)
+            {
+                ret.StreetNumber = "64";
+                ret.StreetName = "SUNKEN GARDEN LOOP";
+                ret.City = "NEW YORK";
+                ret.Zip = 10035;
                 ret.MatchQuality = MatchQuality.FullAddressMatched;
             }
 
@@ -224,6 +229,8 @@ namespace UndressAddress
             // RawAddress1
             string inputAddress1 = bits[Address1Column];
             ret.RawAddress1 = inputAddress1;
+            string inputAddress2 = bits[Address2Column];
+            ret.RawAddress2 = inputAddress2;
 
             // Zip/City
             int possibleZip = 0;
@@ -283,8 +290,8 @@ namespace UndressAddress
                     // Ex: 360 E 193
                     inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (WEST|NORTH|EAST|SOUTH) (\d+)$", "$1 $2 $3 STREET");
                     inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (\d+)$", "$1 $2 STREET");
-
-
+                    inputAddress1 = Regex.Replace(inputAddress1, " ([A-Z]+)(DR)$", " $1 DRIVE");
+                    inputAddress1 = Regex.Replace(inputAddress1, @" (DRI)$", " DRIVE");
 
                     // generic abbreviations. 
                     //if (Regex.Match(inputAddress1, @"( |^)" + data.Abbreviations.ElementAt(19).Key + "( |$)").Success)
@@ -304,8 +311,12 @@ namespace UndressAddress
                     int startIndex = -1, length = -1;
 
                     Match apartmentNumberMatch = Regex.Match(inputAddress1, @" (UNIT|STE|SUITE|APT|APARTMENT) ([0-9]+ ?[A-Z]*|[A-Z]+ ?[0-9]*)");
+
                     if (apartmentNumberMatch.Success)
                     {
+                        startIndex = apartmentNumberMatch.Index;
+                        length = apartmentNumberMatch.Length;
+
                         ret.ApartmentNumber = apartmentNumberMatch.Groups[2].Value;  // this is odd, always +1 the Number of matches. Groups[0] is the original string.
                         ret.ApartmentNumber = Regex.Replace(ret.ApartmentNumber, " ", "");
                         startIndex = apartmentNumberMatch.Groups[1].Index;
@@ -363,11 +374,29 @@ namespace UndressAddress
                                             length = apartmentNumberMatch.Length;
                                             ret.ApartmentNumber = apartmentNumberMatch.Groups[1].Value + " LEVEL";
                                         }
+                                        else
+                                        {
+                                            apartmentNumberMatch = Regex.Match(inputAddress1, @"^(\d+) (\d+) (\d+) ([A-Z]+)$");
+                                            if (apartmentNumberMatch.Success)
+                                            {
+                                                string wordPart = apartmentNumberMatch.Groups[4].Value;
+
+                                                if (data.Suffixes.IndexOf(wordPart) != -1)
+                                                {
+                                                    ret.ApartmentNumber = apartmentNumberMatch.Groups[1].Value + "-" +
+                                                        apartmentNumberMatch.Groups[2].Value;
+
+                                                    startIndex = 0;
+                                                    length = ret.ApartmentNumber.Length;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+
 
                     if (startIndex != -1)
                     {
@@ -376,7 +405,6 @@ namespace UndressAddress
                     }
 
 
-                    string inputAddress2 = bits[Address2Column];
                     if (ret.ApartmentNumber == default(string) && inputAddress2.Length <= 5)
                     {
                         // Call these apartment numbers 
@@ -413,7 +441,7 @@ namespace UndressAddress
                     ret = HandleParticularlyProblematicStreets(ret);
 
                     // PO BOX
-                    match = Regex.Match(inputAddress1, @"(P ?O ?BOX|POB?) ?(\d+)");
+                    match = Regex.Match(inputAddress1, @"(P ?O ?BOX|P ?O ?B?) ?(\d+)");
                     if (match.Success)
                     {
                         ret.POBoxNumber = int.Parse(match.Groups[2].Value);
