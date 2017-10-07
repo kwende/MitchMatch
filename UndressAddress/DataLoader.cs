@@ -168,33 +168,7 @@ namespace UndressAddress
             string[] newYorkCityAddresses = File.ReadAllLines("city_of_new_york.csv").Skip(1).ToArray();
             data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
 
-            List<string> uniques = File.ReadAllLines("allStreets.csv").ToList();
-
-            // go through and identify each street with a long suffix. 
-            // add to it the corresponding short suffix. 
-            Parallel.ForEach(uniques, newYorkCityStreetLine =>
-            {
-                for (int c = 0; c < data.Suffixes.LongSuffixes.Length; c++)
-                {
-                    string longSuffix = data.Suffixes.LongSuffixes[c];
-                    if (newYorkCityStreetLine.EndsWith(" " + longSuffix))
-                    {
-                        int index = newYorkCityStreetLine.LastIndexOf(" " + longSuffix);
-                        string shortened = newYorkCityStreetLine.Substring(0, index)
-                            + " " + data.Suffixes.ShortSuffixes[c];
-
-                        if (shortened != newYorkCityStreetLine)
-                        {
-                            lock (uniques)
-                            {
-                                uniques.Add(shortened);
-                            }
-                        }
-                    }
-                }
-            });
-
-            data.NewYorkStateStreetNames = uniques.ToArray();
+            data.NewYorkStateStreetNames = File.ReadAllLines("allStreets.csv");
 
             data.UnknownAddresses = File.ReadAllLines("UnknownAddresses.csv");
             data.HomelessAddresses = File.ReadAllLines("HomelessAddresses.csv");
@@ -249,9 +223,9 @@ namespace UndressAddress
             }
 
             BinaryFormatter bf = new BinaryFormatter();
-            using (FileStream fin = File.OpenRead("addressDictionary.dat"))
+            using (FileStream fin = File.OpenRead("streetZipLookup.dat"))
             {
-                data.StreetNamesToStreetNumbers = (Dictionary<string, Dictionary<int, List<string>>>)bf.Deserialize(fin);
+                data.StreetNamesToZips = (Dictionary<string, List<int>>)bf.Deserialize(fin);
             }
 
             return data;
