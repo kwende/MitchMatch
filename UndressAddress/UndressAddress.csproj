@@ -85,6 +85,7 @@
     <None Include="city_of_new_york.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="city_of_new_york_revised.csv" />
     <None Include="HomelessAddresses.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -94,6 +95,7 @@
     <None Include="bkTree.dat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="state_of_new_york_revised.csv" />
     <None Include="StreetSuffixes.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -116,6 +118,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AbbreviationsShortened.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Abbreviations.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

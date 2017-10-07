@@ -209,10 +209,67 @@ namespace UndressAddress
             };
         }
 
+        public static string CleanSpacesAndPunctuation(string inputAddress1)
+        {
+            // strip extra spaces betwen numbers at the beginning
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (\d+) (\d+)", "$1$2 $3");
+
+            // remove periods and other punctuation
+            inputAddress1 = inputAddress1.Replace(".", " ");
+            inputAddress1 = inputAddress1.Replace("]", " ");
+            inputAddress1 = inputAddress1.Replace("`", " ");
+            inputAddress1 = inputAddress1.Replace("'", " ");
+            inputAddress1 = inputAddress1.Replace(":", " ");
+            inputAddress1 = inputAddress1.Replace("~", " ");
+            inputAddress1 = inputAddress1.Trim();
+
+            // replace multiple spaces with one.
+            inputAddress1 = Regex.Replace(inputAddress1, " + ", " ");
+            return inputAddress1;
+        }
+
+        public static string CleanAddressFormat(string inputAddress1, Dictionary<string, string> abbreviations)
+        {
+            // Put spaces between numbers and letters
+            inputAddress1 = Regex.Replace(inputAddress1, @" (\d+)(TH)([A-Z])", " $1 $2 $3");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)([A-Z]+)", "$1 $2");
+            inputAddress1 = Regex.Replace(inputAddress1, @"([A-Z]+)(\d+)", "$1 $2");
+
+            // remove the suffix at the end of 1st or 2nd or 3rd, etc. 
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (RST|ND|RD|TH|ERD) ", " $1 ");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (RST|ND|TH)$", " $1");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (ST) (ST|AVE)", " $1 $3");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (ST|ND|RD|TH)(AVE?)", "AVENUE");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (ST|ND|RD|TH)(ST)", "STREET");
+
+            if (inputAddress1 == "UNKN3146 86TH STREE")
+            {
+                inputAddress1 = "3146 86 ST";
+            }
+
+            // Ex: 360 E 193
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (WEST|NORTH|EAST|SOUTH) (\d+)$", "$1 $2 $3 STREET");
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (\d+)$", "$1 $2 STREET");
+            inputAddress1 = Regex.Replace(inputAddress1, " ([A-Z]+)(DR)$", " $1 DRIVE");
+
+            if (Regex.Match(inputAddress1, @"( |^)" + "ST " + "( |$)").Success)
+            {
+                Console.WriteLine(inputAddress1);
+            }
+
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) S ", "$1 SOUTH");
+
+            // generic abbreviations. 
+            foreach (KeyValuePair<string, string> pair in abbreviations)
+            {
+                inputAddress1 = Regex.Replace(inputAddress1, @"( |^)" + pair.Key + "( |$)", "$1" + pair.Value + "$2");
+            }
+            return inputAddress1;
+        }
+
+
         public static Address InitializeAddress(string input, Data data)
         {
-            //try
-            //{
             bool print = false;
 
             Address ret = new Address();
@@ -241,20 +298,7 @@ namespace UndressAddress
             ret.City = bits[CityColumn];
 
 
-            // replace multiple spaces with one.
-            inputAddress1 = Regex.Replace(inputAddress1, " + ", " ");
-
-            // strip extra spaces betwen numbers at the beginning
-            inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (\d+) (\d+)", "$1$2 $3");
-
-            // remove periods and other punctuation
-            inputAddress1 = inputAddress1.Replace(".", " ");
-            inputAddress1 = inputAddress1.Replace("]", " ");
-            inputAddress1 = inputAddress1.Replace("`", " ");
-            inputAddress1 = inputAddress1.Replace("'", " ");
-            inputAddress1 = inputAddress1.Replace(":", " ");
-            inputAddress1 = inputAddress1.Replace("~", " ");
-            inputAddress1 = inputAddress1.Trim();
+            inputAddress1 = CleanSpacesAndPunctuation(inputAddress1);
 
             if (inputAddress1 == "")
             {
@@ -268,44 +312,8 @@ namespace UndressAddress
 
                 if (!identifiedAsHomelessOrUnknown)
                 {
-                    #region GenericStringCleaning
-                    // Put spaces between numbers and letters
-                    inputAddress1 = Regex.Replace(inputAddress1, @" (\d+)(TH)([A-Z])", " $1 $2 $3");
-                    inputAddress1 = Regex.Replace(inputAddress1, @"(\d+)([A-Z]+)", "$1 $2");
-                    inputAddress1 = Regex.Replace(inputAddress1, @"([A-Z]+)(\d+)", "$1 $2");
+                    inputAddress1 = CleanAddressFormat(inputAddress1, data.Abbreviations);
 
-                    // remove the suffix at the end of 1st or 2nd or 3rd, etc. 
-                    inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (RST|ND|RD|TH|ERD) ", " $1 ");
-                    inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (RST|ND|TH)$", " $1");
-                    inputAddress1 = Regex.Replace(inputAddress1, @" (\d+) (ST) (ST|AVE)", " $1 $3");
-                    inputAddress1 = Regex.Replace(inputAddress1, @"THAV", "AVE");
-                    inputAddress1 = Regex.Replace(inputAddress1, @"THST|RDST", "STREET");
-                    inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) STAVE", "$1 AVENUE");
-
-                    if (inputAddress1 == "UNKN3146 86TH STREE")
-                    {
-                        inputAddress1 = "3146 86 ST";
-                    }
-
-                    // Ex: 360 E 193
-                    inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (WEST|NORTH|EAST|SOUTH) (\d+)$", "$1 $2 $3 STREET");
-                    inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (\d+)$", "$1 $2 STREET");
-                    inputAddress1 = Regex.Replace(inputAddress1, " ([A-Z]+)(DR)$", " $1 DRIVE");
-                    inputAddress1 = Regex.Replace(inputAddress1, @" (DRI)$", " DRIVE");
-
-                    // generic abbreviations. 
-                    //if (Regex.Match(inputAddress1, @"( |^)" + data.Abbreviations.ElementAt(19).Key + "( |$)").Success)
-                    //{
-                    //    print = true;
-                    //}
-
-                    inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) S ", "$1 SOUTH");
-
-                    foreach (KeyValuePair<string, string> pair in data.Abbreviations)
-                    {
-                        inputAddress1 = Regex.Replace(inputAddress1, @"( |^)" + pair.Key + "( |$)", "$1" + pair.Value + "$2");
-                    }
-                    #endregion
 
                     #region ApartmentNumber
                     int startIndex = -1, length = -1;
@@ -417,30 +425,26 @@ namespace UndressAddress
                     Address suffixNormalized = NormalizeSuffix(inputAddress1, data);
                     ret.StreetName = suffixNormalized.StreetName;
                     ret.Suffix = suffixNormalized.Suffix;
+                    inputAddress1 = ret.StreetName;
                     #endregion
 
                     #region StreetNumber
                     // is there a street number? 
-                    if (Regex.IsMatch(inputAddress1, @"^(\d+) .+"))
+                    Match match = Regex.Match(inputAddress1, @"^(\d+ ?[A-Z]?) .+");
+                    if (match.Success)
                     {
-                        Match streetNumberMatch = Regex.Match(inputAddress1, @"^(\d+)");
-                        ret.StreetNumber = streetNumberMatch.Value;
+                        ret.StreetNumber = match.Groups[1].Value;
+                        inputAddress1 = inputAddress1.Remove(0, ret.StreetNumber.Length + 1);
                     }
                     #endregion
 
                     #region StreetName
+                    ret.StreetName = inputAddress1;
 
-                    Match match = Regex.Match(ret.StreetName, @"^(\d+ )?([A-Z 0-9]+)$");
-                    if (match.Success)
-                    {
-                        ret.StreetName = match.Groups[2].Value;
-                        ret.StreetName.Trim();
-                    }
-
-                    // handle addresses
+                    // Problematic addresses
                     ret = HandleParticularlyProblematicStreets(ret);
 
-                    // PO BOX
+                    // PO BOXes
                     match = Regex.Match(inputAddress1, @"(P ?O ?BOX|P ?O ?B?) ?(\d+)");
                     if (match.Success)
                     {

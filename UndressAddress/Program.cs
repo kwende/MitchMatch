@@ -31,78 +31,141 @@ namespace UndressAddress
             return exists;
         }
 
-        private static string LucasAddressMatch(Address address, Data data, BKTree bkTree)
+        private static string CorrectAddress(Data data, ref Address address, string correctedString)
+        {
+            Address correctStreet = AddressUtility.NormalizeSuffix(correctedString, data);
+            address.StreetName = correctStreet.StreetName;
+            address.Suffix = correctStreet.Suffix;
+            address.MatchQuality = MatchQuality.StreetMatched;
+            return $"{address.StreetName} {address.Suffix}";
+
+        }
+
+        private static string LucasAddressMatch(Address address, Data data)
         {
             string matched = "";
-
+            bool matchFound = (address.MatchQuality == MatchQuality.NotMatched);
             // Look for building matching
-            address = AddressUtility.CheckForBuildingsAndCenters(address, data);
-
-            if (address.MatchQuality != MatchQuality.FullAddressMatched)
+            List<string> closestNeighbors;
+            
+            if (!matchFound)
             {
-                // Look for street name matching
-                List<string> closestNeigbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, bkTree);
+                // Buildings
+                address = AddressUtility.CheckForBuildingsAndCenters(address, data);
+                matchFound = address.MatchQuality == MatchQuality.FullAddressMatched;
+            }
+            if (!matchFound)
+            {
+                // Exact street match
+                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, data.BKTree);
 
-                if (closestNeigbors.Count == 1 && EditDistanceEngine.Compute(address.FullStreetName, closestNeigbors[0]) <= 3)
+                if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) == 0)
                 {
-                    Address correctStreet = AddressUtility.NormalizeSuffix(closestNeigbors[0], data);
-                    address.StreetName = correctStreet.StreetName;
-                    address.Suffix = correctStreet.Suffix;
-                    address.MatchQuality = MatchQuality.StreetMatched;
-                    matched = $"{address.StreetName} {address.Suffix}";
+                    matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+                    matchFound = true;
                 }
-                else
+            }
+            if (!matchFound)
+            {
+                // Search by ZIP
+                if (address.Zip != null && !string.IsNullOrEmpty(address.StreetName) && !string.IsNullOrEmpty(address.StreetNumber))
                 {
-                    if (address.MatchQuality == MatchQuality.NotMatched && address.Zip != null &&
-                        !string.IsNullOrEmpty(address.StreetName) && !string.IsNullOrEmpty(address.StreetNumber))
+                    StateOfNewYorkAddressRange[] streetsWithZip = data.NYCityStreets.Where(n => n.StreetNumber.IsInRange(address.StreetNumber) && n.ZipCode == address.Zip.Value).ToArray();
+
+                    List<string> streetsWithZipStrings = streetsWithZip.Select(s => s.FullStreetName).Distinct().ToList();
+                    BKTree bkTreeLocal = BKTreeEngine.CreateBKTree(streetsWithZipStrings);
+
+                    closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, bkTreeLocal);
+
+                    if (closestNeighbors.Count == 1 && EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) <= 2)
                     {
-                        StateOfNewYorkAddressRange[] streetsWithZip = data.AllAddresses.Where(n => n.StreetNumber.IsInRange(address.StreetNumber) && n.ZipCode == address.Zip.Value).ToArray();
-
-                        List<string> streetsWithZipStrings = streetsWithZip.Select(s => s.FullStreetName).ToList();
-                        BKTree bkTreeLocal = BKTreeEngine.CreateBKTree(streetsWithZipStrings);
-
-                        List<string> closestNeigborsWithZip = BKTreeEngine.LeastEditDistance(address.FullStreetName, bkTreeLocal);
-
-                        if (closestNeigborsWithZip.Count == 1 && EditDistanceEngine.Compute(address.FullStreetName, closestNeigborsWithZip[0]) <= 3)
-                        {
-                            Address correctStreet = AddressUtility.NormalizeSuffix(closestNeigborsWithZip[0], data);
-                            address.StreetName = correctStreet.StreetName;
-                            address.Suffix = correctStreet.Suffix;
-                            address.MatchQuality = MatchQuality.StreetMatched;
-                            matched = $"{address.StreetName} {address.Suffix}";
-                        }
-                        else
-                        {
-                            address.MatchQuality = MatchQuality.NotMatched;
-
-                            if (true)
-                            {
-                                string addressRaw = $"{address.RawAddress1} / {address.RawAddress2}";
-                                string addressCleaned = $"{ address.StreetNumber } / { address.StreetName} / { address.Suffix}";
-                                if (!string.IsNullOrEmpty(address.ApartmentNumber))
-                                {
-                                    addressCleaned += $" / {address.ApartmentNumber}";
-                                }
-                                string closestNeighborsConcatenated = string.Concat(closestNeigbors.Select(s => s + " OR "));
-
-                                Console.WriteLine($"{addressRaw} => {addressCleaned} => {closestNeighborsConcatenated}");
-                            }
-                        }
+                        matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+                        matchFound = true;
                     }
                 }
             }
 
-            // Try restricting to zip first
-            // Try stripping preceding numbers
-            // Try adding ST or AVE
-            // Try for match in other zips
+            if (!matchFound)
+            {
+                // Exact street + ST match
+                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " ST", data.BKTree);
 
+                if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) == 0)
+                {
+                    matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+                    matchFound = true;
+                }
+            }
+            if (!matchFound)
+            {
+                // Exact street + AVE match
+                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " AVE", data.BKTree);
+
+                if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) == 0)
+                {
+                    matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+                    matchFound = true;
+                }
+            }
+
+            if (!matchFound)
+            {
+                // Approximate street match
+                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, data.BKTree);
+
+                if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) <= 2)
+                {
+                    matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+                    matchFound = true;
+                }
+            }
+            if (!matchFound)
+            {
+                // Approximate street + ST match
+                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " ST", data.BKTree);
+
+                if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) <= 2)
+                {
+                    matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+                    matchFound = true;
+                }
+            }
+            if (!matchFound)
+            {
+                // Approximate street + AVE match
+                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " AVE", data.BKTree);
+
+                if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) <= 2)
+                {
+                    matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+                    matchFound = true;
+                }
+            }
+
+            if (!matchFound)
+            {
+                if (true)
+                {
+                    string addressRaw = $"{address.RawAddress1} / {address.RawAddress2}";
+                    string addressCleaned = $"{ address.StreetNumber } / { address.StreetName} / { address.Suffix}";
+                    if (!string.IsNullOrEmpty(address.ApartmentNumber))
+                    {
+                        addressCleaned += $" / {address.ApartmentNumber}";
+                    }
+                    string closestNeighborsConcatenated = string.Join(" OR ", BKTreeEngine.LeastEditDistance(address.FullStreetName, data.BKTree));
+
+                    Console.WriteLine($"{addressRaw} => {addressCleaned} => {closestNeighborsConcatenated}");
+                }
+            }
+
+
+            // NUMBER matches
             //W MOSHOLU PKWY
             return matched;
         }
 
 
-        private static string BenAddressMatch(Address address, Data data, BKTree bkTree)
+        private static string BenAddressMatch(Address address, Data data)
         {
             string matched = "";
             // is this a known building address or building name variant? 
@@ -197,20 +260,9 @@ namespace UndressAddress
         {
             Console.WriteLine("Loading data...");
             //// read from all the necessary files
-            Data data = DataLoader.LoadData();
+            Data data = DataLoader.LoadData(regenerateBKTree: true);
             //data.FinalDataSet = data.FinalDataSet.Where(b => rand.Next() % 100 == 0).ToArray();
 
-            List<Address> streetsNormalized = data.NewYorkStateStreetNames.Select(street => AddressUtility.NormalizeSuffix(street, data)).ToList();
-            foreach (Address address in streetsNormalized)
-            {
-                address.StreetName = Regex.Replace(address.StreetName, @" (\d+) (RST|ND|RD|TH|ERD) ", " $1 ");
-                address.FullStreetName = address.StreetName;
-            }
-
-            List<string> streetsDistinct = streetsNormalized.Select(street => street.FullStreetName).Distinct().ToList();
-            Random rand = new Random();
-
-            BKTree bkTree = BKTreeEngine.CreateBKTree(streetsDistinct);
 
             Console.WriteLine("Data loaded.");
 
@@ -280,8 +332,8 @@ namespace UndressAddress
                     else // nope, we have more to do. 
                     {
 
-                        matched = LucasAddressMatch(address, data, bkTree);
-                        matched = BenAddressMatch(address, data, bkTree);
+                        matched = LucasAddressMatch(address, data);
+                        //matched = BenAddressMatch(address, data);
                     }
                 }
 

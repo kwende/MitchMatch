@@ -15,12 +15,40 @@ namespace UndressAddress
     {
         private const string StreetSuffixesPath = "StreetSuffixes.csv";
 
-        private static List<StateOfNewYorkAddressRange> LoadAddresses(string[] addresses, AddressSuffixes suffixes)
+        private static string[] LoadNYStateStreets(Data data)
         {
+            string[] streets = File.ReadAllLines("state_of_new_york_revised.csv").ToArray();
+            return streets.Distinct().ToArray();
+
+            string[] streetsRevised = new string[streets.Length + 1];
+
+            List<string> streetsCleaned = new List<string>();
+            for (int i = 0; i < streets.Length; i++)
+            {
+                string street = streets[i];
+                street = AddressUtility.CleanSpacesAndPunctuation(street);
+                street = AddressUtility.CleanAddressFormat(street, data.AbbreviationsShortened);
+                street = AddressUtility.NormalizeSuffix(street, data).FullStreetName;
+                streetsCleaned.Add(street);
+                streetsRevised[i] = street;
+                //Console.Write($"{streets[i]} => {street},     ");
+            }
+
+            File.WriteAllLines("state_of_new_york_revised.csv", streetsRevised);
+
+            return streetsCleaned.Distinct().ToArray();
+        }
+
+        private static List<StateOfNewYorkAddressRange> LoadNYCityAddresses(Data data)
+        {
+            string[] addresses = File.ReadAllLines("city_of_new_york_revised.csv").Skip(1).ToArray();
+            //string[] addressesRevised = new string[addresses.Length + 1];
+            //addressesRevised[0] = addresses[0];
+            //int counter = 1;
+
             List<StateOfNewYorkAddressRange> ret = new List<StateOfNewYorkAddressRange>();
 
-            //foreach (string address in addresses)
-            Parallel.ForEach(addresses, address =>
+            foreach (string address in addresses)
             {
                 string[] bits = address.Split(',').Select(n => n.Trim()).ToArray();
 
@@ -31,66 +59,21 @@ namespace UndressAddress
                 string city = bits[5];
                 string nonNumberNumberAddress = "";
 
-                addressBit = Regex.Replace(addressBit, " +", " ");
 
-                string[] cardinalDirections = { "N", "S", "E", "W" };
 
-                string identifiedDirection = "";
-                foreach (string cardinalDirection in cardinalDirections)
-                {
-                    int startIndex = -1, length = -1;
-                    string endsWithString = " " + cardinalDirection;
-                    string startsWithString = cardinalDirection + " ";
-                    string containsString = " " + cardinalDirection + " ";
+                //// Clean up addressBit
+                //addressBit = AddressUtility.CleanSpacesAndPunctuation(addressBit);
+                //addressBit = AddressUtility.CleanAddressFormat(addressBit, data.AbbreviationsShortened);
+                Address cleanAddress = AddressUtility.NormalizeSuffix(addressBit, data);
+                ////Console.Write($"{bits[3]} => {cleanAddress.FullStreetName},     ");
+                //addressesRevised[counter++] = string.Join(",", bits.Take(3)) + $",{cleanAddress.FullStreetName}," + string.Join(",",bits.Skip(4));
 
-                    if (addressBit.EndsWith(endsWithString))
-                    {
-                        startIndex = addressBit.LastIndexOf(endsWithString);
-                        length = endsWithString.Length;
-                    }
-                    else if (addressBit.StartsWith(cardinalDirection + " "))
-                    {
-                        startIndex = addressBit.IndexOf(startsWithString);
-                        length = startsWithString.Length;
-                    }
-                    else if (address.Contains(containsString))
-                    {
-                        startIndex = addressBit.IndexOf(containsString);
-                        length = containsString.Length;
-                    }
+                //if(cleanAddress.FullStreetName != addressBit)
+                //{
+                //    Console.WriteLine($"{addressBit} => {cleanAddress.FullStreetName}");
+                //}
 
-                    if (startIndex != -1)
-                    {
-                        identifiedDirection = cardinalDirection;
-                        addressBit = addressBit.Remove(startIndex, length).Trim();
-                        break;
-                    }
-                }
-
-                string identifiedSuffix = "";
-                for (int c = 0; c < suffixes.LongSuffixes.Length; c++)
-                {
-                    string targetSuffix = " " + suffixes.LongSuffixes[c];
-                    if (addressBit.EndsWith(targetSuffix))
-                    {
-                        identifiedSuffix = suffixes.ShortSuffixes[c];
-                        int lastIndexOf = addressBit.LastIndexOf(targetSuffix);
-                        addressBit = addressBit.Remove(lastIndexOf, targetSuffix.Length);
-                        break;
-                    }
-
-                    targetSuffix = " " + suffixes.ShortSuffixes[c];
-                    if (addressBit.EndsWith(targetSuffix))
-                    {
-                        identifiedSuffix = suffixes.ShortSuffixes[c];
-                        int lastIndexOf = addressBit.LastIndexOf(targetSuffix);
-                        addressBit = addressBit.Remove(lastIndexOf, targetSuffix.Length);
-                        break;
-                    }
-                }
-
-                string cleanedAddress = addressBit;
-
+                // Parse numberBit
                 int startNumber = -1, endNumber = -1;
 
                 if (Regex.IsMatch(numberBit, @"^\d+-\d+$"))
@@ -123,32 +106,6 @@ namespace UndressAddress
                     nonNumberNumberAddress = numberBit;
                 }
 
-                string fullStreetName = "";
-                if(identifiedDirection != "")
-                {
-                    switch(identifiedDirection)
-                    {
-                        case "E":
-                            fullStreetName = "EAST ";
-                            break;
-                        case "W":
-                            fullStreetName = "WEST ";
-                            break;
-                        case "N":
-                            fullStreetName = "NORTH ";
-                            break;
-                        case "S":
-                            fullStreetName = "SOUTH ";
-                            break;
-                    }
-                }
-                fullStreetName += cleanedAddress;
-                if(identifiedSuffix != "")
-                {
-                    fullStreetName += " " + identifiedSuffix;
-                }
-
-
                 lock (ret)
                 {
                     if (!string.IsNullOrEmpty(nonNumberNumberAddress))
@@ -157,11 +114,10 @@ namespace UndressAddress
                         {
                             StreetNumber = new StreetNumberRange(nonNumberNumberAddress),
                             City = city,
-                            StreetName = cleanedAddress,
+                            StreetName = cleanAddress.StreetName,
                             ZipCode = zip,
-                            CardinalDirection = identifiedDirection,
-                            Suffix = identifiedSuffix,
-                            FullStreetName = fullStreetName,
+                            Suffix = cleanAddress.Suffix,
+                            FullStreetName = cleanAddress.FullStreetName,
                         });
                     }
                     else
@@ -170,63 +126,39 @@ namespace UndressAddress
                         {
                             StreetNumber = new StreetNumberRange(startNumber, endNumber),
                             City = city,
-                            StreetName = cleanedAddress,
+                            StreetName = cleanAddress.StreetName,
                             ZipCode = zip,
-                            CardinalDirection = identifiedDirection,
-                            Suffix = identifiedSuffix,
-                            FullStreetName = fullStreetName,
+                            Suffix = cleanAddress.Suffix,
+                            FullStreetName = cleanAddress.FullStreetName,
                         });
                     }
                 }
-            });
+            }
+
+            //File.WriteAllLines("city_of_new_york_revised.csv", addressesRevised);
+
 
             return ret;
         }
 
-        public static Data LoadData()
+        public static Data LoadData(bool regenerateBKTree)
         {
             Data data = new Data();
 
+            // RawData
+            data.FinalDataSet = FileLibrary.GetLines().ToArray();
+
+            // Suffixes
             data.Suffixes = new AddressSuffixes();
             string[] streetSuffixLines = File.ReadAllLines(StreetSuffixesPath);
             data.Suffixes.ShortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
             data.Suffixes.LongSuffixes = streetSuffixLines.Select(n => n.Split(',')[0]).ToArray();
 
-            data.FinalDataSet = FileLibrary.GetLines().ToArray();
-            string[] newYorkCityAddresses = File.ReadAllLines("city_of_new_york.csv").Skip(1).ToArray();
-            data.AllAddresses = LoadAddresses(newYorkCityAddresses, data.Suffixes);
-
-            List<string> uniques = File.ReadAllLines("allStreets.csv").Distinct().ToList();
-
-            // go through and identify each street with a long suffix. 
-            // add to it the corresponding short suffix. 
-            Parallel.ForEach(uniques, newYorkCityStreetLine =>
-            {
-                for (int c = 0; c < data.Suffixes.LongSuffixes.Length; c++)
-                {
-                    string longSuffix = data.Suffixes.LongSuffixes[c];
-                    if (newYorkCityStreetLine.EndsWith(" " + longSuffix))
-                    {
-                        int index = newYorkCityStreetLine.LastIndexOf(" " + longSuffix);
-                        string shortened = newYorkCityStreetLine.Substring(0, index)
-                            + " " + data.Suffixes.ShortSuffixes[c];
-
-                        if (shortened != newYorkCityStreetLine)
-                        {
-                            lock (uniques)
-                            {
-                                uniques.Add(shortened);
-                            }
-                        }
-                    }
-                }
-            });
-
-            data.NewYorkStateStreetNames = uniques.ToArray();
-
+            // Unknown and Homeless
             data.UnknownAddresses = File.ReadAllLines("UnknownAddresses.csv");
             data.HomelessAddresses = File.ReadAllLines("HomelessAddresses.csv");
 
+            // Abbreviations
             data.Abbreviations = new Dictionary<string, string>();
             string[] nameValuePairs = File.ReadAllLines("Abbreviations.txt");
             foreach (string nameValuePair in nameValuePairs)
@@ -235,6 +167,15 @@ namespace UndressAddress
                 data.Abbreviations.Add(bits[0], bits[1]);
             }
 
+            data.AbbreviationsShortened = new Dictionary<string, string>();
+            nameValuePairs = File.ReadAllLines("AbbreviationsShortened.txt");
+            foreach (string nameValuePair in nameValuePairs)
+            {
+                string[] bits = nameValuePair.Split(',').Select(n => n.Trim()).ToArray();
+                data.AbbreviationsShortened.Add(bits[0], bits[1]);
+            }
+
+            // SuffixReplacementKey
             nameValuePairs = File.ReadAllLines("SuffixReplacementKey.txt");
             data.SuffixReplacementKey = new Dictionary<string, string>();
             foreach (string nameValuePair in nameValuePairs)
@@ -246,6 +187,7 @@ namespace UndressAddress
                 }
             }
 
+            // KnownCenters
             // at the moment I'm focusing on the "main" ones, and so this
             // format in the file may change to accomodate the various 
             // alternative addresses for centers, etc. don't get too stuck 
@@ -265,8 +207,18 @@ namespace UndressAddress
                 });
             }
 
-            data.BKTree = BKTreeSerializer.DeserializeFrom("bkTree.dat");
 
+            // NYCityStreets
+            data.NYCityStreets = LoadNYCityAddresses(data);
+
+            // NYStateStreets
+            data.NYStateStreets = LoadNYStateStreets(data);
+
+
+
+
+
+            // AlternateSuffixList
             string[] lines = File.ReadAllLines("streetToSuffixTable.txt");
             data.AlternateSuffixList = new Dictionary<string, List<string>>();
             foreach (string line in lines)
@@ -276,10 +228,23 @@ namespace UndressAddress
                 data.AlternateSuffixList.Add(halves[0], alternates);
             }
 
-            BinaryFormatter bf = new BinaryFormatter();
-            using (FileStream fin = File.OpenRead("addressDictionary.dat"))
+            // StreetNamesToStreetNumbers
+            //BinaryFormatter bf = new BinaryFormatter();
+            //using (FileStream fin = File.OpenRead("addressDictionary.dat"))
+            //{
+            //    data.StreetNamesToStreetNumbers = (Dictionary<string, Dictionary<int, List<string>>>)bf.Deserialize(fin);
+            //}
+
+
+            // BKTree
+            if (regenerateBKTree)
             {
-                data.StreetNamesToStreetNumbers = (Dictionary<string, Dictionary<int, List<string>>>)bf.Deserialize(fin);
+                data.BKTree = BKTreeEngine.CreateBKTree(data.NYStateStreets.ToList());
+                //BKTreeSerializer.SerializeTo(data.BKTree, "bkTree.dat");
+            }
+            else
+            {
+                data.BKTree = BKTreeSerializer.DeserializeFrom("bkTree.dat");
             }
 
             return data;
