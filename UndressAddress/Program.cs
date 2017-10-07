@@ -44,7 +44,7 @@ namespace UndressAddress
         private static string LucasAddressMatch(Address address, Data data)
         {
             string matched = "";
-            bool matchFound = (address.MatchQuality == MatchQuality.NotMatched);
+            bool matchFound = (address.MatchQuality != MatchQuality.NotMatched);
             // Look for building matching
             List<string> closestNeighbors;
             
