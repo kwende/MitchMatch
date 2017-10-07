@@ -38,6 +38,12 @@ namespace UndressAddress
             //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("23 OLYMPUS STREET,")).Take(1).ToArray();
 
             List<Address> streetsNormalized = data.NewYorkStateStreetNames.Select(street => AddressUtility.NormalizeSuffix(street, data)).ToList();
+            foreach (Address address in streetsNormalized)
+            {
+                address.StreetName = Regex.Replace(address.StreetName, @" (\d+) (RST|ND|RD|TH|ERD) ", " $1 ");
+                address.FullStreetName = address.StreetName;
+            }
+)
             List<string> streetsDistinct = streetsNormalized.Select(street => street.FullStreetName).Distinct().ToList();
 
             BKTree bkTree = BKTreeEngine.CreateBKTree(streetsDistinct);
@@ -95,7 +101,7 @@ namespace UndressAddress
 
                 string matched = "";
 
-                if (address.MatchQuality == MatchQuality.NotMatched)
+                if (false && address.MatchQuality == MatchQuality.NotMatched)
                 {
                     if (address.POBoxNumber > 0)
                     {
@@ -112,7 +118,7 @@ namespace UndressAddress
                             // Look for street name matching
                             List<string> closestNeigbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, bkTree);
 
-                            if (closestNeigbors.Count == 1 && EditDistanceEngine.Compute(address.FullStreetName, closestNeigbors[0]) <= 2)
+                            if (closestNeigbors.Count == 1 && EditDistanceEngine.Compute(address.FullStreetName, closestNeigbors[0]) <= 3)
                             {
                                 Address correctStreet = AddressUtility.NormalizeSuffix(closestNeigbors[0], data);
                                 address.StreetName = correctStreet.StreetName;
@@ -132,7 +138,7 @@ namespace UndressAddress
 
                                     List<string> closestNeigborsWithZip = BKTreeEngine.LeastEditDistance(address.FullStreetName, bkTreeLocal);
 
-                                    if (closestNeigborsWithZip.Count == 1 && EditDistanceEngine.Compute(address.FullStreetName, closestNeigborsWithZip[0]) <= 2)
+                                    if (closestNeigborsWithZip.Count == 1 && EditDistanceEngine.Compute(address.FullStreetName, closestNeigborsWithZip[0]) <= 3)
                                     {
                                         Address correctStreet = AddressUtility.NormalizeSuffix(closestNeigborsWithZip[0], data);
                                         address.StreetName = correctStreet.StreetName;
@@ -173,6 +179,15 @@ namespace UndressAddress
                         }
                     }
                 }
+
+                // Try restricting to zip first
+                // Try stripping preceding numbers
+                // Try adding ST or AVE
+                // Try for match in other zips
+
+                //W MOSHOLU PKWY
+
+
 
 
 
