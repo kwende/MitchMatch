@@ -25,5 +25,8 @@ namespace UndressAddress.DataTypes
         public List<string> KnownCities = new List<string>();
 
         public Dictionary<string, List<StreetName>> StreetNameDictionary = new Dictionary<string, List<StreetName>>();
+
+        public List<StateOfNewYorkAddressRange> NYCityStreets { get; set; }
+        public string[] NYStateStreets { get; set; }
     }
 }

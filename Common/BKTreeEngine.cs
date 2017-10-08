@@ -114,6 +114,12 @@ namespace Common
             return LeastEditDistance(s, tree, ref distance);
         }
 
+        public static List<string> LeastEditDistanceWithDistance(string s, BKTree tree, out int distance)
+        {
+            distance = int.MaxValue;
+            return LeastEditDistance(s, tree, ref distance);
+        }
+
         public static List<string> LeastEditDistance(string s, BKTree bkTree, ref int bound)
         {
             List<string> toReturn = new List<string>();
@@ -127,7 +133,7 @@ namespace Common
                 bound = d;
                 toReturn.Add(bkTree.StringValue);
             }
-            
+
             int start = System.Math.Max(0, d - bound);
             int end = System.Math.Min(d + bound, bkTree.Children.Length - 1);
 

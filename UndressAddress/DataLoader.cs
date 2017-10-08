@@ -147,8 +147,7 @@ namespace UndressAddress
             Data data = new Data();
 
             // RawData
-            data.FinalDataSet = FileLibrary.GetLines().ToArray();
-
+            data.FinalDataSet = FileLibrary.GetLines().Skip(1).Where(l => l != ",,,,,,,,,,,,,,,,,,").ToArray();
             // Suffixes
             data.Suffixes = new AddressSuffixes();
             string[] streetSuffixLines = File.ReadAllLines(StreetSuffixesPath);
@@ -202,8 +201,12 @@ namespace UndressAddress
                     StreetName = rhsAddressParts[2],
                     City = rhsAddressParts[3],
                     State = rhsAddressParts[4],
-                    Zip = int.Parse(rhsAddressParts[5]),
                 };
+                if (rhsAddressParts[5].Length > 0)
+                {
+                    address.Zip = int.Parse(rhsAddressParts[5]);
+                }
+
                 address.FullStreetName = (address.StreetNumber != "" ? $"{address.StreetNumber} {address.StreetName}" : address.StreetName);
                 data.KnownCenters.Add(bits[0], address);
             }
@@ -237,10 +240,13 @@ namespace UndressAddress
                 data.StreetNameDictionary[streetName.Name].Add(streetName);
             }
 
+            data.NYCityStreets = LoadNYCityAddresses(data);
+            data.NYStateStreets = LoadNYStateStreets(data);
+
             // BKTree
             if (regenerateBKTree)
             {
-                data.StreetNameBKTree = BKTreeEngine.CreateBKTree(data.StreetData.Select(n => n.Name).ToList());
+                data.StreetNameBKTree = BKTreeEngine.CreateBKTree(data.NYStateStreets.ToList());
                 //BKTreeSerializer.SerializeTo(data.BKTree, "bkTree.dat");
             }
             else

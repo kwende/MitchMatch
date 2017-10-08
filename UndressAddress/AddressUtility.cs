@@ -306,24 +306,21 @@ namespace UndressAddress
             {
                 CheckForBuildingsAndCenters(ref ret, data);
 
-                ret.MatchQuality = IsHomelessOrUnknown(inputAddress1, data);
-
-                bool isIdentified = ret.MatchQuality == MatchQuality.Homeless || ret.MatchQuality == MatchQuality.Unknown || ret.MatchQuality == MatchQuality.LeaveAlone;
-
-
-                if (isIdentified)
+                if (ret.MatchQuality != MatchQuality.LeaveAlone)
                 {
+                    ret.MatchQuality = IsHomelessOrUnknown(inputAddress1, data);
                     if (ret.MatchQuality == MatchQuality.Homeless)
                     {
                         ret.FullStreetName = "HOMELESS";
                     }
-                    else
+                    else if (ret.MatchQuality == MatchQuality.Unknown)
                     {
                         ret.FullStreetName = "UNKNOWN";
                     }
 
                 }
-                else
+
+                if (ret.MatchQuality == MatchQuality.MatchNotYetDetermined)
                 {
                     inputAddress1 = CleanAddressFormat(inputAddress1, data.Abbreviations);
 

@@ -239,44 +239,21 @@ namespace challenge
 
             ////////////// ADDRESS /////////////////////
 
+            string[] originalLines = FileLibrary.GetLines().ToArray();
 
-
-
-            var groups = data.GroupBy(r => r.ADDRESS1);
-            var bad1 = groups.Where(g => g.Key.StartsWith("UNKNO") || g.Key.StartsWith("HOM") || g.Key.StartsWith("UND") || g.Key == "H O M E L E S S" || g.Key == "SHELTER").Select(g => g.Key).ToArray();
-            var bad2 = groups.Where(g => g.Key.StartsWith("UNK") || g.Key.StartsWith("UKN") || g.Key == "UNABLE TO OBTAIN").Select(g => g.Key).ToArray();
-            foreach (Row row in data)
+            int index = 0;
+            string[] lines = File.ReadAllLines("CleanedAddresses.csv");
+            for(int i = 1; i < data.Length; i++)
             {
-                row.ADDRESS1 = StripStNdRdTh(row.ADDRESS1);
-                row.ADDRESS1 = AddSpacesBetweenNumbersAndLetters(row.ADDRESS1);
-
-                row.ADDRESS1 = TakeCareOfHomelessAddresses(row.ADDRESS1);
-
-                row.ADDRESS1 = TakeCareOfUnknownAddresses(row.ADDRESS1);
-                row.ADDRESS2 = TakeCareOfUnknownAddresses(row.ADDRESS2);
-
-                if (row.ADDRESS1 != "HOMELESS" && row.ADDRESS1 != "" && !row.ADDRESS1.Contains(' '))
-                {
-                    if (Regex.Matches(row.ADDRESS2, @"\d [a-zA-Z]").Count > 0 && Regex.Matches(row.ADDRESS1, @"\d\d\d-\d\d-\d\d\d\d").Count > 0)
-                    {
-                        //Console.WriteLine($"{row.SSN} {row.ADDRESS1} {row.ADDRESS2}");
-                        int output;
-                        int.TryParse(Regex.Replace(row.ADDRESS1, "-", "", RegexOptions.None), out output);
-                        row.SSN = output;
-                        row.ADDRESS1 = row.ADDRESS2;
-                        row.ADDRESS2 = "";
-                    }
-                    else
-                    {
-                        //Console.WriteLine($"{row.ADDRESS1} {row.ADDRESS2}");
-                        row.ADDRESS1 = "";
-                        row.ADDRESS2 = "";
-
-                    }
-                }
+                if(originalLines[i] != ",,,,,,,,,,,,,,,,,,")
+                data[index++].ADDRESS1 = lines[i];
             }
-            var badAddresses = data.GroupBy(r => r.ADDRESS1).Where(g => !g.Key.Contains(' ')).Select(g => g.Key).ToArray();
-            Console.WriteLine(badAddresses.Count() + bad1.Count() + bad2.Count());
+
+            //string[] lines = File.ReadAllLines("CleanedAddresses.csv");
+            //for (int i = 0; i < data.Length; i++)
+            //{
+            //    data[i].ADDRESS1 = lines[i];
+            //}
 
             ///////////////////////////////////////////////
 
