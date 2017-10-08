@@ -236,11 +236,11 @@ namespace UndressAddress
             inputAddress1 = Regex.Replace(inputAddress1, @"([A-Z]+)(\d+)", "$1 $2");
 
             // remove the suffix at the end of 1st or 2nd or 3rd, etc. 
-            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (RST|ND|RD|TH|ERD) ", " $1 ");
-            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (RST|ND|TH)$", " $1");
-            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (ST) (ST|AVE)", " $1 $3");
-            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (ST|ND|RD|TH)(AVE?)", "AVENUE");
-            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (ST|ND|RD|TH)(ST)", "STREET");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (RST|ND|RD|TH|ERD) ", "$1 ");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (RST|ND|TH)$", "$1");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (ST) (ST|AVE)", "$1 $3");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (ST|ND|RD|TH)(AVE?)", "$1 AVENUE");
+            inputAddress1 = Regex.Replace(inputAddress1, @"(\d+) (ST|ND|RD|TH)(ST)", "$1 STREET");
 
             if (inputAddress1 == "UNKN3146 86TH STREE")
             {
@@ -303,6 +303,7 @@ namespace UndressAddress
             if (inputAddress1 == "")
             {
                 ret.MatchQuality = MatchQuality.Unknown;
+                ret.FullStreetName = "";
             }
             else
             {
@@ -310,7 +311,19 @@ namespace UndressAddress
                 bool identifiedAsHomelessOrUnknown = ret.MatchQuality == MatchQuality.Homeless || ret.MatchQuality == MatchQuality.Unknown;
 
 
-                if (!identifiedAsHomelessOrUnknown)
+                if (identifiedAsHomelessOrUnknown)
+                {
+                    if (ret.MatchQuality == MatchQuality.Homeless)
+                    {
+                        ret.FullStreetName = "HOMELESS";
+                    }
+                    else
+                    {
+                        ret.FullStreetName = "UNKNOWN";
+                    }
+
+                }
+                else
                 {
                     inputAddress1 = CleanAddressFormat(inputAddress1, data.Abbreviations);
 

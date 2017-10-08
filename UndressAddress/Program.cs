@@ -45,15 +45,16 @@ namespace UndressAddress
         {
             string matched = "";
             bool matchFound = (address.MatchQuality != MatchQuality.NotMatched);
-            // Look for building matching
+
             List<string> closestNeighbors;
-            
+
             if (!matchFound)
             {
                 // Buildings
                 address = AddressUtility.CheckForBuildingsAndCenters(address, data);
                 matchFound = address.MatchQuality == MatchQuality.FullAddressMatched;
             }
+            #region DONT TAKE THESE
             if (!matchFound)
             {
                 // Exact street match
@@ -107,6 +108,9 @@ namespace UndressAddress
                     matchFound = true;
                 }
             }
+            #endregion
+
+            #region TAKE THESE (modified to fix edit distance and treat numbers better
 
             if (!matchFound)
             {
@@ -142,9 +146,12 @@ namespace UndressAddress
                 }
             }
 
+            #endregion
+
+            // Debug
             if (!matchFound)
             {
-                if (true)
+                if (false)
                 {
                     string addressRaw = $"{address.RawAddress1} / {address.RawAddress2}";
                     string addressCleaned = $"{ address.StreetNumber } / { address.StreetName} / { address.Suffix}";
@@ -158,9 +165,6 @@ namespace UndressAddress
                 }
             }
 
-
-            // NUMBER matches
-            //W MOSHOLU PKWY
             return matched;
         }
 
@@ -280,7 +284,7 @@ namespace UndressAddress
             // counter variables. 
             int iterations = 0;
 
-            List<Address> cleanedAddresses = new List<Address>();
+            Address[] cleanedAddresses = new Address[data.FinalDataSet.Length];
 
             DateTime lastTime = DateTime.Now;
             List<double> timeSpans = new List<double>();
@@ -332,11 +336,12 @@ namespace UndressAddress
                     else // nope, we have more to do. 
                     {
 
-                        matched = LucasAddressMatch(address, data);
-                        //matched = BenAddressMatch(address, data);
+                        //matched = LucasAddressMatch(address, data);
+                        matched = BenAddressMatch(address, data);
                     }
                 }
 
+                cleanedAddresses[c] = address;
 
                 if (address.MatchQuality == MatchQuality.Homeless)
                 {
@@ -437,6 +442,9 @@ namespace UndressAddress
                     fout.WriteLine(couldNotParse[c]);
                 }
             }
+
+            File.WriteAllLines("CleanedAddresses.csv", cleanedAddresses.Select(a => (a.StreetNumber != "" ? a.StreetNumber + " " + a.FullStreetName : a.FullStreetName)));
+
 
             Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full {streetMatched.Count} Street {homeless.Count} Homeless {unknown.Count} Unknown {couldNotParse.Count} Couln't parse {notMatched.Count} Not matched.");
 

@@ -17,6 +17,7 @@ namespace UndressAddress
 
         private static string[] LoadNYStateStreets(Data data)
         {
+            //string[] streets = File.ReadAllLines("allStreets.csv");
             string[] streets = File.ReadAllLines("state_of_new_york_revised.csv").ToArray();
             return streets.Distinct().ToArray();
 
