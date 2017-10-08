@@ -49,59 +49,59 @@ namespace UndressAddress
             List<string> closestNeighbors;
 
             #region DONT TAKE THESE
-            if (!matchFound)
-            {
-                // Exact street match
-                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, data.BKTree);
+            //if (!matchFound)
+            //{
+            //    // Exact street match
+            //    closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, data.BKTree);
 
-                if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) == 0)
-                {
-                    matched = CorrectAddress(data, ref address, closestNeighbors[0]);
-                    matchFound = true;
-                }
-            }
-            if (!matchFound)
-            {
-                // Search by ZIP
-                if (address.Zip != null && !string.IsNullOrEmpty(address.StreetName) && !string.IsNullOrEmpty(address.StreetNumber))
-                {
-                    StateOfNewYorkAddressRange[] streetsWithZip = data.NYCityStreets.Where(n => n.StreetNumber.IsInRange(address.StreetNumber) && n.ZipCode == address.Zip.Value).ToArray();
+            //    if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) == 0)
+            //    {
+            //        matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+            //        matchFound = true;
+            //    }
+            //}
+            //if (!matchFound)
+            //{
+            //    // Search by ZIP
+            //    if (address.Zip != null && !string.IsNullOrEmpty(address.StreetName) && !string.IsNullOrEmpty(address.StreetNumber))
+            //    {
+            //        StateOfNewYorkAddressRange[] streetsWithZip = data.NYCityStreets.Where(n => n.StreetNumber.IsInRange(address.StreetNumber) && n.ZipCode == address.Zip.Value).ToArray();
 
-                    List<string> streetsWithZipStrings = streetsWithZip.Select(s => s.FullStreetName).Distinct().ToList();
-                    BKTree bkTreeLocal = BKTreeEngine.CreateBKTree(streetsWithZipStrings);
+            //        List<string> streetsWithZipStrings = streetsWithZip.Select(s => s.FullStreetName).Distinct().ToList();
+            //        BKTree bkTreeLocal = BKTreeEngine.CreateBKTree(streetsWithZipStrings);
 
-                    closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, bkTreeLocal);
+            //        closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, bkTreeLocal);
 
-                    if (closestNeighbors.Count == 1 && EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) <= 2)
-                    {
-                        matched = CorrectAddress(data, ref address, closestNeighbors[0]);
-                        matchFound = true;
-                    }
-                }
-            }
+            //        if (closestNeighbors.Count == 1 && EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) <= 2)
+            //        {
+            //            matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+            //            matchFound = true;
+            //        }
+            //    }
+            //}
 
-            if (!matchFound)
-            {
-                // Exact street + ST match
-                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " ST", data.BKTree);
+            //if (!matchFound)
+            //{
+            //    // Exact street + ST match
+            //    closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " ST", data.BKTree);
 
-                if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) == 0)
-                {
-                    matched = CorrectAddress(data, ref address, closestNeighbors[0]);
-                    matchFound = true;
-                }
-            }
-            if (!matchFound)
-            {
-                // Exact street + AVE match
-                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " AVE", data.BKTree);
+            //    if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) == 0)
+            //    {
+            //        matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+            //        matchFound = true;
+            //    }
+            //}
+            //if (!matchFound)
+            //{
+            //    // Exact street + AVE match
+            //    closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " AVE", data.BKTree);
 
-                if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) == 0)
-                {
-                    matched = CorrectAddress(data, ref address, closestNeighbors[0]);
-                    matchFound = true;
-                }
-            }
+            //    if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) == 0)
+            //    {
+            //        matched = CorrectAddress(data, ref address, closestNeighbors[0]);
+            //        matchFound = true;
+            //    }
+            //}
             #endregion
 
             #region TAKE THESE (modified to fix edit distance and treat numbers better
@@ -109,7 +109,7 @@ namespace UndressAddress
             if (!matchFound)
             {
                 // Approximate street match
-                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, data.BKTree);
+                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName, data.StreetNameBKTree);
 
                 if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) <= 2)
                 {
@@ -120,7 +120,7 @@ namespace UndressAddress
             if (!matchFound)
             {
                 // Approximate street + ST match
-                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " ST", data.BKTree);
+                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " ST", data.StreetNameBKTree);
 
                 if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) <= 2)
                 {
@@ -131,7 +131,7 @@ namespace UndressAddress
             if (!matchFound)
             {
                 // Approximate street + AVE match
-                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " AVE", data.BKTree);
+                closestNeighbors = BKTreeEngine.LeastEditDistance(address.FullStreetName + " AVE", data.StreetNameBKTree);
 
                 if (EditDistanceEngine.Compute(address.FullStreetName, closestNeighbors[0]) <= 2)
                 {
@@ -153,7 +153,7 @@ namespace UndressAddress
                     {
                         addressCleaned += $" / {address.ApartmentNumber}";
                     }
-                    string closestNeighborsConcatenated = string.Join(" OR ", BKTreeEngine.LeastEditDistance(address.FullStreetName, data.BKTree));
+                    string closestNeighborsConcatenated = string.Join(" OR ", BKTreeEngine.LeastEditDistance(address.FullStreetName, data.StreetNameBKTree));
 
                     Console.WriteLine($"{addressRaw} => {addressCleaned} => {closestNeighborsConcatenated}");
                 }
@@ -167,15 +167,27 @@ namespace UndressAddress
             Console.WriteLine("Loading data...");
             //// read from all the necessary files
             Data data = DataLoader.LoadData(regenerateBKTree: true);
-            //data.FinalDataSet = data.FinalDataSet.Where(b => rand.Next() % 100 == 0).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(n => n.Contains("12187148")).Take(1).ToArray();
 
+            Random rand = new Random();
+            data.FinalDataSet = data.FinalDataSet.Where(b => rand.Next() % 100 == 0).ToArray();
 
             Console.WriteLine("Data loaded.");
+
+            List<string> level1Match = new List<string>();
+            List<string> level2Match = new List<string>();
+            List<string> level3Match = new List<string>();
+            List<string> level4Match = new List<string>();
+            List<string> level5Match = new List<string>();
+            List<string> level6Match = new List<string>();
+            List<string> level7Match = new List<string>();
+            List<string> level8Match = new List<string>();
+            List<string> level9Match = new List<string>();
 
             List<string> alternate = new List<string>();
             List<string> leaveAlone = new List<string>();
             List<string> matchNotYetDetermined = new List<string>();
-            List<string> perfectMatch = new List<string>();
+            //List<string> perfectMatch = new List<string>();
             List<string> homeless = new List<string>();
             List<string> unknown = new List<string>();
             List<string> adjustmentNeededToStreetName = new List<string>();
@@ -213,18 +225,22 @@ namespace UndressAddress
                     {
                         timeSpans.RemoveAt(0);
                     }
-
-                    //double percentage = ((fullAddressMatched.Count + homeless.Count + unknown.Count + streetMatched.Count) / (iterations * 1.0)) * 100;
-                    double percentage = ((perfectMatch.Count +
-                        homeless.Count + unknown.Count +
-                        adjustmentNeededToStreetName.Count +
-                        streetNamePerfectMatch.Count) / ((iterations * 1.0))) * 100;
-                    //Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full. {streetMatched.Count} Street. {homeless.Count} Homeless. {unknown.Count} Unknown. {couldNotParse.Count} Couln't parse. {notMatched.Count} Not matched. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
+                    double percentage = ((level1Match.Count + level2Match.Count +
+                        level3Match.Count + level4Match.Count +
+                        level5Match.Count + level6Match.Count +
+                        level7Match.Count + level8Match.Count +
+                        level9Match.Count) / ((iterations * 1.0))) * 100;
 
                     Console.Clear();
-                    Console.WriteLine($"Perfect match: {perfectMatch.Count}");
-                    Console.WriteLine($"Zip matched, adjustment needed for street name/suffix: {adjustmentNeededToStreetName.Count}");
-                    Console.WriteLine($"Zip mismatch, perfect street name: {streetNamePerfectMatch.Count}");
+                    Console.WriteLine($"Level 1 Match: {level1Match.Count}");
+                    Console.WriteLine($"Level 2 Match: {level2Match.Count}");
+                    Console.WriteLine($"Level 3 Match: {level3Match.Count}");
+                    Console.WriteLine($"Level 4 Match: {level4Match.Count}");
+                    Console.WriteLine($"Level 5 Match: {level5Match.Count}");
+                    Console.WriteLine($"Level 6 Match: {level6Match.Count}");
+                    Console.WriteLine($"Level 7 Match: {level7Match.Count}");
+                    Console.WriteLine($"Level 8 Match: {level8Match.Count}");
+                    Console.WriteLine($"Level 9 Match: {level9Match.Count}");
                     Console.WriteLine($"Homeless or Unknown: {homeless.Count + unknown.Count}");
                     Console.WriteLine("========SUMMARY=======");
                     Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {percentage.ToString("0.00")}% matched. {hoursLeft.ToString("0.00")} hours left.");
@@ -243,109 +259,88 @@ namespace UndressAddress
                     if (address.POBoxNumber != 0)
                     {
                         matched = true;
-                        perfectMatch.Add(AddressUtility.CreateLineFromAddress(address));
+                        level1Match.Add(address.OriginalLine);
                     }
                     else
                     {
                         //matched = LucasAddressMatch(address, data);
                         if (address.MatchQuality == MatchQuality.Alternate)
                         {
-                            perfectMatch.Add(AddressUtility.CreateLineFromAddress(address));
+                            level1Match.Add(AddressUtility.CreateLineFromAddress(address));
                             matched = true;
                         }
                         else
                         {
-                            // check for exact match by street name and zip. 
-                            // do nothing to it but just a blind check. 
-                            if (address.Zip.HasValue)
+                            if (MatchEngine.IsLevel1Match(address, data))
                             {
-                                string streetNameToMatch = address.StreetName;
-
-                                // find all streets which this street name is a substring. 
-                                // this is like a slightly fuzzier equals. 
-                                List<string> toInspects = new List<string>();
-                                foreach (string streetNameInDatabase in data.NYStateStreets)
+                                lock (level1Match)
                                 {
-                                    if (StringUtility.Contains(streetNameInDatabase, streetNameToMatch))
-                                    {
-                                        toInspects.Add(streetNameInDatabase);
-                                    }
-                                }
-
-                                // go through those streets
-                                foreach (string toInspect in toInspects)
-                                {
-                                    // do we have a ZIP
-                                    if (data.StreetNamesToZips.ContainsKey(toInspect))
-                                    {
-                                        if (data.StreetNamesToZips[toInspect].Contains(address.Zip.Value))
-                                        {
-                                            lock (perfectMatch)
-                                            {
-                                                perfectMatch.Add(address.OriginalLine);
-                                                matched = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-
-                            }
-
-                            // assume zip is right, but the street name is a bit wonky. 
-                            if (!matched && address.Zip.HasValue)
-                            {
-                                List<string> alternativeStreetNames = BKTreeEngine.LeastEditDistance(address.StreetName, data.BKTree).Distinct().ToList();
-                                foreach (string alternativeStreetName in alternativeStreetNames)
-                                {
-                                    if (data.AlternateSuffixList.ContainsKey(alternativeStreetName))
-                                    {
-                                        List<string> alternateSuffixes = data.AlternateSuffixList[alternativeStreetName];
-                                        foreach (string alternateSuffix in alternateSuffixes)
-                                        {
-                                            string streetWithAlternateSuffix = alternativeStreetName + " " +
-                                                alternateSuffix;
-
-                                            if (data.StreetNamesToZips.ContainsKey(streetWithAlternateSuffix))
-                                            {
-                                                List<int> zips = data.StreetNamesToZips[streetWithAlternateSuffix];
-                                                if (zips.Contains(address.Zip.Value))
-                                                {
-                                                    matched = true;
-                                                    lock (adjustmentNeededToStreetName)
-                                                    {
-                                                        adjustmentNeededToStreetName.Add(address.OriginalLine);
-                                                    }
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-
+                                    level1Match.Add(address.OriginalLine);
                                 }
                             }
-
-                            // street name perfect match, zip code is wonky. 
-                            if (!matched && !string.IsNullOrEmpty(address.StreetName))
+                            else if (MatchEngine.IsLevel2Match(address, data))
                             {
-                                string streetNameToSearch = (address.StreetName + " " + address.Suffix).Trim();
-                                if (data.NYStateStreets.Contains(streetNameToSearch))
+                                lock (level2Match)
                                 {
-                                    lock (streetNamePerfectMatch)
-                                    {
-                                        streetNamePerfectMatch.Add(AddressUtility.CreateLineFromAddress(address));
-                                    }
-                                    matched = true;
+                                    level2Match.Add(address.OriginalLine);
                                 }
                             }
-                        }
-                    }
-
-                    if (!matched)
-                    {
-                        lock (failed)
-                        {
-                            failed.Add(address.RawAddress1);
+                            else if (MatchEngine.IsLevel3Match(address, data))
+                            {
+                                lock (level3Match)
+                                {
+                                    level3Match.Add(address.OriginalLine);
+                                }
+                            }
+                            else if (MatchEngine.IsLevel4Match(address, data))
+                            {
+                                lock (level4Match)
+                                {
+                                    level4Match.Add(address.OriginalLine);
+                                }
+                            }
+                            else if (MatchEngine.IsLevel5Match(address, data))
+                            {
+                                lock (level5Match)
+                                {
+                                    level5Match.Add(address.OriginalLine);
+                                }
+                            }
+                            else if (MatchEngine.IsLevel6Match(address, data))
+                            {
+                                lock (level6Match)
+                                {
+                                    level6Match.Add(address.OriginalLine);
+                                }
+                            }
+                            else if (MatchEngine.IsLevel7Match(address, data))
+                            {
+                                lock (level7Match)
+                                {
+                                    level7Match.Add(address.OriginalLine);
+                                }
+                            }
+                            else if (MatchEngine.IsLevel8Match(address, data))
+                            {
+                                lock (level8Match)
+                                {
+                                    level8Match.Add(address.OriginalLine);
+                                }
+                            }
+                            else if (MatchEngine.IsLevel9Match(address, data))
+                            {
+                                lock (level9Match)
+                                {
+                                    level9Match.Add(address.OriginalLine);
+                                }
+                            }
+                            else
+                            {
+                                lock (failed)
+                                {
+                                    failed.Add(address.OriginalLine);
+                                }
+                            }
                         }
                     }
                 }
@@ -390,13 +385,13 @@ namespace UndressAddress
             });
 
 
-            using (StreamWriter fout = File.CreateText("perfectMatch.txt"))
-            {
-                for (int c = 0; c < perfectMatch.Count; c++)
-                {
-                    fout.WriteLine(perfectMatch[c]);
-                }
-            }
+            //using (StreamWriter fout = File.CreateText("perfectMatch.txt"))
+            //{
+            //    for (int c = 0; c < perfectMatch.Count; c++)
+            //    {
+            //        fout.WriteLine(perfectMatch[c]);
+            //    }
+            //}
 
             using (StreamWriter fout = File.CreateText("failed.txt"))
             {
@@ -591,59 +586,8 @@ namespace UndressAddress
 
         static void Main(string[] args)
         {
-            //BuildDictionary("");
-
-            //BuildDictionary("c:/users/brush/desktop/streetZipLookup.dat");
-
-            //CreateBKTree("C:/users/brush/desktop/bkTree.dat");
-
+            //DataSetParsers.DatFileGenerator.Generate("D:/StreetSegment.csv");
             GetCleanedNYStreetList2();
-
-            //Data data = DataLoader.LoadData();
-
-            //List<string> allCorrectedStrings = new List<string>();
-            //string[] allLines = File.ReadAllLines("C:/users/brush/desktop/allStreets.csv");
-
-            //Dictionary<string, List<string>> streetNamesWithMultipleSuffixes = new Dictionary<string, List<string>>();
-
-            //foreach (string line in allLines)
-            //{
-            //    string[] parts = line.Trim().Split(' ');
-
-            //    string suffix = "";
-            //    int index = -1;
-            //    if ((index = data.Suffixes.IndexOf(parts[parts.Length - 1])) != -1)
-            //    {
-            //        suffix = data.Suffixes.LongSuffixes[index];
-
-            //        string streetNameWithoutSuffix = string.Join(" ", parts.Take(parts.Length - 1).ToArray());
-            //        if (!streetNamesWithMultipleSuffixes.ContainsKey(streetNameWithoutSuffix))
-            //        {
-            //            streetNamesWithMultipleSuffixes.Add(streetNameWithoutSuffix, new List<string>());
-            //        }
-
-            //        streetNamesWithMultipleSuffixes[streetNameWithoutSuffix].Add(suffix);
-            //    }
-            //}
-
-            ////IEnumerable<string> uniqueCorrected = allCorrectedStrings.Distinct();
-
-            ////File.WriteAllLines("C:/users/brush/desktop/uniqueStreetsCorrected.txt", uniqueCorrected);
-
-            //using (StreamWriter sw = File.CreateText("C:/users/brush/desktop/streetToSuffixTable.csv"))
-            //{
-            //    foreach (KeyValuePair<string, List<string>> pairs in streetNamesWithMultipleSuffixes)
-            //    {
-            //        //if (pairs.Value.Count > 1)
-            //        {
-            //            string ending = string.Join(",", pairs.Value.ToArray());
-
-            //            sw.WriteLine($"{pairs.Key}:{ending}");
-            //        }
-            //    }
-            //}
-
-
             return;
         }
     }

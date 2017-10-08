@@ -234,6 +234,8 @@ namespace UndressAddress
             }
 
             // Ex: 360 E 193
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(.+) (WEST|EAST|SOUTH|NORTH)$", "$2 $1");
+            inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (WEST|NORTH|EAST|SOUTH) (\d+)$", "$1 $2 $3 STREET");
             inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (WEST|NORTH|EAST|SOUTH) (\d+)$", "$1 $2 $3 STREET");
             inputAddress1 = Regex.Replace(inputAddress1, @"^(\d+) (\d+)$", "$1 $2 STREET");
             inputAddress1 = Regex.Replace(inputAddress1, " ([A-Z]+)(DR)$", " $1 DRIVE");
