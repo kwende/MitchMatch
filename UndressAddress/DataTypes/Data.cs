@@ -21,7 +21,9 @@ namespace UndressAddress.DataTypes
         public Dictionary<string, string> SuffixReplacementKey { get; set; }
         public Dictionary<string, Address> KnownCenters { get; set; }
         public BKTree BKTree { get; set; }
-        public Dictionary<string, Dictionary<int, List<string>>> StreetNamesToStreetNumbers { get; set; }
+
+        public Dictionary<string, List<int>> StreetNamesToZips;
+
         public Dictionary<string, List<string>> AlternateSuffixList { get; set; }
     }
 }

@@ -36,7 +36,7 @@ namespace UndressAddress
             Address correctStreet = AddressUtility.NormalizeSuffix(correctedString, data);
             address.StreetName = correctStreet.StreetName;
             address.Suffix = correctStreet.Suffix;
-            address.MatchQuality = MatchQuality.StreetMatched;
+            address.MatchQuality = MatchQuality.Alternate;
             return $"{address.StreetName} {address.Suffix}";
 
         }
@@ -44,7 +44,7 @@ namespace UndressAddress
         private static string LucasAddressMatch(Address address, Data data)
         {
             string matched = "";
-            bool matchFound = (address.MatchQuality != MatchQuality.NotMatched);
+            bool matchFound = (address.MatchQuality != MatchQuality.Alternate);// THIS HAS CHANGED!!!
 
             List<string> closestNeighbors;
 
@@ -52,7 +52,7 @@ namespace UndressAddress
             {
                 // Buildings
                 address = AddressUtility.CheckForBuildingsAndCenters(address, data);
-                matchFound = address.MatchQuality == MatchQuality.FullAddressMatched;
+                matchFound = address.MatchQuality == MatchQuality.Alternate; // THIS HAS CHANGED!!!
             }
             #region DONT TAKE THESE
             if (!matchFound)
@@ -168,98 +168,6 @@ namespace UndressAddress
             return matched;
         }
 
-
-        private static string BenAddressMatch(Address address, Data data)
-        {
-            string matched = "";
-            // is this a known building address or building name variant? 
-            address = AddressUtility.CheckForBuildingsAndCenters(address, data);
-
-            // did we find it in thebuilding match above? 
-            if (address.MatchQuality == MatchQuality.NotMatched)
-            {
-                // nope, so get the list of all possible suffixes with this street name. 
-                List<string> streetWithAllPossibleSuffixes = new List<string>();
-                // we need to get the one we parsed out. 
-                // if we didn't parse on out, just put the street name without suffix. 
-                if (!string.IsNullOrEmpty(address.Suffix))
-                {
-                    // we have a suffix, so add it. 
-                    streetWithAllPossibleSuffixes.Add(address.StreetName + " " + address.Suffix);
-                }
-                else
-                {
-                    // we don't have a suffix, so..just add the street name. 
-                    streetWithAllPossibleSuffixes.Add(address.StreetName);
-                }
-
-                // are there alternate suffixes for this street name? 
-                if (data.AlternateSuffixList.ContainsKey(address.StreetName))
-                {
-                    // if so, add them to the array. 
-                    foreach (string alternateSuffix in data.AlternateSuffixList[address.StreetName])
-                    {
-                        streetWithAllPossibleSuffixes.Add(address.StreetName + " " + alternateSuffix);
-                    }
-                }
-
-                // get distincts. 
-                streetWithAllPossibleSuffixes = streetWithAllPossibleSuffixes.Distinct().ToList();
-
-                // iterate over the list. For most, this list will only have one item. 
-                //foreach (string address1 in streetWithAllPossibleSuffixes)
-                for (int s = 0; s < streetWithAllPossibleSuffixes.Count && address.MatchQuality == MatchQuality.NotMatched; s++)
-                {
-                    // get the street. 
-                    string address1 = streetWithAllPossibleSuffixes[s];
-
-                    // find the closest matches. 
-                    List<string> closestMatches = BKTreeEngine.LeastEditDistance(address1, data.BKTree);
-
-                    // iterate over each match. 
-                    foreach (string closestMatch in closestMatches)
-                    {
-                        // are we familiar with this street name? 
-                        if (data.StreetNamesToStreetNumbers.ContainsKey(closestMatch))
-                        {
-                            // do we have a ZIP? 
-                            if (address.Zip != null)
-                            {
-                                // do we find the ZIP? 
-                                if (data.StreetNamesToStreetNumbers[closestMatch].ContainsKey(address.Zip.Value))
-                                {
-                                    // get the known street numbers for this street. 
-                                    List<string> streetNumbers = data.StreetNamesToStreetNumbers[closestMatch][address.Zip.Value];
-
-                                    // do we match a known street number? 
-                                    if (!string.IsNullOrEmpty(address.StreetNumber) && streetNumbers.Contains(address.StreetNumber))
-                                    {
-                                        // yes, so match perfect. 
-                                        address.MatchQuality = MatchQuality.FullAddressMatched;
-                                        matched = closestMatch;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        // no, but we got this far and matched on ZIP, so call it a street match. 
-                                        address.MatchQuality = MatchQuality.StreetMatched;
-                                        matched = closestMatch;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (address.MatchQuality == MatchQuality.NotMatched && closestMatches.Count == 1)
-                    {
-                        address.MatchQuality = MatchQuality.StreetMatched;
-                    }
-                }
-            }
-            return matched;
-        }
-
         static List<string> GetCleanedNYStreetList2()
         {
             Console.WriteLine("Loading data...");
@@ -270,14 +178,15 @@ namespace UndressAddress
 
             Console.WriteLine("Data loaded.");
 
-            // create lists to store exact, no match and near matches. 
-            List<string> unknown = new List<string>();
-            List<string> notMatched = new List<string>();
+            List<string> alternate = new List<string>();
+            List<string> leaveAlone = new List<string>();
+            List<string> matchNotYetDetermined = new List<string>();
+            List<string> perfectMatch = new List<string>();
             List<string> homeless = new List<string>();
-            List<string> streetMatched = new List<string>();
-            List<string> fullAddressMatched = new List<string>();
-            List<string> couldNotParse = new List<string>();
-            List<string> databaseCorrected = new List<string>();
+            List<string> unknown = new List<string>();
+            List<string> adjustmentNeededToStreetName = new List<string>();
+            List<string> streetNamePerfectMatch = new List<string>();
+            List<string> failed = new List<string>();
 
             int numberCouldntProcess = 0;
 
@@ -311,9 +220,20 @@ namespace UndressAddress
                         timeSpans.RemoveAt(0);
                     }
 
-                    double percentage = ((fullAddressMatched.Count + homeless.Count + unknown.Count + streetMatched.Count) / (iterations * 1.0)) * 100;
+                    //double percentage = ((fullAddressMatched.Count + homeless.Count + unknown.Count + streetMatched.Count) / (iterations * 1.0)) * 100;
+                    double percentage = ((perfectMatch.Count +
+                        homeless.Count + unknown.Count +
+                        adjustmentNeededToStreetName.Count +
+                        streetNamePerfectMatch.Count) / ((iterations * 1.0))) * 100;
+                    //Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full. {streetMatched.Count} Street. {homeless.Count} Homeless. {unknown.Count} Unknown. {couldNotParse.Count} Couln't parse. {notMatched.Count} Not matched. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
 
-                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full. {streetMatched.Count} Street. {homeless.Count} Homeless. {unknown.Count} Unknown. {couldNotParse.Count} Couln't parse. {notMatched.Count} Not matched. Projected {percentage.ToString("0.00")}% match. {hoursLeft.ToString("0.00")} hours left.");
+                    Console.Clear();
+                    Console.WriteLine($"Perfect match: {perfectMatch.Count}");
+                    Console.WriteLine($"Zip matched, adjustment needed for street name/suffix: {adjustmentNeededToStreetName.Count}");
+                    Console.WriteLine($"Zip mismatch, perfect street name: {streetNamePerfectMatch.Count}");
+                    Console.WriteLine($"Homeless or Unknown: {homeless.Count + unknown.Count}");
+                    Console.WriteLine("========SUMMARY=======");
+                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {percentage.ToString("0.00")}% matched. {hoursLeft.ToString("0.00")} hours left.");
 
                     lastTime = now;
                 }
@@ -322,131 +242,183 @@ namespace UndressAddress
                 // clean the address and do what we can with pure NLP. 
                 Address address = AddressUtility.InitializeAddress(data.FinalDataSet[c], data);
 
-                string matched = "";
-
-                // did NLP do anything? 
-                if (address.MatchQuality == MatchQuality.NotMatched)
+                if (address.MatchQuality == MatchQuality.MatchNotYetDetermined)
                 {
-                    // is this a PO BOX? 
-                    if (address.POBoxNumber > 0)
-                    {
-                        address.MatchQuality = MatchQuality.StreetMatched;
-                        matched = address.StreetName;
-                    }
-                    else // nope, we have more to do. 
-                    {
+                    bool matched = false;
 
+                    if (address.POBoxNumber != 0)
+                    {
+                        matched = true;
+                        perfectMatch.Add(AddressUtility.CreateLineFromAddress(address));
+                    }
+                    else
+                    {
                         //matched = LucasAddressMatch(address, data);
-                        matched = BenAddressMatch(address, data);
+                        // check for known buildings. 
+                        address = AddressUtility.CheckForBuildingsAndCenters(address, data);
+
+                        if (address.MatchQuality == MatchQuality.Alternate)
+                        {
+                            perfectMatch.Add(AddressUtility.CreateLineFromAddress(address));
+                            matched = true;
+                        }
+                        else
+                        {
+                            // check for exact match by street name and zip. 
+                            // do nothing to it but just a blind check. 
+                            if (address.Zip.HasValue)
+                            {
+                                string streetNameToMatch = address.StreetName;
+
+                                // find all streets which this street name is a substring. 
+                                // this is like a slightly fuzzier equals. 
+                                List<string> toInspects = new List<string>();
+                                foreach (string streetNameInDatabase in data.NYStateStreets)
+                                {
+                                    if (StringUtility.Contains(streetNameInDatabase, streetNameToMatch))
+                                    {
+                                        toInspects.Add(streetNameInDatabase);
+                                    }
+                                }
+
+                                // go through those streets
+                                foreach (string toInspect in toInspects)
+                                {
+                                    // do we have a ZIP
+                                    if (data.StreetNamesToZips.ContainsKey(toInspect))
+                                    {
+                                        if (data.StreetNamesToZips[toInspect].Contains(address.Zip.Value))
+                                        {
+                                            lock (perfectMatch)
+                                            {
+                                                perfectMatch.Add(address.OriginalLine);
+                                                matched = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+
+                            // assume zip is right, but the street name is a bit wonky. 
+                            if (!matched && address.Zip.HasValue)
+                            {
+                                List<string> alternativeStreetNames = BKTreeEngine.LeastEditDistance(address.StreetName, data.BKTree).Distinct().ToList();
+                                foreach (string alternativeStreetName in alternativeStreetNames)
+                                {
+                                    if (data.AlternateSuffixList.ContainsKey(alternativeStreetName))
+                                    {
+                                        List<string> alternateSuffixes = data.AlternateSuffixList[alternativeStreetName];
+                                        foreach (string alternateSuffix in alternateSuffixes)
+                                        {
+                                            string streetWithAlternateSuffix = alternativeStreetName + " " +
+                                                alternateSuffix;
+
+                                            if (data.StreetNamesToZips.ContainsKey(streetWithAlternateSuffix))
+                                            {
+                                                List<int> zips = data.StreetNamesToZips[streetWithAlternateSuffix];
+                                                if (zips.Contains(address.Zip.Value))
+                                                {
+                                                    matched = true;
+                                                    lock (adjustmentNeededToStreetName)
+                                                    {
+                                                        adjustmentNeededToStreetName.Add(address.OriginalLine);
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            // street name perfect match, zip code is wonky. 
+                            if (!matched && !string.IsNullOrEmpty(address.StreetName))
+                            {
+                                string streetNameToSearch = (address.StreetName + " " + address.Suffix).Trim();
+                                if (data.NYStateStreets.Contains(streetNameToSearch))
+                                {
+                                    lock (streetNamePerfectMatch)
+                                    {
+                                        streetNamePerfectMatch.Add(AddressUtility.CreateLineFromAddress(address));
+                                    }
+                                    matched = true;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!matched)
+                    {
+                        lock (failed)
+                        {
+                            failed.Add(address.RawAddress1);
+                        }
                     }
                 }
 
                 cleanedAddresses[c] = address;
 
-                if (address.MatchQuality == MatchQuality.Homeless)
-                {
-                    lock (homeless)
-                    {
-                        homeless.Add(address.RawAddress1);
-                    }
-                }
-                else if (address.MatchQuality == MatchQuality.Unknown)
+                if (address.MatchQuality == MatchQuality.Unknown)
                 {
                     lock (unknown)
                     {
-                        unknown.Add(address.RawAddress1);
+                        unknown.Add(AddressUtility.CreateLineFromAddress(address, "UNKNOWN"));
                     }
                 }
-                else if (address.MatchQuality == MatchQuality.NotMatched)
+                else if (address.MatchQuality == MatchQuality.Homeless)
                 {
-                    lock (notMatched)
+                    lock (homeless)
                     {
-                        notMatched.Add(address.RawAddress1);
+                        homeless.Add(AddressUtility.CreateLineFromAddress(address, "HOMELESS"));
                     }
                 }
-                else if (address.MatchQuality == MatchQuality.CouldNotParseFormat)
+                else if (address.MatchQuality == MatchQuality.Alternate)
                 {
-                    lock (couldNotParse)
+                    lock (alternate)
                     {
-                        couldNotParse.Add(address.RawAddress1);
+                        alternate.Add(address.RawAddress1);
                     }
                 }
-                else if (address.MatchQuality == MatchQuality.FullAddressMatched)
+                else if (address.MatchQuality == MatchQuality.LeaveAlone)
                 {
-                    lock (fullAddressMatched)
+                    lock (leaveAlone)
                     {
-                        fullAddressMatched.Add($"{address.RawAddress1}=>{matched}");
+                        leaveAlone.Add(address.RawAddress1);
                     }
                 }
-                else if (address.MatchQuality == MatchQuality.StreetMatched)
+                else if (address.MatchQuality == MatchQuality.MatchNotYetDetermined)
                 {
-                    lock (streetMatched)
+                    lock (matchNotYetDetermined)
                     {
-                        streetMatched.Add($"{address.RawAddress1}=>{matched}");
+                        matchNotYetDetermined.Add($"{address.RawAddress1}=>{address.FullStreetName}");
                     }
                 }
             });
 
-            using (StreamWriter fout = File.CreateText("streetMatched.txt"))
+
+            using (StreamWriter fout = File.CreateText("perfectMatch.txt"))
             {
-                for (int c = 0; c < streetMatched.Count; c++)
+                for (int c = 0; c < perfectMatch.Count; c++)
                 {
-                    fout.WriteLine(streetMatched[c]);
+                    fout.WriteLine(perfectMatch[c]);
                 }
             }
 
-            using (StreamWriter fout = File.CreateText("databaseCorrected.txt"))
+            using (StreamWriter fout = File.CreateText("failed.txt"))
             {
-                for (int c = 0; c < databaseCorrected.Count; c++)
+                for (int c = 0; c < failed.Count; c++)
                 {
-                    fout.WriteLine(databaseCorrected[c]);
-                }
-            }
-
-            using (StreamWriter fout = File.CreateText("fullAddressMatched.txt"))
-            {
-                for (int c = 0; c < fullAddressMatched.Count; c++)
-                {
-                    fout.WriteLine(fullAddressMatched[c]);
-                }
-            }
-
-            using (StreamWriter fout = File.CreateText("homeless.txt"))
-            {
-                for (int c = 0; c < homeless.Count; c++)
-                {
-                    fout.WriteLine(homeless[c]);
-                }
-            }
-
-            using (StreamWriter fout = File.CreateText("unknown.txt"))
-            {
-                for (int c = 0; c < unknown.Count; c++)
-                {
-                    fout.WriteLine(unknown[c]);
-                }
-            }
-
-            using (StreamWriter fout = File.CreateText("notMatched.txt"))
-            {
-                for (int c = 0; c < notMatched.Count; c++)
-                {
-                    fout.WriteLine(notMatched[c]);
-                }
-            }
-
-            using (StreamWriter fout = File.CreateText("couldNotParse.txt"))
-            {
-                for (int c = 0; c < couldNotParse.Count; c++)
-                {
-                    fout.WriteLine(couldNotParse[c]);
+                    fout.WriteLine(failed[c]);
                 }
             }
 
             File.WriteAllLines("CleanedAddresses.csv", cleanedAddresses.Select(a => (a.StreetNumber != "" ? a.StreetNumber + " " + a.FullStreetName : a.FullStreetName)));
 
 
-            Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}: {fullAddressMatched.Count} Full {streetMatched.Count} Street {homeless.Count} Homeless {unknown.Count} Unknown {couldNotParse.Count} Couln't parse {notMatched.Count} Not matched.");
+            Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}: {leaveAlone.Count} LeaveAlone {alternate.Count} Alternate {homeless.Count} Homeless {unknown.Count} Unknown {matchNotYetDetermined.Count} MatchNotYetDetermined.");
 
             Console.WriteLine($"Couldn't process {numberCouldntProcess}");
             Console.ReadLine();
@@ -492,119 +464,147 @@ namespace UndressAddress
 
         static void CreateBKTree(string outputSerializedPath)
         {
-            List<string> uniques = File.ReadAllLines("c:/users/brush/desktop/distinctStreets.csv").ToList();
+            List<string> allLines = File.ReadAllLines("c:/users/brush/desktop/allStreets.csv").ToList();
 
-            BKTree tree = BKTreeEngine.CreateBKTree(uniques.Distinct().ToList());
+            Data data = DataLoader.LoadData(regenerateBKTree: true);
+
+            //List<string> allCorrectedStrings = new List<string>();
+            //string[] allLines = File.ReadAllLines("C:/users/brush/desktop/allStreets.csv");
+
+            //Dictionary<string, List<string>> streetNamesWithMultipleSuffixes = new Dictionary<string, List<string>>();
+
+            List<string> justNames = new List<string>();
+            foreach (string line in allLines)
+            {
+                string[] parts = line.Trim().Split(' ');
+
+                string suffix = "";
+                int index = -1;
+                if ((index = data.Suffixes.IndexOf(parts[parts.Length - 1])) != -1)
+                {
+                    justNames.Add(string.Join(" ", parts.Take(parts.Length - 1)));
+                }
+                else
+                {
+                    justNames.Add(line);
+                }
+            }
+
+            BKTree tree = BKTreeEngine.CreateBKTree(justNames);
             BKTreeSerializer.SerializeTo(tree, outputSerializedPath);
         }
 
         static void BuildDictionary(string outputSerializedPath)
         {
+            Data data = DataLoader.LoadData(regenerateBKTree: true);
+
             string[] stateWide = File.ReadAllLines(@"C:\Users\brush\Downloads\openaddr-collected-us_northeast\us\ny\statewide.csv").Select(n => n.ToUpper()).ToArray();
             string[] newYork = File.ReadAllLines(@"D:\repos\MitchMatch\UndressAddress\city_of_new_york.csv").Select(n => n.ToUpper()).ToArray();
 
-            List<string> allLines = new List<string>();
-            allLines.AddRange(stateWide.Skip(1));
-            allLines.AddRange(newYork.Skip(1));
+            List<string[]> allLines = new List<string[]>();
+            allLines.AddRange(stateWide.Skip(1).Select(n => DecisionTreeLearner.Data.DataLoader.SmartSplit(n.ToUpper())));
+            allLines.AddRange(newYork.Skip(1).Select(n => DecisionTreeLearner.Data.DataLoader.SmartSplit(n.ToUpper())));
 
-            Dictionary<string, Dictionary<int, List<string>>> farts = new Dictionary<string, Dictionary<int, List<string>>>();
+            Dictionary<string, List<int>> street2Zip = new Dictionary<string, List<int>>();
 
-            foreach (string line in allLines)
+            int count = 0;
+            Parallel.ForEach(allLines, line =>
             {
-                string[] bits = DecisionTreeLearner.Data.DataLoader.SmartSplit(line);
-                if (bits.Length == 11)
+                Interlocked.Increment(ref count);
+
+                if (count % 100000 == 0)
                 {
-                    string streetName = bits[3].ToUpper();
+                    Console.WriteLine($"{count}/{allLines.Count}");
+                }
 
-                    Dictionary<int, List<string>> zipDictionary = null;
-                    if (!farts.ContainsKey(streetName))
+                if (line.Length == 11)
+                {
+                    string streetName = line[3];
+                    string[] streetNameParts = streetName.Split(' ');
+                    string possibleSuffix = streetNameParts[streetNameParts.Length - 1];
+
+                    for (int c = 0; c < data.Suffixes.ShortSuffixes.Length; c++)
                     {
-                        zipDictionary = new Dictionary<int, List<string>>();
-                        farts.Add(streetName, zipDictionary);
+                        if (data.Suffixes.ShortSuffixes[c] == possibleSuffix)
+                        {
+                            streetName = string.Join(" ", streetNameParts.Take(streetNameParts.Length - 1)) + " " +
+                                data.Suffixes.LongSuffixes[c];
+                            break;
+                        }
                     }
-                    else
+
+                    lock (street2Zip)
                     {
-                        zipDictionary = farts[streetName];
-                    }
+                        streetName = Regex.Replace(streetName, "( +)", " ");
+                        streetName = Regex.Replace(streetName, "^N ", "NORTH ");
+                        streetName = Regex.Replace(streetName, "^S ", "SOUTH ");
+                        streetName = Regex.Replace(streetName, "^E ", "EAST ");
+                        streetName = Regex.Replace(streetName, "^W ", "WEST ");
+                        streetName = Regex.Replace(streetName, " N$", " NORTH");
+                        streetName = Regex.Replace(streetName, " S$", " SOUTH");
+                        streetName = Regex.Replace(streetName, " E$", " EAST");
+                        streetName = Regex.Replace(streetName, " W$", " WEST");
 
-                    int zip = 0;
-                    if (int.TryParse(bits[8], out zip))
-                    {
-                        List<string> houseNumbers = null;
-                        if (!zipDictionary.ContainsKey(zip))
-                        {
-                            houseNumbers = new List<string>();
-                            zipDictionary.Add(zip, houseNumbers);
-                        }
-                        else
-                        {
-                            houseNumbers = zipDictionary[zip];
-                        }
+                        streetName = Regex.Replace(streetName, " RD ", " ROAD ");
+                        streetName = Regex.Replace(streetName, " AVE ", " AVENUE ");
+                        streetName = Regex.Replace(streetName, "^AVE ", "AVENUE ");
+                        streetName = Regex.Replace(streetName, "^BCH ", "BEACH ");
+                        streetName = streetName.Replace("GRAND CONC", "GRAND CONCOURSE");
 
-                        int streetNumber = 0;
-                        if (int.TryParse(bits[2], out streetNumber))
+                        if (!string.IsNullOrEmpty(streetName))
                         {
-                            houseNumbers.Add(streetNumber.ToString());
-                        }
-                        else if (Regex.IsMatch(bits[2], @"^(\d+)-(\d+)$"))
-                        {
-                            int[] parts = bits[2].Split('-').Select(n => int.Parse(n.Trim())).ToArray();
-
-                            int smaller = parts[1];
-                            int larger = parts[0];
-
-                            if (larger < smaller)
+                            if (!street2Zip.ContainsKey(streetName))
                             {
-                                larger = parts[1];
-                                smaller = parts[0];
+                                street2Zip.Add(streetName, new List<int>());
                             }
 
-                            for (int c = smaller; c <= larger; c++)
+                            int zip = 0;
+                            if (int.TryParse(line[8], out zip))
                             {
-                                houseNumbers.Add(c.ToString());
-                            }
-                        }
-                        else if (!string.IsNullOrEmpty(bits[2]))
-                        {
-                            if (bits[2].Contains("-"))
-                            {
-                                string[] parts = bits[2].Split('-');
-                                // what else to do? it's not a number range. 
-                                houseNumbers.Add(parts[0]);
-                                houseNumbers.Add(parts[1]);
-                            }
-                            else
-                            {
-                                houseNumbers.Add(bits[2]);
+                                street2Zip[streetName].Add(zip);
                             }
                         }
                     }
                 }
-            }
+            });
 
-            foreach (string key in farts.Keys)
+            int numberWithNoZipCodes = 0;
+            string[] keys = street2Zip.Keys.ToArray();
+            for (int c = 0; c < keys.Length; c++)
             {
-                Dictionary<int, List<string>> value = farts[key];
+                street2Zip[keys[c]] = street2Zip[keys[c]].Distinct().ToList();
 
-                int[] keys = value.Keys.ToArray();
-                foreach (int zip in keys)
+                if (street2Zip[keys[c]].Count == 0)
                 {
-                    List<string> distinctNumbers = value[zip].Distinct().ToList();
-                    value[zip] = distinctNumbers;
+                    numberWithNoZipCodes++;
                 }
             }
+
+            using (StreamWriter sw = File.CreateText("c:/users/brush/desktop/allStreets.csv"))
+            {
+                foreach (string key in keys)
+                {
+                    sw.WriteLine(key);
+                }
+            }
+
+            Console.WriteLine("Number of streets: " + keys.Length.ToString());
+            Console.WriteLine("Number with no zip codes: " + numberWithNoZipCodes.ToString());
 
             BinaryFormatter bf = new BinaryFormatter();
-            using (FileStream fout = File.Create(outputSerializedPath))
+            using (FileStream fout = File.Create("c:/users/brush/desktop/farts.dat"))
             {
-                bf.Serialize(fout, farts);
+                bf.Serialize(fout, street2Zip);
             }
         }
 
         static void Main(string[] args)
         {
+            //BuildDictionary("");
 
-            //CreateBKTree("C:/users/brush/desktop/bkTree.dat"); 
+            //BuildDictionary("c:/users/brush/desktop/streetZipLookup.dat");
+
+            //CreateBKTree("C:/users/brush/desktop/bkTree.dat");
 
             GetCleanedNYStreetList2();
 

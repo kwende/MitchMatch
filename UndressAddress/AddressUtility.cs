@@ -41,7 +41,7 @@ namespace UndressAddress
                     Regex.IsMatch(inputAddress1, @"(^| )NOT ") ||
                     Regex.IsMatch(inputAddress1, @"DFS") || ////DFSFSDF
                     Regex.IsMatch(inputAddress1, @"(\d+){6,20}") ||//13846 ST. Numbers way too high for street address
-                    Regex.IsMatch(inputAddress1, @"^([A-Z]){2}$") ||// only 2 characters
+                    Regex.IsMatch(inputAddress1, @"^([A-Z]){1,2}$") ||// only 1-2 characters
                     Regex.IsMatch(inputAddress1, @"^U ?T ?O$"))
                 {
                     return MatchQuality.Unknown;
@@ -60,7 +60,7 @@ namespace UndressAddress
                 }
             }
 
-            return MatchQuality.NotMatched;
+            return MatchQuality.MatchNotYetDetermined;
         }
 
         public static Address HandleParticularlyProblematicStreets(Address address)
@@ -113,7 +113,7 @@ namespace UndressAddress
                 ret.StreetName = "MABON BUILDING 13 WARDS ISLAND";
                 ret.City = "NEW YORK";
                 ret.Zip = 10035;
-                ret.MatchQuality = MatchQuality.FullAddressMatched;
+                ret.MatchQuality = MatchQuality.Alternate;
             }
 
             buildingMatch = Regex.Match(input.StreetName, @"METRO ?TE[A-Z][A-Z]");
@@ -123,7 +123,7 @@ namespace UndressAddress
                 ret.StreetName = "METROTECH CENTER";
                 ret.City = "BROOKLYN";
                 ret.Zip = 11201;
-                ret.MatchQuality = MatchQuality.FullAddressMatched;
+                ret.MatchQuality = MatchQuality.Alternate;
             }
 
             buildingMatch = Regex.Match(input.StreetName, @"KEENER");
@@ -133,7 +133,7 @@ namespace UndressAddress
                 ret.StreetName = "SUNKEN GARDEN LOOP";
                 ret.City = "NEW YORK";
                 ret.Zip = 10035;
-                ret.MatchQuality = MatchQuality.FullAddressMatched;
+                ret.MatchQuality = MatchQuality.Alternate;
             }
 
             return ret;
@@ -221,7 +221,15 @@ namespace UndressAddress
             inputAddress1 = inputAddress1.Replace("'", " ");
             inputAddress1 = inputAddress1.Replace(":", " ");
             inputAddress1 = inputAddress1.Replace("~", " ");
+
+            inputAddress1 = inputAddress1.Replace("/", " ");
+            inputAddress1 = inputAddress1.Replace("\\", " ");
+            inputAddress1 = inputAddress1.Replace("-", " ");
+
             inputAddress1 = inputAddress1.Trim();
+
+
+
 
             // replace multiple spaces with one.
             inputAddress1 = Regex.Replace(inputAddress1, " + ", " ");
@@ -273,15 +281,24 @@ namespace UndressAddress
             bool print = false;
 
             Address ret = new Address();
-            ret.MatchQuality = MatchQuality.NotMatched;
+
+            ret.MatchQuality = MatchQuality.MatchNotYetDetermined;
 
             const int Address1Column = 8;
             const int Address2Column = 9;
             const int ZipColumn = 10;
             const int CityColumn = 13;
 
+            ret.OriginalLine = input;
             string[] bits = DecisionTreeLearner.Data.DataLoader.SmartSplit(input);
+            ret.OriginalLineBits = bits;
+            ret.EnterpriseId = 0;
 
+            int enterpriseId = 0;
+            if (int.TryParse(bits[0], out enterpriseId))
+            {
+                ret.EnterpriseId = enterpriseId;
+            }
 
             // RawAddress1
             string inputAddress1 = bits[Address1Column];
@@ -411,6 +428,16 @@ namespace UndressAddress
                                                     length = ret.ApartmentNumber.Length;
                                                 }
                                             }
+                                            else
+                                            {
+                                                apartmentNumberMatch = Regex.Match(inputAddress1, @"(\d+)-(\d+|[A-Z]+)");
+                                                if (apartmentNumberMatch.Success)
+                                                {
+                                                    ret.ApartmentNumber = apartmentNumberMatch.Value;
+                                                    startIndex = apartmentNumberMatch.Index;
+                                                    length = apartmentNumberMatch.Length;
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -430,6 +457,7 @@ namespace UndressAddress
                     {
                         // Call these apartment numbers 
                         ret.ApartmentNumber = inputAddress2;
+                        ret.ApartmentNumberFromAddress2Field = true;
                     }
 
                     #endregion
@@ -487,10 +515,10 @@ namespace UndressAddress
                         ret.FullStreetName += " " + ret.Suffix;
                     }
 
-                    if (ret.MatchQuality == MatchQuality.NotMatched && string.IsNullOrEmpty(ret.StreetName))
-                    {
-                        ret.MatchQuality = MatchQuality.CouldNotParseFormat;
-                    }
+                    //if (ret.MatchQuality == MatchQuality.MatchNotYetDetermined && string.IsNullOrEmpty(ret.StreetName))
+                    //{
+                    //    ret.MatchQuality = MatchQuality.CouldNotParseFormat;
+                    //}
                 }
                 if (print)
                 {
@@ -515,6 +543,63 @@ namespace UndressAddress
             //    Console.WriteLine();
             //    throw ex;
             //}
+        }
+
+        public static string Address1FromStreetNameAndAddress(Address address, string streetName)
+        {
+            StringBuilder ret = new StringBuilder();
+
+            if (!string.IsNullOrEmpty(address.StreetNumber))
+            {
+                ret.Append(address.StreetNumber + " ");
+            }
+
+            ret.Append(streetName + " ");
+
+            if (!string.IsNullOrEmpty(address.ApartmentNumber) && !address.ApartmentNumberFromAddress2Field)
+            {
+                ret.Append(address.ApartmentNumber + " ");
+            }
+
+            return ret.ToString().Trim();
+        }
+
+        public static bool IsMatchingSuffix(string suffix1, string suffix2, AddressSuffixes suffixes)
+        {
+            bool theSame = false;
+
+            if ((string.IsNullOrEmpty(suffix1) && string.IsNullOrEmpty(suffix2)) ||
+                suffix1 == suffix2)
+            {
+                theSame = true;
+            }
+            else
+            {
+                for (int c = 0; c < suffixes.LongSuffixes.Length; c++)
+                {
+                    if ((suffixes.LongSuffixes[c] == suffix1 || suffixes.ShortSuffixes[c] == suffix1) &&
+                        (suffixes.LongSuffixes[c] == suffix2 || suffixes.ShortSuffixes[c] == suffix2))
+                    {
+                        theSame = true;
+                        break;
+                    }
+                }
+            }
+
+            return theSame;
+        }
+
+        public static string CreateLineFromAddress(Address address, string alternateStreetName = null)
+        {
+            string[] copiedParts = new string[address.OriginalLineBits.Length];
+            Array.Copy(address.OriginalLineBits, copiedParts, copiedParts.Length);
+
+            if (alternateStreetName != null)
+            {
+                copiedParts[8] = alternateStreetName;
+            }
+
+            return string.Join(",", copiedParts);
         }
     }
 }

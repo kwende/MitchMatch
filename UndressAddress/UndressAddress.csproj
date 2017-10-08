@@ -75,9 +75,6 @@
     <Compile Include="StringUtility.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="addressDictionary.dat">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="allStreets.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -97,6 +94,9 @@
     </None>
     <None Include="state_of_new_york_revised.csv" />
     <None Include="StreetSuffixes.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="streetZipLookup.dat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="UnknownAddresses.csv">

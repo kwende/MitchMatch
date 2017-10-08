@@ -8,6 +8,7 @@ namespace UndressAddress.DataTypes
 {
     public class Address
     {
+        public int EnterpriseId { get; set; }
         public string ApartmentNumber { get; set; }
         public string StreetName { get; set; }
         public string Suffix { get; set; }
@@ -21,6 +22,9 @@ namespace UndressAddress.DataTypes
         public MatchQuality MatchQuality { get; set; }
         public bool StreetNameIsNumber { get; set; }
         public int POBoxNumber { get; set; }
+        public string[] OriginalLineBits { get; set; }
+        public bool ApartmentNumberFromAddress2Field { get; set; }
+        public string OriginalLine { get; internal set; }
 
         public override string ToString()
         {

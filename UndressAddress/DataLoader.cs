@@ -216,9 +216,6 @@ namespace UndressAddress
             data.NYStateStreets = LoadNYStateStreets(data);
 
 
-
-
-
             // AlternateSuffixList
             string[] lines = File.ReadAllLines("streetToSuffixTable.txt");
             data.AlternateSuffixList = new Dictionary<string, List<string>>();
@@ -229,14 +226,6 @@ namespace UndressAddress
                 data.AlternateSuffixList.Add(halves[0], alternates);
             }
 
-            // StreetNamesToStreetNumbers
-            //BinaryFormatter bf = new BinaryFormatter();
-            //using (FileStream fin = File.OpenRead("addressDictionary.dat"))
-            //{
-            //    data.StreetNamesToStreetNumbers = (Dictionary<string, Dictionary<int, List<string>>>)bf.Deserialize(fin);
-            //}
-
-
             // BKTree
             if (regenerateBKTree)
             {
@@ -246,6 +235,13 @@ namespace UndressAddress
             else
             {
                 data.BKTree = BKTreeSerializer.DeserializeFrom("bkTree.dat");
+            }
+
+            // StreetNamesToZips
+            BinaryFormatter bf = new BinaryFormatter();
+            using (FileStream fin = File.OpenRead("streetZipLookup.dat"))
+            {
+                data.StreetNamesToZips = (Dictionary<string, List<int>>)bf.Deserialize(fin);
             }
 
             return data;
