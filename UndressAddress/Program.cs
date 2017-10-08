@@ -48,12 +48,6 @@ namespace UndressAddress
 
             List<string> closestNeighbors;
 
-            if (!matchFound)
-            {
-                // Buildings
-                address = AddressUtility.CheckForBuildingsAndCenters(address, data);
-                matchFound = address.MatchQuality == MatchQuality.Alternate; // THIS HAS CHANGED!!!
-            }
             #region DONT TAKE THESE
             if (!matchFound)
             {
@@ -254,9 +248,6 @@ namespace UndressAddress
                     else
                     {
                         //matched = LucasAddressMatch(address, data);
-                        // check for known buildings. 
-                        address = AddressUtility.CheckForBuildingsAndCenters(address, data);
-
                         if (address.MatchQuality == MatchQuality.Alternate)
                         {
                             perfectMatch.Add(AddressUtility.CreateLineFromAddress(address));

@@ -99,44 +99,22 @@ namespace UndressAddress
             return address;
         }
 
-        public static Address CheckForBuildingsAndCenters(Address input, Data data)
+        public static void CheckForBuildingsAndCenters(ref Address ret, Data data)
         {
-            Address ret = input;
-
-            // this could be done in a simple .Contains() function, but I think the diversity of the 
-            // way these buildings are spelled, etc. might require some regex for now. 
-            // we can revisit later. 
-
-            Match buildingMatch = Regex.Match(input.StreetName, @"^MABON ");
-            if (buildingMatch.Success)
+            foreach (KeyValuePair<string, Address> pair in data.KnownCenters)
             {
-                ret.StreetName = "MABON BUILDING 13 WARDS ISLAND";
-                ret.City = "NEW YORK";
-                ret.Zip = 10035;
-                ret.MatchQuality = MatchQuality.Alternate;
+                Match buildingMatch = Regex.Match(ret.RawAddress1, @"" + pair.Key);
+                if (buildingMatch.Success)
+                {
+                    ret.CenterName = pair.Value.CenterName;
+                    ret.StreetNumber = pair.Value.StreetNumber;
+                    ret.StreetName = pair.Value.StreetName;
+                    ret.City = pair.Value.City;
+                    ret.State = pair.Value.State;
+                    ret.FullStreetName = pair.Value.FullStreetName;
+                    ret.MatchQuality = MatchQuality.LeaveAlone;
+                }
             }
-
-            buildingMatch = Regex.Match(input.StreetName, @"METRO ?TE[A-Z][A-Z]");
-            if (buildingMatch.Success)
-            {
-                ret.StreetNumber = "9";
-                ret.StreetName = "METROTECH CENTER";
-                ret.City = "BROOKLYN";
-                ret.Zip = 11201;
-                ret.MatchQuality = MatchQuality.Alternate;
-            }
-
-            buildingMatch = Regex.Match(input.StreetName, @"KEENER");
-            if (buildingMatch.Success)
-            {
-                ret.StreetNumber = "64";
-                ret.StreetName = "SUNKEN GARDEN LOOP";
-                ret.City = "NEW YORK";
-                ret.Zip = 10035;
-                ret.MatchQuality = MatchQuality.Alternate;
-            }
-
-            return ret;
         }
 
         public static Address NormalizeSuffix(string input, Data data)
@@ -324,11 +302,14 @@ namespace UndressAddress
             }
             else
             {
+                CheckForBuildingsAndCenters(ref ret, data);
+
                 ret.MatchQuality = IsHomelessOrUnknown(inputAddress1, data);
-                bool identifiedAsHomelessOrUnknown = ret.MatchQuality == MatchQuality.Homeless || ret.MatchQuality == MatchQuality.Unknown;
+
+                bool isIdentified = ret.MatchQuality == MatchQuality.Homeless || ret.MatchQuality == MatchQuality.Unknown || ret.MatchQuality == MatchQuality.LeaveAlone;
 
 
-                if (identifiedAsHomelessOrUnknown)
+                if (isIdentified)
                 {
                     if (ret.MatchQuality == MatchQuality.Homeless)
                     {

@@ -16,10 +16,12 @@ namespace UndressAddress.DataTypes
         public string StreetNumber { get; set; }
         public int? Zip { get; set; }
         public string City { get; set; }
+        public string State { get; set; }
         public string Other { get; set; }
         public string RawAddress1 { get; set; }
         public string RawAddress2 { get; set; }
         public MatchQuality MatchQuality { get; set; }
+        public string CenterName { get; set; }
         public bool StreetNameIsNumber { get; set; }
         public int POBoxNumber { get; set; }
         public string[] OriginalLineBits { get; set; }

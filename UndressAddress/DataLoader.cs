@@ -189,23 +189,23 @@ namespace UndressAddress
             }
 
             // KnownCenters
-            // at the moment I'm focusing on the "main" ones, and so this
-            // format in the file may change to accomodate the various 
-            // alternative addresses for centers, etc. don't get too stuck 
-            // on how I'm doing this, it can change. 
             nameValuePairs = File.ReadAllLines("KnownCenters.txt");
             data.KnownCenters = new Dictionary<string, Address>();
             foreach (string nameValuePair in nameValuePairs)
             {
                 string[] bits = nameValuePair.Split(';').Select(n => n.Trim()).ToArray();
                 string[] rhsAddressParts = bits[1].Split(',').Select(n => n.Trim()).ToArray();
-                data.KnownCenters.Add(bits[0], new Address
+                Address address = new Address
                 {
-                    City = rhsAddressParts[1],
-                    StreetName = rhsAddressParts[0],
-                    Zip = int.Parse(rhsAddressParts[3]),
-                    RawAddress1 = rhsAddressParts[0]
-                });
+                    CenterName = rhsAddressParts[0],
+                    StreetNumber = rhsAddressParts[1],
+                    StreetName = rhsAddressParts[2],
+                    City = rhsAddressParts[3],
+                    State = rhsAddressParts[4],
+                    Zip = int.Parse(rhsAddressParts[5]),
+                };
+                address.FullStreetName = (address.StreetNumber != "" ? $"{address.StreetNumber} {address.StreetName}" : address.StreetName);
+                data.KnownCenters.Add(bits[0], address);
             }
 
 
