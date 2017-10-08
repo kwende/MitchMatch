@@ -13,7 +13,7 @@ namespace UndressAddress.DataTypes
         public string StreetName { get; set; }
         public int ZipCode { get; set; }
         public string City { get; set; }
-        public string CardinalDirection { get; set; }
         public string Suffix { get; set; }
+        public string FullStreetName { get; set; }
     }
 }
