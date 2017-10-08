@@ -9,19 +9,21 @@ namespace UndressAddress.DataTypes
     [Serializable]
     public class StreetName
     {
-        public StreetName(string preType, string name, string suffix, List<int> zipCodes, List<string> cities)
+        public StreetName(string preDirection, string preType, string name, string suffix, List<int> zipCodes, List<string> cities)
         {
+            PreDirection = preDirection;
             PreType = preType;
             Name = name;
             Suffix = suffix;
 
-            FullStreetName = (PreType + " " + Name + " " + Suffix).Trim();
+            FullStreetName = (PreDirection + " " + (PreType + " " + Name + " " + Suffix).Trim()).Trim();
 
             ZipCodes = zipCodes;
             Cities = cities;
         }
 
         public string FullStreetName { get; private set; }
+        public string PreDirection { get; private set; }
         public string PreType { get; private set; }
         public string Name { get; private set; }
         public string Suffix { get; private set; }

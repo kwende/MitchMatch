@@ -225,23 +225,32 @@ namespace UndressAddress
                 data.StreetData = (List<StreetName>)bf.Deserialize(fin);
             }
 
+            data.StreetNameDictionary = new Dictionary<string, List<StreetName>>();
+
+            foreach (StreetName streetName in data.StreetData)
+            {
+                if (!data.StreetNameDictionary.ContainsKey(streetName.Name))
+                {
+                    data.StreetNameDictionary.Add(streetName.Name, new List<StreetName>());
+                }
+
+                data.StreetNameDictionary[streetName.Name].Add(streetName);
+            }
+
             // BKTree
             if (regenerateBKTree)
             {
-                data.BKTree = BKTreeEngine.CreateBKTree(data.StreetData.Select(n => n.Name).ToList());
+                data.StreetNameBKTree = BKTreeEngine.CreateBKTree(data.StreetData.Select(n => n.Name).ToList());
                 //BKTreeSerializer.SerializeTo(data.BKTree, "bkTree.dat");
             }
             else
             {
-                data.BKTree = BKTreeSerializer.DeserializeFrom("bkTree.dat");
+                data.StreetNameBKTree = BKTreeSerializer.DeserializeFrom("bkTree.dat");
             }
 
-            // StreetNamesToZips
-            //BinaryFormatter bf = new BinaryFormatter();
-            //using (FileStream fin = File.OpenRead("streetZipLookup.dat"))
-            //{
-            //    data.StreetNamesToZips = (Dictionary<string, List<int>>)bf.Deserialize(fin);
-            //}
+            data.CityNameBKTree = BKTreeSerializer.DeserializeFrom("citiesBKTree.dat");
+
+            data.KnownCities = new List<string>(File.ReadAllLines("knownCities.csv"));
 
             return data;
         }

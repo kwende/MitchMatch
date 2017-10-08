@@ -30,6 +30,8 @@ namespace UndressAddress.DataSetParsers
             const int CityLeftColumn = 35;
             const int CityRightColumn = 36;
 
+            const int PreDirectionColumn = 8;
+
             string[] allLines = File.ReadAllLines(filePath).Skip(1).ToArray();
 
             Parallel.ForEach(allLines, line =>
@@ -42,11 +44,11 @@ namespace UndressAddress.DataSetParsers
                 {
                     string streetSuffix = lineBits[StreetSuffixColumn].ToUpper();
 
-                    for (int c = 0; c < data.Suffixes.ShortSuffixes.Length; c++)
+                    for (int c = 0; c < data.Suffixes.LongSuffixes.Length; c++)
                     {
-                        if (data.Suffixes.ShortSuffixes[c] == streetSuffix)
+                        if (data.Suffixes.LongSuffixes[c] == streetSuffix)
                         {
-                            streetSuffix = data.Suffixes.LongSuffixes[c];
+                            streetSuffix = data.Suffixes.ShortSuffixes[c];
                         }
                     }
 
@@ -58,7 +60,9 @@ namespace UndressAddress.DataSetParsers
                     string cityLeft = lineBits[CityLeftColumn].ToUpper();
                     string cityRight = lineBits[CityRightColumn].ToUpper();
 
-                    StreetName name = new StreetName(preType, streetName, streetSuffix, null, null);
+                    string preDirection = lineBits[PreDirectionColumn].ToUpper();
+
+                    StreetName name = new StreetName(preDirection, preType, streetName, streetSuffix, null, null);
 
                     lock (zipCodes)
                     {
@@ -105,7 +109,7 @@ namespace UndressAddress.DataSetParsers
                 string cleanedName = key.Name;
                 cleanedName = Regex.Replace(cleanedName, @"(\d+)(TH|ST|ND|RD)", "$1");
 
-                StreetName newStreetName = new StreetName(key.PreType, cleanedName,
+                StreetName newStreetName = new StreetName(key.PreDirection, key.PreType, cleanedName,
                     key.Suffix, zipCodes[key].Distinct().ToList(), cities[key].Distinct().ToList());
 
                 allStreetNames.Add(newStreetName);
@@ -122,13 +126,16 @@ namespace UndressAddress.DataSetParsers
             File.WriteAllLines("C:/users/brush/desktop/knownCities.csv",
                 uniqueCities);
 
-            BKTree citiesTree = BKTreeEngine.CreateBKTree(uniqueCities.ToList());
+            string[] uniqueStreets = allStreetNames.Select(n => n.Name).Distinct().ToArray();
 
-            bf = new BinaryFormatter();
-            using (FileStream fout = File.Create("c:/users/brush/desktop/citiesBKTree.dat"))
-            {
-                bf.Serialize(fout, citiesTree);
-            }
+            File.WriteAllLines("C:/users/brush/desktop/knownStreets.csv",
+                uniqueStreets);
+
+            BKTree citiesTree = BKTreeEngine.CreateBKTree(uniqueCities.ToList());
+            BKTreeSerializer.SerializeTo(citiesTree, "c:/users/brush/desktop/citiesBKTree.dat");
+
+            BKTree streetsTree = BKTreeEngine.CreateBKTree(uniqueStreets.ToList());
+            BKTreeSerializer.SerializeTo(streetsTree, "c:/users/brush/desktop/streetsBKTree.dat");
 
             return allStreetNames;
         }

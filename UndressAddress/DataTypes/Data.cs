@@ -18,8 +18,12 @@ namespace UndressAddress.DataTypes
         public Dictionary<string, string> AbbreviationsShortened { get; set; }
         public Dictionary<string, string> SuffixReplacementKey { get; set; }
         public Dictionary<string, Address> KnownCenters { get; set; }
-        public BKTree BKTree { get; set; }
+        public BKTree StreetNameBKTree { get; set; }
+        public BKTree CityNameBKTree { get; set; }
         public Dictionary<string, List<string>> AlternateSuffixList { get; set; }
         public List<StreetName> StreetData = new List<StreetName>();
+        public List<string> KnownCities = new List<string>();
+
+        public Dictionary<string, List<StreetName>> StreetNameDictionary = new Dictionary<string, List<StreetName>>();
     }
 }
