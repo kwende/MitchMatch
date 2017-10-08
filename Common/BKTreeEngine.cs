@@ -12,7 +12,7 @@ namespace Common
         public static BKTree CreateBKTree(List<string> strings)
         {
             var toReturn = CreateBKTree(strings, 0, strings.Count);
-            Console.WriteLine();
+            //Console.WriteLine();
             return toReturn;
         }
 
@@ -31,7 +31,7 @@ namespace Common
             string rootString = strings[rootIndex];
             BKTree toReturn = new BKTree();
             toReturn.StringValue = rootString;
-            Console.Write($"\r{++inserted}/{originalStringCount} strings added to BK tree");
+            //Console.Write($"\r{++inserted}/{originalStringCount} strings added to BK tree");
 
             for (int i = 0; i < strings.Count; i++)
             {

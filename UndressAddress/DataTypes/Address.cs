@@ -12,11 +12,13 @@ namespace UndressAddress.DataTypes
         public string ApartmentNumber { get; set; }
         public string StreetName { get; set; }
         public string Suffix { get; set; }
+        public string FullStreetName { get; set; }
         public string StreetNumber { get; set; }
         public int? Zip { get; set; }
         public string City { get; set; }
         public string Other { get; set; }
         public string RawAddress1 { get; set; }
+        public string RawAddress2 { get; set; }
         public MatchQuality MatchQuality { get; set; }
         public bool StreetNameIsNumber { get; set; }
         public int POBoxNumber { get; set; }
