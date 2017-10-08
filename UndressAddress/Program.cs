@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using UndressAddress.DataSetParsers;
 using UndressAddress.DataTypes;
 
 namespace UndressAddress
@@ -36,7 +37,7 @@ namespace UndressAddress
         {
             //// read from all the necessary files
             Data data = DataLoader.LoadData();
-            //data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("P O BOX 306")).Take(1).ToArray();
+            data.FinalDataSet = data.FinalDataSet.Where(b => b.Contains("2857 SEDWICK AVE")).Take(1).ToArray();
             Random rand = new Random();
             //data.FinalDataSet = data.FinalDataSet.Where(b => rand.Next() % 100 == 0).ToArray();
 
@@ -438,13 +439,15 @@ namespace UndressAddress
 
         static void Main(string[] args)
         {
+            StreetSegmentParser.Parse("D:/streetSegment.csv");
+
             //BuildDictionary("");
 
             //BuildDictionary("c:/users/brush/desktop/streetZipLookup.dat");
 
             //CreateBKTree("C:/users/brush/desktop/bkTree.dat");
 
-            GetCleanedNYStreetList2();
+            //GetCleanedNYStreetList2();
 
             //Data data = DataLoader.LoadData();
 

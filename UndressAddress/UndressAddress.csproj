@@ -64,11 +64,13 @@
   <ItemGroup>
     <Compile Include="AddressUtility.cs" />
     <Compile Include="DataLoader.cs" />
+    <Compile Include="DataSetParsers\StreetSegmentParser.cs" />
     <Compile Include="DataTypes\AddressSuffixes.cs" />
     <Compile Include="DataTypes\Address.cs" />
     <Compile Include="DataTypes\Data.cs" />
     <Compile Include="DataTypes\MatchQuality.cs" />
     <Compile Include="DataTypes\StateOfNewYorkAddressRange.cs" />
+    <Compile Include="DataTypes\StreetName.cs" />
     <Compile Include="DataTypes\StreetNumberRange.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
