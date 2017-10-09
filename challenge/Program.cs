@@ -20,6 +20,17 @@ namespace challenge
 
         static void Main(string[] args)
         {
+            string pPath = Path.Combine(_dataDirectoryPath, "AllP.csv");
+            System.IO.StreamReader file = new System.IO.StreamReader(pPath);
+            List<Tuple<int, int, double>> ps = new List<Tuple<int, int, double>>();
+            string line;
+            int c = 0;
+            Console.WriteLine();
+            while ((line = file.ReadLine()) != null)
+            {
+                Console.Write($"\r{c++}");
+            }
+            Console.WriteLine();
 
             // Load Data
             var lines = FileLibrary.GetLines();
@@ -31,28 +42,19 @@ namespace challenge
             DataCleaningManager.CleanData(ref allData, realData);
             Console.WriteLine("Done Cleaning Rows");
 
+            Serializer.Serialize(FastFuzzyMatchEngine.FuzzyAddressMatches(allData), Path.Combine(_dataDirectoryPath, "ADDRESS1Matches.dat"));
+            FastFuzzyMatchEngine.FuzzyMatchOnNImportantFields(allData, _dataDirectoryPath, 2);
+
             // Load Data
             ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
             ClosedSets newMatches = FileLibrary.LoadOriginalMatches(allData); // create a copy to edit
+
 
             // Match Data
             MatchingManager matchingManager = new MatchingManager(_printErrors, _printActuals, _printLargeGroupValues);
             matchingManager.FindAllMatches(allData, ref newMatches);
 
-            var oldSets = originalMatches.ClosedRowSets();
-            List<string> newPairs = new List<string>();
-            foreach(List<int> match in newMatches.ClosedRowSets())
-            {
-                if (!oldSets.Any(s => s[0] == match[0] && s[1] == match[1]))
-                {
-                    newPairs.Add(allData.First(row => row.EnterpriseID == match[0]).ToString());
-                    newPairs.Add(allData.First(row => row.EnterpriseID == match[1]).ToString());
-                    newPairs.Add("");
-                    PrintingLibrary.PrintPair(allData.First(row => row.EnterpriseID == match[0]), allData.First(row => row.EnterpriseID == match[1]));
-                }
-            }
-
-            File.WriteAllLines("newMatches.txt", newPairs);
+            
 
             FileLibrary.SaveFinalSubmission(newMatches.ClosedRowSets(), @"submission.csv");
 

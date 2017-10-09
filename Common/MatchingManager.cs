@@ -280,6 +280,10 @@ namespace Common
             }
             if (toInclude.DOB)
             {
+                if (row.DOB == default(DateTime))
+                {
+                    return "BADFORMAT";
+                }
                 toReturn += row.DOB;
             }
             if (toInclude.Phone)

@@ -153,7 +153,7 @@ namespace Common
             int[] eids = allData.Select(d => d.EnterpriseID).ToArray();
             List<RowMatchObject> matchObjectsForFields = new List<RowMatchObject>();
 
-            List<string> fileNames = new List<string> { "fuzzyFirstNameMatches.dat", "fuzzyLastNameMatches.dat", "fuzzySSNMatches.dat", "fuzzyDateMatches.dat", "fuzzyPhoneMatches.dat", "fuzzyMRNMatches.dat","fuzzyAddressMatches.dat" };
+            List<string> fileNames = new List<string> { "FIRSTMatches.dat", "LASTMatches.dat", "SSNMatches.dat", "DOBMatches.dat", "PHONEMatches.dat", "ADDRESS1Matches.dat" };
 
             foreach (var fileName in fileNames)
             {
@@ -161,12 +161,22 @@ namespace Common
                 var rowMatchData = Serializer.Deserialize<RowMatchObject>(Path.Combine(matchObjectDirectoryPath, fileName));
                 matchObjectsForFields.Add(rowMatchData);
             }
+            matchObjectsForFields.Add(FuzzyMRNMatches(allData));
 
-            return FuzzyMatchOnNImportantFields(eids, matchObjectsForFields, n, allData);
+            string profilePath = Path.Combine(@"C:\Users\jbrownkramer\Desktop\PatientMatchingData", "ProfileDistribution.dat");
+            var profileDistribution = /*ProfileEngine.CreateProfileDistribution(originalMatches.ClosedRowSets(), allData);*/Serializer.Deserialize<ProfileDistribution>(profilePath);
+
+            return FuzzyMatchOnNImportantFields(eids, matchObjectsForFields, n, allData, profileDistribution);
         }
 
-        public static Matches FuzzyMatchOnNImportantFields(int[] eids, List<RowMatchObject> matchObjectsForFields, int n, Row[] allData)
+        public static Matches FuzzyMatchOnNImportantFields(int[] eids, List<RowMatchObject> matchObjectsForFields, int n, Row[] allData, ProfileDistribution profileDistribution)
         {
+            File.Delete(@"C: \Users\jbrownkramer\Desktop\PatientMatchingData\AllP.csv");
+
+            Dictionary<int, Row> eidToRow = new Dictionary<int, Row>();
+            foreach (var row in allData)
+                eidToRow[row.EnterpriseID] = row;
+
             int maxEid = eids.Max();
             Matches toReturn =  MatchesEngine.NewMatches(maxEid + 1);
 
@@ -175,6 +185,7 @@ namespace Common
             int c = 0;
             int[] eidToMatchCount = new int[maxEid + 1];
             List<int> usedEids = new List<int>();
+            List<string> lines = new List<string>();
 
             Random r = new Random();
 
@@ -206,12 +217,23 @@ namespace Common
                 {
                     if (eidToMatchCount[usedEid] >= n)
                     {
-                        toReturn.AddMatch(eid, usedEid, eidToMatchCount[usedEid]);  //One way of recording the NUMBER of fuzzy matches
+                        //toReturn.AddMatch(eid, usedEid, eidToMatchCount[usedEid]);
                         bigNeighborCount++;
+                        double p = ProbabilityEngine.ProbabilityofMatch(eidToRow[eid], eidToRow[usedEid], profileDistribution);
+                        string line = $"{eid},{usedEid},{p.ToString("f14")}";
+                        lines.Add(line);
                     }
 
                     eidToMatchCount[usedEid] = 0;
                 }
+
+                if (c % 1000 == 0)
+                {
+                    File.AppendAllLines(@"C:\Users\jbrownkramer\Desktop\PatientMatchingData\AllP.csv", lines);
+                    lines.Clear();
+                }
+
+                
 
                 //if (r.NextDouble() < .0001)
                 //{
@@ -233,6 +255,9 @@ namespace Common
                 //    Console.WriteLine(betterCount);
                 //}
             }
+
+            if (lines.Count() > 0 )
+                File.AppendAllLines(@"C:\Users\jbrownkramer\Desktop\PatientMatchingData\AllP.csv", lines);
 
             Console.WriteLine("\nCleaning Two Field Fuzzy Match Object");
             toReturn.Clean();  //I think I've actually staged things in a way that makes this unnecessary
