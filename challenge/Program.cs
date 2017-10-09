@@ -14,7 +14,7 @@ namespace challenge
     class Program
     {
         private static bool _printErrors = false;
-        private static bool _printActuals = false;
+        private static bool _printActuals = true;
         private static bool _printLargeGroupValues = false;
         private static string _dataDirectoryPath = @"C:\Users\jbrownkramer\Desktop\PatientMatchingData";
 
@@ -38,21 +38,6 @@ namespace challenge
             // Match Data
             MatchingManager matchingManager = new MatchingManager(_printErrors, _printActuals, _printLargeGroupValues);
             matchingManager.FindAllMatches(allData, ref newMatches);
-
-            var oldSets = originalMatches.ClosedRowSets();
-            List<string> newPairs = new List<string>();
-            foreach(List<int> match in newMatches.ClosedRowSets())
-            {
-                if (!oldSets.Any(s => s[0] == match[0] && s[1] == match[1]))
-                {
-                    newPairs.Add(allData.First(row => row.EnterpriseID == match[0]).ToString());
-                    newPairs.Add(allData.First(row => row.EnterpriseID == match[1]).ToString());
-                    newPairs.Add("");
-                    PrintingLibrary.PrintPair(allData.First(row => row.EnterpriseID == match[0]), allData.First(row => row.EnterpriseID == match[1]));
-                }
-            }
-
-            File.WriteAllLines("newMatches.txt", newPairs);
 
             FileLibrary.SaveFinalSubmission(newMatches.ClosedRowSets(), @"submission.csv");
 

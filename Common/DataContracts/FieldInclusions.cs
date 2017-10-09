@@ -18,6 +18,7 @@ namespace Common
         public bool Name;
         public bool SSNSoft;
         public bool AddressSoft;
+        public bool Email;
     }
 
 }

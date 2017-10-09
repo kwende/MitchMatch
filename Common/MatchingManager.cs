@@ -1,6 +1,7 @@
 ﻿using Common;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace Common
 {
     public class MatchingManager
     {
-
+        private static List<string> _newMatchingRows = new List<string>();
         private static bool _printErrors = false;
         private static bool _printActuals = false;
         private static bool _printLargeGroupValues = false;
@@ -280,6 +281,10 @@ namespace Common
             }
             if (toInclude.DOB)
             {
+                if (row.DOB == default(DateTime))
+                {
+                    return "BADFORMAT";
+                }
                 toReturn += row.DOB;
             }
             if (toInclude.Phone)
@@ -297,6 +302,14 @@ namespace Common
                     return "BADFORMAT";
                 }
                 toReturn += row.ADDRESS1;
+            }
+            if(toInclude.Email)
+            {
+                if (row.EMAIL == "")
+                {
+                    return "BADFORMAT";
+                }
+                toReturn += row.EMAIL;
             }
             return toReturn;
         }
@@ -346,12 +359,16 @@ namespace Common
                                 if (matches.AddMatch(row1, row2))
                                 {
                                     addedCounter++;
+
+                                    if (_printActuals)
+                                    {
+                                        //PrintingLibrary.PrintPair(row1, row2);
+                                        _newMatchingRows.Add(row1.ToString());
+                                        _newMatchingRows.Add(row2.ToString());
+                                        _newMatchingRows.Add("");
+                                    }
                                 }
 
-                                if (_printActuals)
-                                {
-                                    PrintingLibrary.PrintPair(row1, row2);
-                                }
                             }
                             else
                             {
@@ -635,6 +652,89 @@ namespace Common
                 DOB = true,
             }), ref newMatches, originalNumberOfMatches);
             //weakerMatchedIDs.AddRange(weak);
+
+            ////******************  NEW SUPER-WEAK MATCHES   ******************//
+
+            AddMatches("FIRST + EMAIL + soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Email = true,
+                First = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                DOB = true,
+                Phone = true,
+            }), ref newMatches, originalNumberOfMatches);
+
+            AddMatches("EMAIL + soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Email = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                DOB = true,
+                Phone = true,
+            }), ref newMatches, originalNumberOfMatches);
+
+            AddMatches("SSN + soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                SSN = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                First = true,
+                DOB = true,
+                Phone = true,
+                Address = true,
+            }), ref newMatches, originalNumberOfMatches);
+
+            AddMatches("NAME + soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Name = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                DOB = true,
+                Phone = true,
+                Address = true,
+            }), ref newMatches, originalNumberOfMatches);
+
+            AddMatches("DOB + soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                DOB = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                Name = true,
+                Phone = true,
+                Address = true,
+            }), ref newMatches, originalNumberOfMatches);
+            AddMatches("Phone + soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Phone = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                Name = true,
+                DOB = true,
+                Address = true,
+            }), ref newMatches, originalNumberOfMatches);
+            AddMatches("Address + soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                Address = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                Name = true,
+                DOB = true,
+                Phone = true,
+            }), ref newMatches, originalNumberOfMatches); 
+
+
+            Console.WriteLine("Done!");
+            if (_printActuals)
+            {
+                File.WriteAllLines("newMatches.txt", _newMatchingRows);
+            }
         }
 
 

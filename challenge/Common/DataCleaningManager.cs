@@ -202,7 +202,7 @@ namespace challenge
                 {
                     row.GENDER = "M";
                 }
-                
+
                 if (row.GENDER != "F" && row.GENDER != "M")  //Probably unnecessary, but doing it anyway
                 {
                     row.GENDER = "";
@@ -230,7 +230,6 @@ namespace challenge
                 {
                     row.PHONE = 0;
                 }
-
             }
             //////////////////////////////////////////////
 
@@ -248,10 +247,13 @@ namespace challenge
 
             int index = 0;
             string[] lines = File.ReadAllLines("CleanedAddresses.csv");
-            for(int i = 1; i < data.Length; i++)
+            for (int i = 1; i < data.Length; i++)
             {
-                if(originalLines[i] != ",,,,,,,,,,,,,,,,,,")
-                data[index++].ADDRESS1 = lines[i];
+                if (originalLines[i] != ",,,,,,,,,,,,,,,,,,")
+                    data[index].ADDRESS1 = lines[i].Trim();
+                if (data[index].ADDRESS1 == "UNKNOWN")
+                    data[index].ADDRESS1 = "";
+                index++;
             }
 
             //string[] lines = File.ReadAllLines("CleanedAddresses.csv");
