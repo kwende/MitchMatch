@@ -1,6 +1,7 @@
 ﻿using Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -15,6 +16,7 @@ namespace challenge
         private static bool _printErrors = false;
         private static bool _printActuals = false;
         private static bool _printLargeGroupValues = false;
+        private static string _dataDirectoryPath = @"C:\Users\jbrownkramer\Desktop\PatientMatchingData";
 
         static void Main(string[] args)
         {
@@ -25,8 +27,9 @@ namespace challenge
             var realData = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
 
             // Clean Data
-            Console.WriteLine("Cleaning");
+            Console.WriteLine("Cleaning Rows");
             DataCleaningManager.CleanData(ref allData, realData);
+            Console.WriteLine("Done Cleaning Rows");
 
             // Load Data
             ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
@@ -54,6 +57,11 @@ namespace challenge
             FileLibrary.SaveFinalSubmission(newMatches.ClosedRowSets(), @"submission.csv");
 
             Console.ReadLine();
+        }
+
+        public static bool NonTrivial(Matches matches)
+        {
+            return matches.MatchArray.Any(l => l != null && l.Count() > 1);
         }
 
         private static List<List<Row>> ComputeDifference(ClosedSets originalMatches, ClosedSets newMatches)

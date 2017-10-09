@@ -10,7 +10,7 @@ namespace Common
 {
     public class FastEditDistanceGrouper : FastAbstractGrouper
     {
-        public override Matches EditDistanceAtMostN(string[] strings, int n)
+        public override Matches DistanceAtMostN(string[] strings, int n)
         {
             Matches toReturn = MatchesEngine.NewMatches(strings.Count());
             //Every string matches itself

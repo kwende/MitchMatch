@@ -32,6 +32,10 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DontPanic.CV.Utilities.Serialize, Version=1.0.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Externals\Serializer\DontPanic.CV.Utilities.Serialize.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -49,7 +53,9 @@
     <Compile Include="DataContracts\ClosedSets.cs" />
     <Compile Include="DataContracts\EditDistanceMatchObject.cs" />
     <Compile Include="DataContracts\IndexDistancePair.cs" />
+    <Compile Include="DataContracts\IndexedMRN.cs" />
     <Compile Include="DataContracts\Matches.cs" />
+    <Compile Include="ProfileEngine.cs" />
     <Compile Include="DataContracts\RowMatchObject.cs" />
     <Compile Include="EditDistanceEngine.cs" />
     <Compile Include="FastAbstractGrouper.cs" />
@@ -58,10 +64,12 @@
     <Compile Include="FastFuzzyDateGrouper.cs" />
     <Compile Include="FastFuzzyMatchEngine.cs" />
     <Compile Include="DataContracts\FieldInclusions.cs" />
+    <Compile Include="FastMRNGrouper.cs" />
     <Compile Include="FileLibrary.cs" />
     <Compile Include="MatchesEngine.cs" />
     <Compile Include="MatchingManager.cs" />
     <Compile Include="PrintingLibrary.cs" />
+    <Compile Include="ProbabilityEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataContracts\Row.cs" />
     <Compile Include="Serializer.cs" />

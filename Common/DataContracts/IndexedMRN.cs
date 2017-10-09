@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace Common
 {
-    [Serializable]
-    public struct IndexDistancePair
+    public struct IndexedMRN
     {
         public int Index;
-        public int Distance;
+        public int MRN;
     }
 }

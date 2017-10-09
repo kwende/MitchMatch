@@ -8,7 +8,7 @@ namespace Common
 {
     public class FastBKTreeGrouper : FastAbstractGrouper
     {
-        public override Matches EditDistanceAtMostN(string[] strings, int n)
+        public override Matches DistanceAtMostN(string[] strings, int n)
         {
             return EditDistanceAtMostN(strings, strings, n);
         }
