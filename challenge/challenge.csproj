@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="CleanedAddresses.csv" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Josh\" />

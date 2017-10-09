@@ -64,12 +64,15 @@
   <ItemGroup>
     <Compile Include="AddressUtility.cs" />
     <Compile Include="DataLoader.cs" />
+    <Compile Include="DataSetParsers\DatFileGenerator.cs" />
     <Compile Include="DataTypes\AddressSuffixes.cs" />
     <Compile Include="DataTypes\Address.cs" />
     <Compile Include="DataTypes\Data.cs" />
     <Compile Include="DataTypes\MatchQuality.cs" />
     <Compile Include="DataTypes\StateOfNewYorkAddressRange.cs" />
+    <Compile Include="DataTypes\StreetName.cs" />
     <Compile Include="DataTypes\StreetNumberRange.cs" />
+    <Compile Include="MatchEngine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringUtility.cs" />
@@ -79,16 +82,32 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />
-    <None Include="city_of_new_york.csv">
+    <None Include="citiesBKTree.dat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="city_of_new_york_revised.csv" />
     <None Include="HomelessAddresses.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="knownCities.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="StateOfNewYorkAddress.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="bkTree.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="state_of_new_york_revised.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="streetNames.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="StreetSuffixes.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="streetZipLookup.dat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="UnknownAddresses.csv">
@@ -110,10 +129,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AbbreviationsShortened.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Abbreviations.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="KnownCenters.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="streetToSuffixTable.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="SuffixReplacementKey.txt">

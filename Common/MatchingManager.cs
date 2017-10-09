@@ -302,7 +302,7 @@ namespace Common
         }
 
 
-        public List<int> AddMatches(string label, Row[] data, Func<Row, string> groupingValue, int softEqualsCount, Func<Row, Row, int> softEquals, ref ClosedSets matches)
+        public List<int> AddMatches(string label, Row[] data, Func<Row, string> groupingValue, int softEqualsCount, Func<Row, Row, int> softEquals, ref ClosedSets matches, int originalNumberOfMatches)
         {
             List<int> toReturn = new List<int>();
 
@@ -370,6 +370,7 @@ namespace Common
             Console.WriteLine($"Groups thrown out: {thrownOutCounter}");
             Console.WriteLine($"Match added: {addedCounter}");
             Console.WriteLine($"Match modified: {modifiedCounter}");
+            Console.WriteLine($"Cumulative Matches Found: {matches.NumberOfMatches - originalNumberOfMatches}");
 
             PrintingLibrary.PrintRemainingRowCount(data, matches);
 
@@ -379,31 +380,33 @@ namespace Common
 
         public void FindAllMatches(Row[] allData, ref ClosedSets newMatches)
         {
+            int originalNumberOfMatches = newMatches.NumberOfMatches;
+
             //******************  SOLID MATCHES   ******************//
             AddMatches("SSN + LAST", allData, r => HardSelector(r, new FieldInclusions
             {
                 SSN = true,
                 Last = true,
             }), 0, (r1, r2) =>
-                1, ref newMatches);
+                1, ref newMatches, originalNumberOfMatches);
             AddMatches("SSN + DOB", allData, r => HardSelector(r, new FieldInclusions
             {
                 SSN = true,
                 DOB = true,
             }), 0, (r1, r2) =>
-                1, ref newMatches);
+                1, ref newMatches, originalNumberOfMatches);
             AddMatches("SSN + PHONE", allData, r => HardSelector(r, new FieldInclusions
             {
                 SSN = true,
                 Phone = true,
             }), 0, (r1, r2) =>
-                    1, ref newMatches);
+                    1, ref newMatches, originalNumberOfMatches);
             AddMatches("SSN + ADDRESS", allData, r => HardSelector(r, new FieldInclusions
             {
                 SSN = true,
                 Address = true,
             }), 0, (r1, r2) =>
-                1, ref newMatches);
+                1, ref newMatches, originalNumberOfMatches);
 
             AddMatches("NAME + DOB strong", allData, r => HardSelector(r, new FieldInclusions
             {
@@ -414,7 +417,7 @@ namespace Common
                 SSN = true,
                 Phone = true,
                 Address = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             AddMatches("NAME + PHONE (no sr/jr)", allData, r => HardSelector(r, new FieldInclusions
             {
                 Name = true,
@@ -423,7 +426,7 @@ namespace Common
             {
                 SSN = true,
                 DOB = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
 
             AddMatches("NAME + ADDRESS (no sr/jr)", allData, r => HardSelector(r, new FieldInclusions
             {
@@ -433,7 +436,7 @@ namespace Common
             {
                 SSN = true,
                 DOB = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
 
             AddMatches("DOB + PHONE (no twin)", allData, r => HardSelector(r, new FieldInclusions
             {
@@ -445,7 +448,7 @@ namespace Common
                 SSN = true,
                 Last = true,
                 Address = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
 
             AddMatches("DOB + ADDRESS (no twin)", allData, r => HardSelector(r, new FieldInclusions
             {
@@ -455,7 +458,7 @@ namespace Common
             {
                 SSN = true,
                 First = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
 
             AddMatches("PHONE + ADDRESS (no twin)", allData, r => HardSelector(r, new FieldInclusions
             {
@@ -465,7 +468,7 @@ namespace Common
             {
                 SSN = true,
                 First = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
 
 
             AddMatches("SSN + soft match", allData, r => HardSelector(r, new FieldInclusions
@@ -477,7 +480,7 @@ namespace Common
                 Phone = true,
                 DOB = true,
                 Address = true,
-            }), ref newMatches); // Josh Code Review : Makes many of the SSN matches above redundant.
+            }), ref newMatches, originalNumberOfMatches); // Josh Code Review : Makes many of the SSN matches above redundant.
 
             //******************  PROBABLY SOLID MATCHES   ******************//
 
@@ -488,7 +491,7 @@ namespace Common
             }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 Address = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             AddMatches("NAME + ADDRESS (sr/jr)", allData, r => HardSelector(r, new FieldInclusions
             {
                 Name = true,
@@ -496,7 +499,7 @@ namespace Common
             }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 Phone = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             AddMatches("DOB + PHONE (twin)", allData, r => HardSelector(r, new FieldInclusions
             {
                 DOB = true,
@@ -505,7 +508,7 @@ namespace Common
             {
                 Last = true,
                 Address = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             AddMatches("DOB + ADDRESS (twin)", allData, r => HardSelector(r, new FieldInclusions
             {
                 Address = true,
@@ -514,7 +517,7 @@ namespace Common
             {
                 Last = true,
                 Phone = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             AddMatches("PHONE + ADDRESS (twin)", allData, r => HardSelector(r, new FieldInclusions
             {
                 Phone = true,
@@ -522,29 +525,29 @@ namespace Common
             }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 Last = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
 
 
-            AddMatches("Name + 2 soft", allData, r => HardSelector(r, new FieldInclusions
-            {
-                Name = true,
-            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            {
-                SSN = true,
-                DOB = true,
-                Phone = true,
-                Address = true,
-            }), ref newMatches);
-            AddMatches("DOB + 2 soft", allData, r => HardSelector(r, new FieldInclusions
-            {
-                DOB = true,
-            }), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            {
-                SSN = true,
-                First = true,
-                Phone = true,
-                Address = true,
-            }), ref newMatches);
+            //AddMatches("Name + 2 soft", allData, r => HardSelector(r, new FieldInclusions
+            //{
+            //    Name = true,
+            //}), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            //{
+            //    SSN = true,
+            //    DOB = true,
+            //    Phone = true,
+            //    Address = true,
+            //}), ref newMatches, originalNumberOfMatches);
+            //AddMatches("DOB + 2 soft", allData, r => HardSelector(r, new FieldInclusions
+            //{
+            //    DOB = true,
+            //}), 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            //{
+            //    SSN = true,
+            //    First = true,
+            //    Phone = true,
+            //    Address = true,
+            //}), ref newMatches, originalNumberOfMatches);
             AddMatches("Phone + 2 soft", allData, r => HardSelector(r, new FieldInclusions
             {
                 Phone = true,
@@ -554,7 +557,7 @@ namespace Common
                 First = true,
                 DOB = true,
                 Address = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             AddMatches("Address + 2 soft", allData, r => HardSelector(r, new FieldInclusions
             {
                 Address = true,
@@ -564,7 +567,7 @@ namespace Common
                 First = true,
                 DOB = true,
                 Phone = true,
-            }), ref newMatches);  //Josh code review : This could match on address, first name, and DOB.  Maybe it should go in the weaker matches category?
+            }), ref newMatches, originalNumberOfMatches);  //Josh code review : This could match on address, first name, and DOB.  Maybe it should go in the weaker matches category?
 
             ////******************  WEAKER MATCHES   ******************//
 
@@ -576,7 +579,7 @@ namespace Common
             }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 SSN = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
@@ -587,7 +590,7 @@ namespace Common
             }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 SSNSoft = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
@@ -598,7 +601,7 @@ namespace Common
             }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 SSNSoft = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
@@ -609,7 +612,7 @@ namespace Common
             }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 SSNSoft = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
@@ -619,7 +622,7 @@ namespace Common
             }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
                 Name = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             //weakerMatchedIDs.AddRange(weak);
 
             //weak =
@@ -630,7 +633,7 @@ namespace Common
             {
                 First = true,
                 DOB = true,
-            }), ref newMatches);
+            }), ref newMatches, originalNumberOfMatches);
             //weakerMatchedIDs.AddRange(weak);
         }
 

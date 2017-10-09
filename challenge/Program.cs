@@ -23,7 +23,7 @@ namespace challenge
 
             // Load Data
             var lines = FileLibrary.GetLines();
-            var allData = lines.Skip(1).Where(l => l != ",,,,,,,,,,,,,,,,,,").Select(l => FileLibrary.ParseRow(l)).ToArray();
+            Row[] allData = lines.Skip(1).Where(l => l != ",,,,,,,,,,,,,,,,,,").Select(l => FileLibrary.ParseRow(l)).ToArray();
             var realData = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
 
             // Clean Data
@@ -39,7 +39,22 @@ namespace challenge
             MatchingManager matchingManager = new MatchingManager(_printErrors, _printActuals, _printLargeGroupValues);
             matchingManager.FindAllMatches(allData, ref newMatches);
 
-            //FileManager.SaveFinalSubmission(newMatches.ClosedRowSets(), @"C:\Users\jbrownkramer\Desktop\submission.csv");
+            var oldSets = originalMatches.ClosedRowSets();
+            List<string> newPairs = new List<string>();
+            foreach(List<int> match in newMatches.ClosedRowSets())
+            {
+                if (!oldSets.Any(s => s[0] == match[0] && s[1] == match[1]))
+                {
+                    newPairs.Add(allData.First(row => row.EnterpriseID == match[0]).ToString());
+                    newPairs.Add(allData.First(row => row.EnterpriseID == match[1]).ToString());
+                    newPairs.Add("");
+                    PrintingLibrary.PrintPair(allData.First(row => row.EnterpriseID == match[0]), allData.First(row => row.EnterpriseID == match[1]));
+                }
+            }
+
+            File.WriteAllLines("newMatches.txt", newPairs);
+
+            FileLibrary.SaveFinalSubmission(newMatches.ClosedRowSets(), @"submission.csv");
 
             Console.ReadLine();
         }
