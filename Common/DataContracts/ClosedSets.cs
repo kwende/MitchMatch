@@ -96,16 +96,16 @@ namespace Common
         public List<List<int>> ClosedRowSets()
         {
             List<List<int>> closedRowSets = new List<List<int>>();
-            List<int> traversed = new List<int>();
+            Dictionary<int, bool> traversed = new Dictionary<int, bool>();
             for (int i = 0; i < _allRows.Length; i++)
             {
-                if (!traversed.Contains(_allRows[i].EnterpriseID))
+                if (!traversed.ContainsKey(_allRows[i].EnterpriseID))
                 {
                     List<Row> set = _rowToClosedRowSet[i];
                     closedRowSets.Add(set.Select(row => row.EnterpriseID).ToList());
                     foreach (Row row in set)
                     {
-                        traversed.Add(row.EnterpriseID);
+                        traversed[row.EnterpriseID] = true;
                     }
                 }
             }

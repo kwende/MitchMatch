@@ -8,7 +8,7 @@ namespace Common
 {
     public class FastFuzzyDateGrouper : FastAbstractGrouper
     {
-        public override Matches EditDistanceAtMostN(string[] strings, int n)
+        public override Matches DistanceAtMostN(string[] strings, int n)
         {
             DateTime[] dates = strings.Select(s => DateTime.Parse(s)).ToArray();
 
@@ -26,7 +26,7 @@ namespace Common
                 for (int i = 0; i < groupArray.Length; i++)
                     for (int j = i; j < groupArray.Length; j++)
                     {
-                        double distance;
+                        int distance;
                         if (groupArray[i].Date == groupArray[j].Date)
                             distance = 0;
                         else

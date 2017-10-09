@@ -61,6 +61,11 @@ namespace Common
             return IsSSNValid(a) && IsSSNValid(b) && OneDifference(a.ToString(), b.ToString());
         }
 
+        public static bool FuzzierSSNMatch(int a, int b)
+        {
+            return IsSSNValid(a) && IsSSNValid(b) && EditDistanceEngine.Compute(a.ToString(), b.ToString()) <= 2;
+        }
+
         public static bool FuzzyPhoneMatch(int a, int b)
         {
             return IsPhoneValid(a) && IsPhoneValid(b) && OneDifference(a.ToString(), b.ToString());
@@ -81,7 +86,7 @@ namespace Common
             if (System.Math.Abs(a - b) < 2)
                 return true;
 
-            return OneDifference(a.ToString(), b.ToString());
+            return EditDistanceEngine.Compute(a.ToString(), b.ToString()) <= 1;
         }
 
         public static bool TransposedDigit(int a, int b)

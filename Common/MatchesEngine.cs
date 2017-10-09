@@ -57,7 +57,7 @@ namespace Common
         }
 
 
-        public static void AddMatch(this Matches matches, int i, int j, double distance)
+        public static void AddMatch(this Matches matches, int i, int j, int distance)
         {
             var matchArray = matches.MatchArray;
             matches.AddDirectedMatch(i, j, distance);
@@ -66,7 +66,7 @@ namespace Common
             matchArray[j].Add(new IndexDistancePair { Index = i, Distance = distance });
         }
 
-        public static void AddDirectedMatch(this Matches matches, int i, int j, double distance)
+        public static void AddDirectedMatch(this Matches matches, int i, int j, int distance)
         {
             var matchArray = matches.MatchArray;
             matchArray[i].Add(new IndexDistancePair { Index = j, Distance = distance });

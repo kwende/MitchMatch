@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Common
-{
+{ 
     public abstract class FastAbstractGrouper
     {
-        public abstract Matches EditDistanceAtMostN(string[] strings, int n);
+        public abstract Matches DistanceAtMostN(string[] strings, int n);
 
         public RowMatchObject DistanceAtMostN(Row[] data, Func<Row, string> fieldSelector, int n)
         {
@@ -51,7 +51,7 @@ namespace Common
             for (int i = 0; i < strings.Length; i++)
                 rowsWithThisField[i] = rowsByFieldValue[strings[i]];
 
-            var stringMatches = EditDistanceAtMostN(strings, n);
+            var stringMatches = DistanceAtMostN(strings, n);
 
             RowMatchObject toReturn = new RowMatchObject
             {

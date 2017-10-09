@@ -202,6 +202,11 @@ namespace challenge
                 {
                     row.GENDER = "M";
                 }
+                
+                if (row.GENDER != "F" && row.GENDER != "M")  //Probably unnecessary, but doing it anyway
+                {
+                    row.GENDER = "";
+                }
             }
             /////////////////////////////////////////////
 
