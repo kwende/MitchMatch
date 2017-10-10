@@ -902,7 +902,7 @@ namespace UndressAddress
                 modifiedAlternateStreetName = modifiedAlternateStreetName + " APT " + address.ApartmentNumber;
             }
 
-            copiedParts[Address1Column] = alternateStreetName;
+            copiedParts[Address1Column] = modifiedAlternateStreetName;
             if (alternateZip != null)
             {
                 copiedParts[ZipColumn] = alternateZip.ToString();

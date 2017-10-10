@@ -369,6 +369,7 @@ namespace UndressAddress
                 lock (alternateLines)
                 {
                     alternateLines.Add(AddressUtility.CreateLineFromAddress(address, "UNKNOWN"));
+                    unknown.Add(address.OriginalLine); 
                 }
             }
             else if (address.MatchQuality == MatchQuality.Homeless)
@@ -376,6 +377,7 @@ namespace UndressAddress
                 lock (alternateLines)
                 {
                     alternateLines.Add(AddressUtility.CreateLineFromAddress(address, "HOMELESS"));
+                    homeless.Add(address.OriginalLine); 
                 }
             }
 
@@ -391,7 +393,7 @@ namespace UndressAddress
 
             //KeyValuePair<StreetNameAndCity, List<int>>[] rest = data.StreetNameCity2Zips.Where(n => n.Key.FullStreetName == "73 ST").ToArray();
 
-            data.FinalDataSet = data.FinalDataSet.Where(n => n.Contains("14121753")).Take(1).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(n => n.Contains("14121753")).Take(1).ToArray();
 
             //StreetName[] all = data.StreetData.Where(n => n.FullStreetName.Contains("56")).ToArray(); 
 
