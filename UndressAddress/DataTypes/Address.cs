@@ -27,6 +27,8 @@ namespace UndressAddress.DataTypes
         public string[] OriginalLineBits { get; set; }
         public bool ApartmentNumberFromAddress2Field { get; set; }
         public string OriginalLine { get; internal set; }
+        public int StreetNameNumber { get; internal set; }
+        public string CardinalDirection { get; internal set; }
 
         public override string ToString()
         {

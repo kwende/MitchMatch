@@ -35,21 +35,25 @@ namespace UndressAddress
         /// before an apartment number or something wonky. But otherwise most of the parts are there. 
         /// </summary>
         /// <returns></returns>
-        public static bool IsRearrangedAddressAndCityZipMatch(Address address, Data data)
+        public static bool IsRearrangedAddressAndCityZipMatch(Address address, Data data, List<string> alternateLines)
         {
             if (!string.IsNullOrEmpty(address.StreetName) &&
                  address.Zip != null &&
                  !string.IsNullOrEmpty(address.City))
             {
+                StreetName[] possibleStreets = data.StreetData.Where(n =>
+                        n.Name == address.StreetName &&
+                        n.Cities.Contains(address.City) &&
+                        n.ZipCodes.Contains(address.Zip.Value)).ToArray();
 
                 StreetName bestMatch = null;
                 int highestMatchNumber = 0;
-                foreach (StreetName name in data.StreetData)
+                foreach (StreetName name in possibleStreets)
                 {
                     // demand the stem and city/zip are matches
-                    if (!string.IsNullOrEmpty(name.Name) && name.Cities.Contains(address.City) &&
-                        name.ZipCodes.Contains(address.Zip.Value) &&
-                        StringUtility.Contains(address.FullStreetName, name.Name))
+                    //if (!string.IsNullOrEmpty(name.Name) && name.Cities.Contains(address.City) &&
+                    //    name.ZipCodes.Contains(address.Zip.Value) &&
+                    //    StringUtility.Contains(address.FullStreetName, " " + name.Name + " "))
                     {
                         // demand the suffix, somewhere (if it exists)
                         List<string> partsToCheck = new List<string>();
@@ -65,29 +69,34 @@ namespace UndressAddress
                             partsToCheck.Add(name.Suffix);
                         }
 
+                        int matchNumber = 0;
+
                         if (!string.IsNullOrEmpty(name.PreDirection))
                         {
-                            if (name.PreDirection == "E")
+                            if (name.PreDirection == "E" &&
+                                 address.CardinalDirection == "EAST")
                             {
-                                partsToCheck.Add("EAST");
+                                matchNumber++;
                             }
-                            else if (name.PreDirection == "W")
+                            else if (name.PreDirection == "W" &&
+                                 address.CardinalDirection == "WEST")
                             {
-                                partsToCheck.Add("WEST");
+                                matchNumber++;
                             }
-                            else if (name.PreDirection == "S")
+                            else if (name.PreDirection == "S" &&
+                                 address.CardinalDirection == "SOUTH")
                             {
-                                partsToCheck.Add("SOUTH");
+                                matchNumber++;
                             }
-                            else if (name.PreDirection == "N")
+                            else if (name.PreDirection == "N" &&
+                                 address.CardinalDirection == "NORTH")
                             {
-                                partsToCheck.Add("NORTH");
+                                matchNumber++;
                             }
                         }
 
                         string fullName = string.Join(" ", address.StreetNumber, address.StreetName, address.Suffix);
 
-                        int matchNumber = 0;
                         foreach (string partToCheck in partsToCheck)
                         {
                             if (StringUtility.Contains(fullName, partToCheck))
@@ -104,7 +113,16 @@ namespace UndressAddress
                     }
                 }
 
-                return highestMatchNumber > 0;
+                if (highestMatchNumber > 0)
+                {
+                    // street name correction, zip/city okay. 
+                    string newLine = AddressUtility.CreateLineFromAddress(address, bestMatch.FullStreetName, address.Zip.Value, address.City);
+                    lock (alternateLines)
+                    {
+                        alternateLines.Add(newLine);
+                    }
+                    return true;
+                }
             }
 
             return false;
@@ -115,7 +133,7 @@ namespace UndressAddress
         /// before an apartment number or something wonky. But otherwise most of the parts are there. 
         /// </summary>
         /// <returns></returns>
-        public static bool IsRearrangedAddressAndCityOrZipMatch(Address address, Data data)
+        public static bool IsRearrangedAddressAndCityOrZipMatch(Address address, Data data, List<string> alternateLines)
         {
             if (!string.IsNullOrEmpty(address.StreetName) &&
                  (address.Zip != null ||
@@ -124,14 +142,17 @@ namespace UndressAddress
                 StreetName bestMatch = null;
                 int highestMatchNumber = 0;
 
-                StreetName[] possibl = data.StreetData.Where(n => n.Name == "MORRIS").ToArray();
+                StreetName[] possibleStreets = data.StreetData.Where(n =>
+                        n.Name == address.StreetName &&
+                        (n.Cities.Contains(address.City) ||
+                        (address.Zip != null && n.ZipCodes.Contains(address.Zip.Value)))).ToArray();
 
-                foreach (StreetName name in data.StreetData)
+                foreach (StreetName name in possibleStreets)
                 {
                     // demand the stem and city/zip are matches
-                    if (!string.IsNullOrEmpty(name.Name) && (name.Cities.Contains(address.City) ||
-                        (address.Zip.HasValue && name.ZipCodes.Contains(address.Zip.Value)) &&
-                        StringUtility.Contains(address.FullStreetName, name.Name)))
+                    //if (!string.IsNullOrEmpty(name.Name) && (name.Cities.Contains(address.City) ||
+                    //    (address.Zip.HasValue && name.ZipCodes.Contains(address.Zip.Value)) &&
+                    //    StringUtility.Contains(address.FullStreetName, name.Name)))
                     {
                         // demand the suffix, somewhere (if it exists)
                         List<string> partsToCheck = new List<string>();
@@ -147,29 +168,34 @@ namespace UndressAddress
                             partsToCheck.Add(name.Suffix);
                         }
 
+                        int matchNumber = 0;
+
                         if (!string.IsNullOrEmpty(name.PreDirection))
                         {
-                            if (name.PreDirection == "E")
+                            if (name.PreDirection == "E" &&
+                                 address.CardinalDirection == "EAST")
                             {
-                                partsToCheck.Add("EAST");
+                                matchNumber++;
                             }
-                            else if (name.PreDirection == "W")
+                            else if (name.PreDirection == "W" &&
+                                 address.CardinalDirection == "WEST")
                             {
-                                partsToCheck.Add("WEST");
+                                matchNumber++;
                             }
-                            else if (name.PreDirection == "S")
+                            else if (name.PreDirection == "S" &&
+                                 address.CardinalDirection == "SOUTH")
                             {
-                                partsToCheck.Add("SOUTH");
+                                matchNumber++;
                             }
-                            else if (name.PreDirection == "N")
+                            else if (name.PreDirection == "N" &&
+                                 address.CardinalDirection == "NORTH")
                             {
-                                partsToCheck.Add("NORTH");
+                                matchNumber++;
                             }
                         }
 
                         string fullName = string.Join(" ", address.StreetNumber, address.StreetName, address.Suffix);
 
-                        int matchNumber = 0;
                         foreach (string partToCheck in partsToCheck)
                         {
                             if (StringUtility.Contains(fullName, partToCheck))
@@ -186,13 +212,64 @@ namespace UndressAddress
                     }
                 }
 
-                return highestMatchNumber > 0;
+                if (highestMatchNumber > 0)
+                {
+                    // either or on zip/city. 
+                    // which one did we settle on? 
+
+                    if (!string.IsNullOrEmpty(address.City) &&
+                        bestMatch.Cities.Contains(address.City))
+                    {
+                        // city
+                        // given the street + city, what are the available zips? 
+                        StreetNameAndCity key1 = new StreetNameAndCity
+                        {
+                            City = address.City,
+                            FullStreetName = bestMatch.FullStreetName
+                        };
+
+                        int[] availableZips = data.StreetNameCity2Zips[key1].ToArray();
+
+                        lock (alternateLines)
+                        {
+                            foreach (int zip in availableZips)
+                            {
+                                alternateLines.Add(AddressUtility.CreateLineFromAddress(address, bestMatch.FullStreetName, zip, address.City));
+                            }
+                        }
+
+                        return true;
+                    }
+                    else if (address.Zip != null &&
+                        bestMatch.ZipCodes.Contains(address.Zip.Value))
+                    {
+                        // zip
+                        // given the street + zip, what are the available cities? 
+                        StreetNameAndZip key2 = new StreetNameAndZip
+                        {
+                            Zip = address.Zip.Value,
+                            FullStreetName = bestMatch.FullStreetName
+                        };
+                        string[] availableCities = data.StreetNameZip2Cities[key2].ToArray();
+
+                        lock (alternateLines)
+                        {
+                            foreach (string city in availableCities)
+                            {
+                                alternateLines.Add(AddressUtility.CreateLineFromAddress(address, bestMatch.FullStreetName, address.Zip.Value, city));
+                            }
+                        }
+
+
+                        return true;
+                    }
+                }
             }
 
             return false;
         }
 
-        public static bool IsRearrangedAddressAndSoftCityMatch(Address address, Data data)
+        public static bool IsRearrangedAddressAndSoftCityMatch(Address address, Data data, List<string> alternateLines)
         {
             if (!string.IsNullOrEmpty(address.StreetName) &&
                  !string.IsNullOrEmpty(address.City))
@@ -201,6 +278,7 @@ namespace UndressAddress
 
                 StreetName bestMatch = null;
                 int highestMatchNumber = 0;
+                string bestSoftMatchedCity = null;
                 foreach (StreetName name in data.StreetData)
                 {
                     foreach (string softMatchedCity in softMatchedCities)
@@ -223,29 +301,34 @@ namespace UndressAddress
                                 partsToCheck.Add(name.Suffix);
                             }
 
+                            int matchNumber = 0;
+
                             if (!string.IsNullOrEmpty(name.PreDirection))
                             {
-                                if (name.PreDirection == "E")
+                                if (name.PreDirection == "E" &&
+                                     address.CardinalDirection == "EAST")
                                 {
-                                    partsToCheck.Add("EAST");
+                                    matchNumber++;
                                 }
-                                else if (name.PreDirection == "W")
+                                else if (name.PreDirection == "W" &&
+                                     address.CardinalDirection == "WEST")
                                 {
-                                    partsToCheck.Add("WEST");
+                                    matchNumber++;
                                 }
-                                else if (name.PreDirection == "S")
+                                else if (name.PreDirection == "S" &&
+                                     address.CardinalDirection == "SOUTH")
                                 {
-                                    partsToCheck.Add("SOUTH");
+                                    matchNumber++;
                                 }
-                                else if (name.PreDirection == "N")
+                                else if (name.PreDirection == "N" &&
+                                     address.CardinalDirection == "NORTH")
                                 {
-                                    partsToCheck.Add("NORTH");
+                                    matchNumber++;
                                 }
                             }
 
                             string fullName = string.Join(" ", address.StreetNumber, address.StreetName, address.Suffix);
 
-                            int matchNumber = 0;
                             foreach (string partToCheck in partsToCheck)
                             {
                                 if (StringUtility.Contains(fullName, partToCheck))
@@ -258,60 +341,116 @@ namespace UndressAddress
                             {
                                 highestMatchNumber = matchNumber;
                                 bestMatch = name;
+                                bestSoftMatchedCity = softMatchedCity;
                             }
                         }
                     }
                 }
 
-                return highestMatchNumber > 0;
+                if (highestMatchNumber > 0)
+                {
+                    // given the city + street, what are the available zips? 
+                    int[] possibleZips = data.StreetNameCity2Zips[new StreetNameAndCity
+                    {
+                        City = bestSoftMatchedCity,
+                        FullStreetName = bestMatch.FullStreetName
+                    }].ToArray();
+
+                    lock (alternateLines)
+                    {
+                        foreach (int possibleZip in possibleZips)
+                        {
+                            alternateLines.Add(AddressUtility.CreateLineFromAddress(address, bestMatch.FullStreetName, possibleZip, bestSoftMatchedCity));
+                        }
+                    }
+
+                    return true;
+                }
             }
 
             return false;
         }
 
-        public static bool IsSoftAddressAndSoftCityHardZipMatch(Address address, Data data)
+        public static bool IsSoftAddressAndSoftCityHardZipMatch(Address address, Data data, List<string> alternateLines)
         {
             if (!string.IsNullOrEmpty(address.StreetName) &&
                  address.Zip != null &&
                  !string.IsNullOrEmpty(address.City))
             {
+                List<string> innerAlternateLines = new List<string>();
+
                 List<string> softMatchedCities = BKTreeEngine.LeastEditDistance(address.City, data.CityNameBKTree).Distinct().ToList();
                 List<string> softMatchedStreets = BKTreeEngine.LeastEditDistance(address.StreetName, data.StreetNameBKTree).Distinct().ToList();
 
-                StreetName bestMatch = null;
-                int highestMatchNumber = 0;
                 foreach (StreetName name in data.StreetData)
                 {
                     if (!string.IsNullOrEmpty(name.Name) && name.ZipCodes.Contains(address.Zip.Value))
                     {
                         foreach (string softMatchedCity in softMatchedCities)
                         {
-                            if (name.Cities.Contains(softMatchedCity))
+                            if (data.StreetNameZip2Cities[new StreetNameAndZip
                             {
-                                foreach (string softMatchedStreet in softMatchedStreets)
+                                Zip = address.Zip.Value,
+                                FullStreetName = name.FullStreetName,
+                            }].Contains(softMatchedCity))
+                            {
+                                if (name.Cities.Contains(softMatchedCity))
                                 {
-                                    if (softMatchedStreet == name.Name)
+                                    foreach (string softMatchedStreet in softMatchedStreets)
                                     {
-                                        return true;
+                                        if (softMatchedStreet == name.Name)
+                                        {
+                                            innerAlternateLines.Add(AddressUtility.CreateLineFromAddress(address, name.FullStreetName, address.Zip, softMatchedCity));
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+
+                lock(alternateLines)
+                {
+                    alternateLines.AddRange(innerAlternateLines);
+                }
+
+                return innerAlternateLines.Count > 0;
             }
 
             return false;
         }
 
-        internal static bool IsSolidAddressMatchWithNoZipCityAvailable(Address address, Data data)
+        internal static bool IsSolidAddressMatchWithNoZipCityAvailable(Address address, Data data, List<string> alternateLines)
         {
             if (!string.IsNullOrEmpty(address.StreetName) &&
                 string.IsNullOrEmpty(address.City) &&
                 !address.Zip.HasValue)
             {
                 string streetToMatch = string.Join(" ", address.StreetName, address.Suffix);
-                return data.StreetData.Any(n => n.FullStreetName == streetToMatch);
+                StreetName[] matches = data.StreetData.Where(n => n.FullStreetName == streetToMatch).ToArray();
+
+                foreach (StreetName match in matches)
+                {
+                    string[] allPossibleCities = match.Cities.ToArray();
+
+                    foreach (string possibleCity in allPossibleCities)
+                    {
+                        int[] possibleZipsForThisCityAndStreet = data.StreetNameCity2Zips[new StreetNameAndCity
+                        {
+                            City = possibleCity,
+                            FullStreetName = match.FullStreetName,
+                        }].ToArray();
+                        lock (alternateLines)
+                        {
+                            foreach (int possibleZip in possibleZipsForThisCityAndStreet)
+                            {
+                                alternateLines.AddRange(matches.Select(n => AddressUtility.CreateLineFromAddress(address, n.FullStreetName, possibleZip, possibleCity)));
+                            }
+                        }
+                    }
+                }
+
+                return true;
             }
             else
             {
@@ -319,12 +458,39 @@ namespace UndressAddress
             }
         }
 
-        internal static bool IsSolidAddressMatchOnly(Address address, Data data)
+        internal static bool IsSolidStreetMatchOnly(Address address, Data data, List<string> alternateLines)
         {
             if (!string.IsNullOrEmpty(address.StreetName))
             {
+                List<string> innerAlternateLines = new List<string>();
                 string streetToMatch = string.Join(" ", address.StreetName, address.Suffix);
-                return data.StreetData.Any(n => n.FullStreetName == streetToMatch);
+                StreetName[] streetNamesThatMatch = data.StreetData.Where(n => n.FullStreetName == streetToMatch).ToArray();
+
+                foreach (StreetName streetNameThatMatches in streetNamesThatMatch)
+                {
+                    string[] citiesForThisStreetName = streetNameThatMatches.Cities.ToArray();
+
+                    foreach (string city in citiesForThisStreetName)
+                    {
+                        int[] zips = data.StreetNameCity2Zips[new StreetNameAndCity
+                        {
+                            City = city,
+                            FullStreetName = streetNameThatMatches.FullStreetName,
+                        }].ToArray();
+
+                        foreach (int zip in zips)
+                        {
+                            innerAlternateLines.Add(AddressUtility.CreateLineFromAddress(address, streetNameThatMatches.FullStreetName, zip, city));
+                        }
+                    }
+                }
+
+                lock(alternateLines)
+                {
+                    alternateLines.AddRange(innerAlternateLines);
+                }
+
+                return innerAlternateLines.Count > 0;
             }
             else
             {
@@ -332,8 +498,10 @@ namespace UndressAddress
             }
         }
 
-        public static bool IsSoftAddressAndHardZipMatch(Address address, Data data)
+        public static bool IsSoftAddressAndHardZipMatch(Address address, Data data, List<string> alternateLines)
         {
+            List<string> innerAlternateLines = new List<string>();
+
             if (!string.IsNullOrEmpty(address.StreetName) &&
                  address.Zip.HasValue)
             {
@@ -343,21 +511,48 @@ namespace UndressAddress
                 StreetName bestMatch = null;
                 foreach (StreetName streetWithThisZip in streetsWithThisZip)
                 {
+                    string[] citiesWithThisStreetAndZip = data.StreetNameZip2Cities[new StreetNameAndZip
+                    {
+                        FullStreetName = streetWithThisZip.FullStreetName,
+                        Zip = address.Zip.Value
+                    }].ToArray();
+
                     double editDistance = EditDistanceEngine.ComputeNormalized(streetWithThisZip.Name, address.StreetName);
                     if (editDistance < lowestEditDistance)
                     {
+                        innerAlternateLines.Clear();
+
                         lowestEditDistance = editDistance;
                         bestMatch = streetWithThisZip;
-                        return true;
+
+                        foreach (string city in citiesWithThisStreetAndZip)
+                        {
+                            innerAlternateLines.Add(AddressUtility.CreateLineFromAddress(address, streetWithThisZip.FullStreetName, address.Zip.Value, city));
+                        }
                     }
+                    else if (editDistance == lowestEditDistance)
+                    {
+                        foreach (string city in citiesWithThisStreetAndZip)
+                        {
+                            innerAlternateLines.Add(AddressUtility.CreateLineFromAddress(address, streetWithThisZip.FullStreetName, address.Zip.Value, city));
+                        }
+                    }
+
                 }
             }
 
-            return false;
+            lock(alternateLines)
+            {
+                alternateLines.AddRange(innerAlternateLines);
+            }
+
+            return innerAlternateLines.Count > 0;
         }
 
-        public static bool IsSoftAddressAndSoftCityMatch(Address address, Data data)
+        public static bool IsSoftAddressAndSoftCityMatch(Address address, Data data, List<string> alternateLines)
         {
+            List<string> innerAlternateLines = new List<string>();
+
             if (!string.IsNullOrEmpty(address.StreetName) &&
                  !string.IsNullOrEmpty(address.City))
             {
@@ -376,7 +571,16 @@ namespace UndressAddress
                                 {
                                     if (softMatchedStreet == name.Name)
                                     {
-                                        return true;
+                                        int[] zipsForCityAndStreet = data.StreetNameCity2Zips[new StreetNameAndCity
+                                        {
+                                            City = softMatchedCity,
+                                            FullStreetName = name.FullStreetName,
+                                        }].ToArray();
+
+                                        foreach (int zip in zipsForCityAndStreet)
+                                        {
+                                            innerAlternateLines.Add(AddressUtility.CreateLineFromAddress(address, name.FullStreetName, zip, softMatchedCity));
+                                        }
                                     }
                                 }
                             }
@@ -385,11 +589,17 @@ namespace UndressAddress
                 }
             }
 
-            return false;
+            lock(alternateLines)
+            {
+                alternateLines.AddRange(innerAlternateLines);
+            }
+
+            return innerAlternateLines.Count > 0;
         }
 
-        public static bool IsSoftAddressMatch(Address address, Data data)
+        public static bool IsSoftAddressMatch(Address address, Data data, List<string> alternateLines)
         {
+            List<string> innerAlternateLines = new List<string>();
             if (!string.IsNullOrEmpty(address.StreetName))
             {
                 List<string> softMatchedStreets = BKTreeEngine.LeastEditDistance(address.StreetName, data.StreetNameBKTree).Distinct().ToList();
@@ -407,12 +617,31 @@ namespace UndressAddress
                             {
                                 if (softMatchedStreet == name.Name)
                                 {
-                                    return true;
+                                    string[] possibleCities = name.Cities.ToArray();
+                                    foreach (string city in possibleCities)
+                                    {
+                                        int[] possibleZips = data.StreetNameCity2Zips[
+                                            new StreetNameAndCity
+                                            {
+                                                City = city,
+                                                FullStreetName = name.FullStreetName,
+                                            }].ToArray();
+
+                                        foreach (int possibleZip in possibleZips)
+                                        {
+                                            innerAlternateLines.Add(AddressUtility.CreateLineFromAddress(address, name.FullStreetName, possibleZip, city));
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                lock(alternateLines)
+                {
+                    alternateLines.AddRange(innerAlternateLines);
+                }
+                return innerAlternateLines.Count > 0;
             }
 
             return false;

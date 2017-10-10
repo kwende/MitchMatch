@@ -55,20 +55,6 @@ namespace UndressAddress.DataTypes
             return !(a == b);
         }
 
-        public static bool operator ==(StreetName a, string b)
-        {
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return a.FullStreetName == b;
-        }
-
-        public static bool operator !=(StreetName a, string b)
-        {
-            return !(a == b);
-        }
 
         public override bool Equals(object obj)
         {

@@ -15,10 +15,13 @@ namespace UndressAddress.DataSetParsers
     {
         public static List<StreetName> Generate(string filePath)
         {
-            Data data = DataLoader.LoadData(false);
+            Data data = DataLoader.LoadJustSuffixes();
 
             Dictionary<StreetName, List<int>> zipCodes = new Dictionary<StreetName, List<int>>();
             Dictionary<StreetName, List<string>> cities = new Dictionary<StreetName, List<string>>();
+
+            Dictionary<StreetNameAndCity, List<int>> streetNameCity2Zips = new Dictionary<StreetNameAndCity, List<int>>();
+            Dictionary<StreetNameAndZip, List<string>> streetNameZip2Cities = new Dictionary<StreetNameAndZip, List<string>>();
 
             const int PreTypeColumn = 9;
             const int StreetNameColumn = 11;
@@ -29,6 +32,9 @@ namespace UndressAddress.DataSetParsers
 
             const int CityLeftColumn = 35;
             const int CityRightColumn = 36;
+
+            const int CityLeftAlternate = 37;
+            const int CityRightAlternate = 38;
 
             const int PreDirectionColumn = 8;
 
@@ -57,8 +63,18 @@ namespace UndressAddress.DataSetParsers
                     int.TryParse(lineBits[ZipLeftColumn], out zipLeft);
                     int.TryParse(lineBits[ZipRightColumn], out zipRight);
 
+
                     string cityLeft = lineBits[CityLeftColumn].ToUpper();
                     string cityRight = lineBits[CityRightColumn].ToUpper();
+
+                    if (string.IsNullOrEmpty(cityLeft))
+                    {
+                        cityLeft = lineBits[CityLeftAlternate].ToUpper();
+                    }
+                    if (string.IsNullOrEmpty(cityRight))
+                    {
+                        cityRight = lineBits[CityRightAlternate].ToUpper();
+                    }
 
                     string preDirection = lineBits[PreDirectionColumn].ToUpper();
 
@@ -79,7 +95,87 @@ namespace UndressAddress.DataSetParsers
                         preDirection = "SOUTH";
                     }
 
-                    StreetName name = new StreetName(preDirection, preType, streetName, streetSuffix, null, null);
+                    string cleanedName = streetName;
+                    cleanedName = Regex.Replace(cleanedName, @"(\d+)(TH|ST|ND|RD)", "$1");
+
+                    StreetName name = new StreetName(preDirection, preType, cleanedName, streetSuffix, null, null);
+
+
+                    List<int> localZips = new List<int>();
+                    if (zipLeft != 0) localZips.Add(zipLeft);
+                    if (zipRight != 0) localZips.Add(zipRight);
+
+                    List<string> localCities = new List<string>();
+                    if (!string.IsNullOrEmpty(cityLeft)) localCities.Add(cityLeft);
+                    if (!string.IsNullOrEmpty(cityRight)) localCities.Add(cityRight);
+
+                    lock (streetNameCity2Zips)
+                    {
+                        string fullStreetName = Regex.Replace(name.FullStreetName, @"(\d+)(TH|ST|ND|RD)", "$1");
+
+                        if (zipLeft != 0 && !string.IsNullOrEmpty(cityLeft))
+                        {
+                            StreetNameAndCity key1 = new StreetNameAndCity
+                            {
+                                City = cityLeft,
+                                FullStreetName = fullStreetName,
+                            };
+
+                            if (!streetNameCity2Zips.ContainsKey(key1))
+                            {
+                                streetNameCity2Zips.Add(key1, new List<int>());
+                            }
+
+                            streetNameCity2Zips[key1].Add(zipLeft);
+                            streetNameCity2Zips[key1] = streetNameCity2Zips[key1].Distinct().ToList();
+
+                            StreetNameAndZip key2 = new StreetNameAndZip
+                            {
+                                FullStreetName = fullStreetName,
+                                Zip = zipLeft,
+                            };
+
+                            if (!streetNameZip2Cities.ContainsKey(key2))
+                            {
+                                streetNameZip2Cities.Add(key2, new List<string>());
+                            }
+
+                            streetNameZip2Cities[key2].Add(cityLeft);
+
+                            streetNameZip2Cities[key2] = streetNameZip2Cities[key2].Distinct().ToList();
+                        }
+
+                        if (zipRight != 0 && !string.IsNullOrEmpty(cityRight))
+                        {
+                            StreetNameAndCity key1 = new StreetNameAndCity
+                            {
+                                City = cityRight,
+                                FullStreetName = fullStreetName,
+                            };
+
+                            if (!streetNameCity2Zips.ContainsKey(key1))
+                            {
+                                streetNameCity2Zips.Add(key1, new List<int>());
+                            }
+
+                            streetNameCity2Zips[key1].Add(zipRight);
+                            streetNameCity2Zips[key1] = streetNameCity2Zips[key1].Distinct().ToList();
+
+                            StreetNameAndZip key2 = new StreetNameAndZip
+                            {
+                                FullStreetName = fullStreetName,
+                                Zip = zipRight,
+                            };
+
+                            if (!streetNameZip2Cities.ContainsKey(key2))
+                            {
+                                streetNameZip2Cities.Add(key2, new List<string>());
+                            }
+
+                            streetNameZip2Cities[key2].Add(cityRight);
+                            streetNameZip2Cities[key2] = streetNameZip2Cities[key2].Distinct().ToList();
+                        }
+                    }
 
                     lock (zipCodes)
                     {
@@ -123,10 +219,8 @@ namespace UndressAddress.DataSetParsers
 
             foreach (StreetName key in keys)
             {
-                string cleanedName = key.Name;
-                cleanedName = Regex.Replace(cleanedName, @"(\d+)(TH|ST|ND|RD)", "$1");
 
-                StreetName newStreetName = new StreetName(key.PreDirection, key.PreType, cleanedName,
+                StreetName newStreetName = new StreetName(key.PreDirection, key.PreType, key.Name,
                     key.Suffix, zipCodes[key].Distinct().ToList(), cities[key].Distinct().ToList());
 
                 allStreetNames.Add(newStreetName);
@@ -153,6 +247,19 @@ namespace UndressAddress.DataSetParsers
 
             BKTree streetsTree = BKTreeEngine.CreateBKTree(uniqueStreets.ToList());
             BKTreeSerializer.SerializeTo(streetsTree, "c:/users/brush/desktop/streetsBKTree.dat");
+
+            bf = new BinaryFormatter();
+            using (FileStream fw = File.Create("C:/users/brush/desktop/streetNameCity2Zips.dat"))
+            {
+                bf.Serialize(fw, streetNameCity2Zips);
+            }
+
+            bf = new BinaryFormatter();
+            using (FileStream fw = File.Create("C:/users/brush/desktop/streetNameZip2Cities.dat"))
+            {
+                bf.Serialize(fw, streetNameZip2Cities);
+            }
+
 
             return allStreetNames;
         }
