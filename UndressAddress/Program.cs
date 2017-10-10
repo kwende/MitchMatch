@@ -244,6 +244,7 @@ namespace UndressAddress
         private static List<string> level7Match = new List<string>();
         private static List<string> level8Match = new List<string>();
         private static List<string> level9Match = new List<string>();
+        private static List<string> level10Match = new List<string>();
         private static List<string> failed = new List<string>();
         private static Address BenAddressMatch(string line, Data data)
         {
@@ -264,72 +265,90 @@ namespace UndressAddress
                     //matched = LucasAddressMatch(address, data);
                     if (address.MatchQuality == MatchQuality.Alternate)
                     {
-                        level1Match.Add(AddressUtility.CreateLineFromAddress(address));
+                        lock (level1Match)
+                        {
+                            level1Match.Add(AddressUtility.CreateLineFromAddress(address));
+                        }
                         matched = true;
                     }
                     else
                     {
-                        if (MatchEngine.IsLevel1Match(address, data))
+                        if (MatchEngine.IsPerfectMatchIncludingZipAndCity(address, data))
                         {
                             lock (level1Match)
                             {
-                                level1Match.Add(address.OriginalLine);
+                                lock (level1Match)
+                                {
+                                    level1Match.Add(address.OriginalLine);
+                                }
                             }
                         }
-                        else if (MatchEngine.IsLevel2Match(address, data))
+                        else if (MatchEngine.IsRearrangedAddressAndCityZipMatch(address, data))
                         {
                             lock (level2Match)
                             {
                                 level2Match.Add(address.OriginalLine);
                             }
                         }
-                        else if (MatchEngine.IsLevel3Match(address, data))
+                        else if (MatchEngine.IsRearrangedAddressAndCityOrZipMatch(address, data))
                         {
                             lock (level3Match)
                             {
                                 level3Match.Add(address.OriginalLine);
                             }
                         }
-                        else if (MatchEngine.IsLevel4Match(address, data))
+                        else if (MatchEngine.IsRearrangedAddressAndSoftCityMatch(address, data))
                         {
                             lock (level4Match)
                             {
                                 level4Match.Add(address.OriginalLine);
                             }
                         }
-                        else if (MatchEngine.IsLevel5Match(address, data))
+                        else if (MatchEngine.IsSolidAddressMatchWithNoZipCityAvailable(address, data))
                         {
                             lock (level5Match)
                             {
                                 level5Match.Add(address.OriginalLine);
                             }
                         }
-                        else if (MatchEngine.IsLevel6Match(address, data))
+
+                        else if (MatchEngine.IsSoftAddressAndSoftCityHardZipMatch(address, data))
                         {
                             lock (level6Match)
                             {
                                 level6Match.Add(address.OriginalLine);
                             }
+
+
                         }
-                        else if (MatchEngine.IsLevel7Match(address, data))
+                        else if (MatchEngine.IsSoftAddressAndHardZipMatch(address, data))
                         {
                             lock (level7Match)
                             {
                                 level7Match.Add(address.OriginalLine);
                             }
+
                         }
-                        else if (MatchEngine.IsLevel8Match(address, data))
+                        else if (MatchEngine.IsSoftAddressAndSoftCityMatch(address, data))
                         {
                             lock (level8Match)
                             {
                                 level8Match.Add(address.OriginalLine);
                             }
+
                         }
-                        else if (MatchEngine.IsLevel9Match(address, data))
+                        else if (MatchEngine.IsSolidAddressMatchOnly(address, data))
                         {
                             lock (level9Match)
                             {
                                 level9Match.Add(address.OriginalLine);
+                            }
+                        }
+                        else if (MatchEngine.IsSoftAddressMatch(address, data))
+                        {
+                            lock (level10Match)
+                            {
+                                level10Match.Add(address.OriginalLine);
                             }
                         }
                         else
@@ -342,6 +361,31 @@ namespace UndressAddress
                     }
                 }
             }
+            else if (address.MatchQuality == MatchQuality.Unknown)
+            {
+                lock (unknown)
+                {
+                    unknown.Add(address.OriginalLine);
+                }
+            }
+            else if (address.MatchQuality == MatchQuality.Homeless)
+            {
+                lock (homeless)
+                {
+                    homeless.Add(address.OriginalLine);
+                }
+            }
+            else if (address.MatchQuality == MatchQuality.LeaveAlone)
+            {
+                lock (level1Match)
+                {
+                    level1Match.Add(address.OriginalLine);
+                }
+            }
+            else
+            {
+                return address;
+            }
             return address;
         }
 
@@ -349,11 +393,14 @@ namespace UndressAddress
         {
             Console.WriteLine("Loading data...");
             //// read from all the necessary files
-            Data data = DataLoader.LoadData(regenerateBKTree: true);
-            //data.FinalDataSet = data.FinalDataSet.Where(n => n.Contains("12187148")).Take(1).ToArray();
+            //Data data = DataLoader.LoadData(regenerateBKTree: true);
+            Data data = DataLoader.LoadDataBen(regenerateBKTree: true);
+            //data.FinalDataSet = data.FinalDataSet.Where(n => n.Contains("14976052")).Take(1).ToArray();
+
+            //StreetName[] all = data.StreetData.Where(n => n.FullStreetName.Contains("56")).ToArray(); 
 
             //Random rand = new Random();
-            //data.FinalDataSet = data.FinalDataSet.Where(b => rand.Next() % 100 == 0).ToArray();
+            //data.FinalDataSet = data.FinalDataSet.Where(b => rand.Next() % 10 == 0).ToArray();
 
             Console.WriteLine("Data loaded.");
 
@@ -388,15 +435,19 @@ namespace UndressAddress
                     {
                         timeSpans.RemoveAt(0);
                     }
-                    double percentage = ((level1Match.Count + level2Match.Count +
+                    int sum = (level1Match.Count + level2Match.Count +
                         level3Match.Count + level4Match.Count +
                         level5Match.Count + level6Match.Count +
                         level7Match.Count + level8Match.Count +
-                        level9Match.Count) / ((iterations * 1.0))) * 100;
+                        level9Match.Count + level10Match.Count + 
+                        homeless.Count + unknown.Count);
 
-                    Console.WriteLine();
-                    Console.WriteLine();
-                    Console.WriteLine();
+                    double percentage = (sum / ((iterations * 1.0))) * 100;
+
+                    Console.Clear();
+                    //Console.WriteLine();
+                    //Console.WriteLine();
+                    //Console.WriteLine();
                     Console.WriteLine($"Level 1 Match: {level1Match.Count}");
                     Console.WriteLine($"Level 2 Match: {level2Match.Count}");
                     Console.WriteLine($"Level 3 Match: {level3Match.Count}");
@@ -406,7 +457,9 @@ namespace UndressAddress
                     Console.WriteLine($"Level 7 Match: {level7Match.Count}");
                     Console.WriteLine($"Level 8 Match: {level8Match.Count}");
                     Console.WriteLine($"Level 9 Match: {level9Match.Count}");
+                    Console.WriteLine($"Level 10 Match: {level10Match.Count}");
                     Console.WriteLine($"Homeless or Unknown: {homeless.Count + unknown.Count}");
+                    Console.WriteLine($"Failed: {failed.Count}");
                     Console.WriteLine("========SUMMARY=======");
                     Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {percentage.ToString("0.00")}% matched. {hoursLeft.ToString("0.00")} hours left.");
 
@@ -414,7 +467,8 @@ namespace UndressAddress
                 }
                 #endregion
 
-                Address address = LucasAddressMatch(data.FinalDataSet[c], data);
+                //Address address = LucasAddressMatch(data.FinalDataSet[c], data);
+                Address address = BenAddressMatch(data.FinalDataSet[c], data);
 
                 cleanedAddresses[c] = address;
             });
@@ -632,6 +686,8 @@ namespace UndressAddress
 
         static void Main(string[] args)
         {
+            //bool contains = StringUtility.Contains("MORRIS AVE", "BVE"); 
+
             //DataSetParsers.DatFileGenerator.Generate("D:/StreetSegment.csv");
             GetCleanedNYStreetList2();
             return;

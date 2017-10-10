@@ -62,6 +62,23 @@ namespace UndressAddress.DataSetParsers
 
                     string preDirection = lineBits[PreDirectionColumn].ToUpper();
 
+                    if (preDirection == "E")
+                    {
+                        preDirection = "EAST";
+                    }
+                    else if (preDirection == "W")
+                    {
+                        preDirection = "WEST";
+                    }
+                    else if (preDirection == "N")
+                    {
+                        preDirection = "NORTH";
+                    }
+                    else if (preDirection == "S")
+                    {
+                        preDirection = "SOUTH";
+                    }
+
                     StreetName name = new StreetName(preDirection, preType, streetName, streetSuffix, null, null);
 
                     lock (zipCodes)

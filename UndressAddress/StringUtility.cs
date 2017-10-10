@@ -113,7 +113,7 @@ namespace UndressAddress
             {
                 int searchStringLength = searchString.Length;
                 int sourceStringLength = sourceString.Length;
-                int lastIndexToCheck = sourceStringLength - searchStringLength;
+                int lastIndexToCheck = sourceStringLength - searchStringLength + 1;
 
                 int matchCount = 0;
                 for (int c = 0; c < lastIndexToCheck && matchCount < searchStringLength; c++)
