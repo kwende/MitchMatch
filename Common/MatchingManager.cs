@@ -303,7 +303,7 @@ namespace Common
                 }
                 toReturn += row.ADDRESS1;
             }
-            if(toInclude.Email)
+            if (toInclude.Email)
             {
                 if (row.EMAIL == "")
                 {
@@ -317,6 +317,8 @@ namespace Common
 
         public List<int> AddMatches(string label, Row[] data, Func<Row, string> groupingValue, int softEqualsCount, Func<Row, Row, int> softEquals, ref ClosedSets matches, int originalNumberOfMatches)
         {
+            _newMatchingRows.Add($"STARTING {label} MATCHES");
+
             List<int> toReturn = new List<int>();
 
             Console.WriteLine();
@@ -698,16 +700,6 @@ namespace Common
                 Address = true,
             }), ref newMatches, originalNumberOfMatches);
 
-            AddMatches("DOB + soft", allData, r => HardSelector(r, new FieldInclusions
-            {
-                DOB = true,
-            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            {
-                SSN = true,
-                Name = true,
-                Phone = true,
-                Address = true,
-            }), ref newMatches, originalNumberOfMatches);
             AddMatches("Phone + soft", allData, r => HardSelector(r, new FieldInclusions
             {
                 Phone = true,
@@ -718,6 +710,18 @@ namespace Common
                 DOB = true,
                 Address = true,
             }), ref newMatches, originalNumberOfMatches);
+
+            AddMatches("DOB + soft", allData, r => HardSelector(r, new FieldInclusions
+            {
+                DOB = true,
+            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            {
+                SSN = true,
+                Name = true,
+                Phone = true,
+                Address = true,
+            }), ref newMatches, originalNumberOfMatches);
+
             AddMatches("Address + soft", allData, r => HardSelector(r, new FieldInclusions
             {
                 Address = true,
@@ -727,7 +731,7 @@ namespace Common
                 Name = true,
                 DOB = true,
                 Phone = true,
-            }), ref newMatches, originalNumberOfMatches); 
+            }), ref newMatches, originalNumberOfMatches);
 
 
             Console.WriteLine("Done!");

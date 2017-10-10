@@ -243,24 +243,11 @@ namespace challenge
 
             ////////////// ADDRESS /////////////////////
 
-            string[] originalLines = FileLibrary.GetLines().ToArray();
-
-            int index = 0;
             string[] lines = File.ReadAllLines("CleanedAddresses.csv");
-            for (int i = 1; i < data.Length; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                if (originalLines[i] != ",,,,,,,,,,,,,,,,,,")
-                    data[index].ADDRESS1 = lines[i].Trim();
-                if (data[index].ADDRESS1 == "UNKNOWN")
-                    data[index].ADDRESS1 = "";
-                index++;
+                data[i].ADDRESS1 = lines[i].Trim();
             }
-
-            //string[] lines = File.ReadAllLines("CleanedAddresses.csv");
-            //for (int i = 0; i < data.Length; i++)
-            //{
-            //    data[i].ADDRESS1 = lines[i];
-            //}
 
             ///////////////////////////////////////////////
 
