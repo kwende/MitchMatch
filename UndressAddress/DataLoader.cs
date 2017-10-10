@@ -142,7 +142,7 @@ namespace UndressAddress
             return ret;
         }
 
-        public static Data LoadData(bool regenerateBKTree)
+        public static Data LoadDataBen(bool regenerateBKTree)
         {
             Data data = new Data();
 
@@ -228,25 +228,21 @@ namespace UndressAddress
                 data.StreetData = (List<StreetName>)bf.Deserialize(fin);
             }
 
-            data.StreetNameDictionary = new Dictionary<string, List<StreetName>>();
-
+            List<string> justStreetNames = new List<string>();
             foreach (StreetName streetName in data.StreetData)
             {
-                if (!data.StreetNameDictionary.ContainsKey(streetName.Name))
-                {
-                    data.StreetNameDictionary.Add(streetName.Name, new List<StreetName>());
-                }
-
-                data.StreetNameDictionary[streetName.Name].Add(streetName);
+                justStreetNames.Add(streetName.Name);
             }
 
-            data.NYCityStreets = LoadNYCityAddresses(data);
-            data.NYStateStreets = LoadNYStateStreets(data);
+            justStreetNames = justStreetNames.Distinct().ToList();
+
+            //data.NYCityStreets = LoadNYCityAddresses(data);
+            //data.NYStateStreets = LoadNYStateStreets(data);
 
             // BKTree
             if (regenerateBKTree)
             {
-                data.StreetNameBKTree = BKTreeEngine.CreateBKTree(data.NYStateStreets.ToList());
+                data.StreetNameBKTree = BKTreeEngine.CreateBKTree(justStreetNames);
                 //BKTreeSerializer.SerializeTo(data.BKTree, "bkTree.dat");
             }
             else
@@ -257,6 +253,113 @@ namespace UndressAddress
             data.CityNameBKTree = BKTreeSerializer.DeserializeFrom("citiesBKTree.dat");
 
             data.KnownCities = new List<string>(File.ReadAllLines("knownCities.csv"));
+
+            return data;
+        }
+
+        public static Data LoadData(bool regenerateBKTree)
+        {
+            Data data = new Data();
+
+            // RawData
+            data.FinalDataSet = FileLibrary.GetLines().Skip(1).Where(l => l != ",,,,,,,,,,,,,,,,,,").ToArray();
+            // Suffixes
+            data.Suffixes = new AddressSuffixes();
+            string[] streetSuffixLines = File.ReadAllLines(StreetSuffixesPath);
+            data.Suffixes.ShortSuffixes = streetSuffixLines.Select(n => n.Split(',')[1]).ToArray();
+            data.Suffixes.LongSuffixes = streetSuffixLines.Select(n => n.Split(',')[0]).ToArray();
+
+            //// Unknown and Homeless
+            //data.UnknownAddresses = File.ReadAllLines("UnknownAddresses.csv");
+            //data.HomelessAddresses = File.ReadAllLines("HomelessAddresses.csv");
+
+            //// Abbreviations
+            //data.Abbreviations = new Dictionary<string, string>();
+            //string[] nameValuePairs = File.ReadAllLines("Abbreviations.txt");
+            //foreach (string nameValuePair in nameValuePairs)
+            //{
+            //    string[] bits = nameValuePair.Split(',').Select(n => n.Trim()).ToArray();
+            //    data.Abbreviations.Add(bits[0], bits[1]);
+            //}
+
+            //data.AbbreviationsShortened = new Dictionary<string, string>();
+            //nameValuePairs = File.ReadAllLines("AbbreviationsShortened.txt");
+            //foreach (string nameValuePair in nameValuePairs)
+            //{
+            //    string[] bits = nameValuePair.Split(',').Select(n => n.Trim()).ToArray();
+            //    data.AbbreviationsShortened.Add(bits[0], bits[1]);
+            //}
+
+            //// SuffixReplacementKey
+            //nameValuePairs = File.ReadAllLines("SuffixReplacementKey.txt");
+            //data.SuffixReplacementKey = new Dictionary<string, string>();
+            //foreach (string nameValuePair in nameValuePairs)
+            //{
+            //    string[] bits = nameValuePair.Split(',').Select(n => n.Trim()).ToArray();
+            //    if (!data.SuffixReplacementKey.ContainsKey(bits[0]))
+            //    {
+            //        data.SuffixReplacementKey.Add(bits[0], bits[1]);
+            //    }
+            //}
+
+            //// KnownCenters
+            //nameValuePairs = File.ReadAllLines("KnownCenters.txt");
+            //data.KnownCenters = new Dictionary<string, Address>();
+            //foreach (string nameValuePair in nameValuePairs)
+            //{
+            //    string[] bits = nameValuePair.Split(';').Select(n => n.Trim()).ToArray();
+            //    string[] rhsAddressParts = bits[1].Split(',').Select(n => n.Trim()).ToArray();
+            //    Address address = new Address
+            //    {
+            //        CenterName = rhsAddressParts[0],
+            //        StreetNumber = rhsAddressParts[1],
+            //        StreetName = rhsAddressParts[2],
+            //        City = rhsAddressParts[3],
+            //        State = rhsAddressParts[4],
+            //    };
+            //    if (rhsAddressParts[5].Length > 0)
+            //    {
+            //        address.Zip = int.Parse(rhsAddressParts[5]);
+            //    }
+
+            //    address.FullStreetName = (address.StreetNumber != "" ? $"{address.StreetNumber} {address.StreetName}" : address.StreetName);
+            //    data.KnownCenters.Add(bits[0], address);
+            //}
+
+
+            //// AlternateSuffixList
+            //string[] lines = File.ReadAllLines("streetToSuffixTable.txt");
+            //data.AlternateSuffixList = new Dictionary<string, List<string>>();
+            //foreach (string line in lines)
+            //{
+            //    string[] halves = line.Split(':');
+            //    List<string> alternates = halves[1].Split(',').ToList();
+            //    data.AlternateSuffixList.Add(halves[0], alternates);
+            //}
+
+            //BinaryFormatter bf = new BinaryFormatter();
+            //using (FileStream fin = File.OpenRead("streetNames.dat"))
+            //{
+            //    data.StreetData = (List<StreetName>)bf.Deserialize(fin);
+            //}
+
+            //data.NYCityStreets = LoadNYCityAddresses(data);
+            //data.NYStateStreets = LoadNYStateStreets(data);
+
+            //// BKTree
+            //if (regenerateBKTree)
+            //{
+            //    data.StreetNameBKTree = BKTreeEngine.CreateBKTree(data.NYStateStreets.ToList());
+            //    //BKTreeSerializer.SerializeTo(data.BKTree, "bkTree.dat");
+            //}
+            //else
+            //{
+            //    data.StreetNameBKTree = BKTreeSerializer.DeserializeFrom("bkTree.dat");
+            //}
+
+            //data.CityNameBKTree = BKTreeSerializer.DeserializeFrom("citiesBKTree.dat");
+
+            //data.KnownCities = new List<string>(File.ReadAllLines("knownCities.csv"));
 
             return data;
         }
