@@ -246,10 +246,12 @@ namespace UndressAddress
         private static List<string> level9Match = new List<string>();
         private static List<string> level10Match = new List<string>();
         private static List<string> failed = new List<string>();
-        private static Address BenAddressMatch(string line, Data data)
+        private static List<string> BenAddressMatch(string line, Data data)
         {
             // clean the address and do what we can with pure NLP. 
-            Address address = AddressUtility.InitializeAddress(line, data);
+            Address address = AddressUtility.InitializeAddressBen(line, data);
+
+            List<string> alternateLines = new List<string>();
 
             if (address.MatchQuality == MatchQuality.MatchNotYetDetermined)
             {
@@ -259,134 +261,256 @@ namespace UndressAddress
                 {
                     matched = true;
                     level1Match.Add(address.OriginalLine);
+
+                    string alternateLine =
+                        AddressUtility.CreateLineFromAddress(address, "PO BOX " + address.POBoxNumber.ToString());
+                    alternateLines.Add(alternateLine);
                 }
                 else
                 {
                     //matched = LucasAddressMatch(address, data);
-                    if (address.MatchQuality == MatchQuality.Alternate)
+                    //if (address.MatchQuality == MatchQuality.Alternate)
+                    //{
+                    //    lock (level1Match)
+                    //    {
+                    //        level1Match.Add(AddressUtility.CreateLineFromAddress(address));
+                    //    }
+                    //    matched = true;
+                    //}
+                    //else
+                    //{
+                    if (MatchEngine.IsPerfectMatchIncludingZipAndCity(address, data))
                     {
                         lock (level1Match)
                         {
-                            level1Match.Add(AddressUtility.CreateLineFromAddress(address));
+                            lock (level1Match)
+                            {
+                                level1Match.Add(address.OriginalLine);
+                            }
                         }
-                        matched = true;
+                    }
+                    else if (MatchEngine.IsRearrangedAddressAndCityZipMatch(address, data, alternateLines))
+                    {
+                        lock (level2Match)
+                        {
+                            level2Match.Add(address.OriginalLine);
+                        }
+                    }
+                    else if (MatchEngine.IsRearrangedAddressAndCityOrZipMatch(address, data, alternateLines))
+                    {
+                        lock (level3Match)
+                        {
+                            level3Match.Add(address.OriginalLine);
+                        }
+                    }
+                    else if (MatchEngine.IsRearrangedAddressAndSoftCityMatch(address, data, alternateLines))
+                    {
+                        lock (level4Match)
+                        {
+                            level4Match.Add(address.OriginalLine);
+                        }
+                    }
+                    else if (MatchEngine.IsSolidAddressMatchWithNoZipCityAvailable(address, data, alternateLines))
+                    {
+                        lock (level5Match)
+                        {
+                            level5Match.Add(address.OriginalLine);
+                        }
+                    }
+
+                    else if (MatchEngine.IsSoftAddressAndSoftCityHardZipMatch(address, data, alternateLines))
+                    {
+                        lock (level6Match)
+                        {
+                            level6Match.Add(address.OriginalLine);
+                        }
+                    }
+                    else if (MatchEngine.IsSoftAddressAndHardZipMatch(address, data, alternateLines))
+                    {
+                        lock (level7Match)
+                        {
+                            level7Match.Add(address.OriginalLine);
+                        }
+                    }
+                    else if (MatchEngine.IsSoftAddressAndSoftCityMatch(address, data, alternateLines))
+                    {
+                        lock (level8Match)
+                        {
+                            level8Match.Add(address.OriginalLine);
+                        }
+
+                    }
+                    else if (MatchEngine.IsSolidStreetMatchOnly(address, data, alternateLines))
+                    {
+                        lock (level9Match)
+                        {
+                            level9Match.Add(address.OriginalLine);
+                        }
+                    }
+                    else if (MatchEngine.IsSoftAddressMatch(address, data, alternateLines))
+                    {
+                        lock (level10Match)
+                        {
+                            level10Match.Add(address.OriginalLine);
+                        }
                     }
                     else
                     {
-                        if (MatchEngine.IsPerfectMatchIncludingZipAndCity(address, data))
+                        lock (failed)
                         {
-                            lock (level1Match)
-                            {
-                                lock (level1Match)
-                                {
-                                    level1Match.Add(address.OriginalLine);
-                                }
-                            }
-                        }
-                        else if (MatchEngine.IsRearrangedAddressAndCityZipMatch(address, data))
-                        {
-                            lock (level2Match)
-                            {
-                                level2Match.Add(address.OriginalLine);
-                            }
-                        }
-                        else if (MatchEngine.IsRearrangedAddressAndCityOrZipMatch(address, data))
-                        {
-                            lock (level3Match)
-                            {
-                                level3Match.Add(address.OriginalLine);
-                            }
-                        }
-                        else if (MatchEngine.IsRearrangedAddressAndSoftCityMatch(address, data))
-                        {
-                            lock (level4Match)
-                            {
-                                level4Match.Add(address.OriginalLine);
-                            }
-                        }
-                        else if (MatchEngine.IsSolidAddressMatchWithNoZipCityAvailable(address, data))
-                        {
-                            lock (level5Match)
-                            {
-                                level5Match.Add(address.OriginalLine);
-                            }
-                        }
-
-                        else if (MatchEngine.IsSoftAddressAndSoftCityHardZipMatch(address, data))
-                        {
-                            lock (level6Match)
-                            {
-                                level6Match.Add(address.OriginalLine);
-                            }
-
-
-                        }
-                        else if (MatchEngine.IsSoftAddressAndHardZipMatch(address, data))
-                        {
-                            lock (level7Match)
-                            {
-                                level7Match.Add(address.OriginalLine);
-                            }
-
-                        }
-                        else if (MatchEngine.IsSoftAddressAndSoftCityMatch(address, data))
-                        {
-                            lock (level8Match)
-                            {
-                                level8Match.Add(address.OriginalLine);
-                            }
-
-                        }
-                        else if (MatchEngine.IsSolidAddressMatchOnly(address, data))
-                        {
-                            lock (level9Match)
-                            {
-                                level9Match.Add(address.OriginalLine);
-                            }
-                        }
-                        else if (MatchEngine.IsSoftAddressMatch(address, data))
-                        {
-                            lock (level10Match)
-                            {
-                                level10Match.Add(address.OriginalLine);
-                            }
-                        }
-                        else
-                        {
-                            lock (failed)
-                            {
-                                failed.Add(address.OriginalLine);
-                            }
+                            failed.Add(address.OriginalLine);
                         }
                     }
+                    //}
                 }
             }
             else if (address.MatchQuality == MatchQuality.Unknown)
             {
-                lock (unknown)
+                lock (alternateLines)
                 {
-                    unknown.Add(address.OriginalLine);
+                    alternateLines.Add(AddressUtility.CreateLineFromAddress(address, "UNKNOWN"));
                 }
             }
             else if (address.MatchQuality == MatchQuality.Homeless)
             {
-                lock (homeless)
+                lock (alternateLines)
                 {
-                    homeless.Add(address.OriginalLine);
+                    alternateLines.Add(AddressUtility.CreateLineFromAddress(address, "HOMELESS"));
                 }
             }
-            else if (address.MatchQuality == MatchQuality.LeaveAlone)
+
+            return alternateLines;
+        }
+
+        static List<string> GetCleanedNYStreetListBen()
+        {
+            Console.WriteLine("Loading data...");
+            //// read from all the necessary files
+            //Data data = DataLoader.LoadData(regenerateBKTree: true);
+            Data data = DataLoader.LoadDataBen(regenerateBKTree: true);
+
+            //KeyValuePair<StreetNameAndCity, List<int>>[] rest = data.StreetNameCity2Zips.Where(n => n.Key.FullStreetName == "73 ST").ToArray();
+
+            data.FinalDataSet = data.FinalDataSet.Where(n => n.Contains("14121753")).Take(1).ToArray();
+
+            //StreetName[] all = data.StreetData.Where(n => n.FullStreetName.Contains("56")).ToArray(); 
+
+            //Random rand = new Random();
+            //data.FinalDataSet = data.FinalDataSet.Where(b => rand.Next() % 10 == 0).ToArray();
+
+            Console.WriteLine("Data loaded.");
+
+            int numberCouldntProcess = 0;
+
+            // counter variables. 
+            int iterations = 0;
+
+            List<string> allAlternates = new List<string>();
+
+            DateTime lastTime = DateTime.Now;
+            List<double> timeSpans = new List<double>();
+            // go over each line in the final data set. 
+            //for (int c = 0; c < data.FinalDataSet.Length; c++)
+            Parallel.For(0, data.FinalDataSet.Length, c =>
             {
-                lock (level1Match)
+                #region DebuggingOutput
+                // debugging purposes. 
+                Interlocked.Increment(ref iterations);
+                if (iterations % 1000 == 0)
                 {
-                    level1Match.Add(address.OriginalLine);
+                    DateTime now = DateTime.Now;
+                    double millisecondsSinceLast = (now - lastTime).TotalMilliseconds;
+                    timeSpans.Add(millisecondsSinceLast);
+
+                    double averageTime = timeSpans.Average();
+                    double numberOfChecksLeft = (data.FinalDataSet.Length - iterations) / 1000.0f;
+
+                    double hoursLeft = (averageTime * numberOfChecksLeft) / 1000.0f / 60.0f / 60.0f;
+
+                    if (timeSpans.Count > 100)
+                    {
+                        timeSpans.RemoveAt(0);
+                    }
+                    int sum = (level1Match.Count + level2Match.Count +
+                        level3Match.Count + level4Match.Count +
+                        level5Match.Count + level6Match.Count +
+                        level7Match.Count + level8Match.Count +
+                        level9Match.Count + level10Match.Count +
+                        homeless.Count + unknown.Count);
+
+                    double percentage = (sum / ((iterations * 1.0))) * 100;
+
+                    Console.Clear();
+                    //Console.WriteLine();
+                    //Console.WriteLine();
+                    //Console.WriteLine();
+                    Console.WriteLine($"Level 1 Match: {level1Match.Count}");
+                    Console.WriteLine($"Level 2 Match: {level2Match.Count}");
+                    Console.WriteLine($"Level 3 Match: {level3Match.Count}");
+                    Console.WriteLine($"Level 4 Match: {level4Match.Count}");
+                    Console.WriteLine($"Level 5 Match: {level5Match.Count}");
+                    Console.WriteLine($"Level 6 Match: {level6Match.Count}");
+                    Console.WriteLine($"Level 7 Match: {level7Match.Count}");
+                    Console.WriteLine($"Level 8 Match: {level8Match.Count}");
+                    Console.WriteLine($"Level 9 Match: {level9Match.Count}");
+                    Console.WriteLine($"Level 10 Match: {level10Match.Count}");
+                    Console.WriteLine($"Homeless or Unknown: {homeless.Count + unknown.Count}");
+                    Console.WriteLine($"Failed: {failed.Count}");
+                    Console.WriteLine("========SUMMARY=======");
+                    Console.WriteLine($"{iterations}/{data.FinalDataSet.Length}: {percentage.ToString("0.00")}% matched. {hoursLeft.ToString("0.00")} hours left.");
+
+                    lastTime = now;
+                }
+                #endregion
+
+                //Address address = LucasAddressMatch(data.FinalDataSet[c], data);
+                List<string> alternates = BenAddressMatch(data.FinalDataSet[c], data);
+
+                lock (allAlternates)
+                {
+                    allAlternates.AddRange(alternates);
+                }
+            });
+
+
+            //using (StreamWriter fout = File.CreateText("perfectMatch.txt"))
+            //{
+            //    for (int c = 0; c < perfectMatch.Count; c++)
+            //    {
+            //        fout.WriteLine(perfectMatch[c]);
+            //    }
+            //}
+
+            using (StreamWriter fout = File.CreateText("failed.txt"))
+            {
+                for (int c = 0; c < failed.Count; c++)
+                {
+                    fout.WriteLine(failed[c]);
                 }
             }
-            else
-            {
-                return address;
-            }
-            return address;
+
+            File.WriteAllLines("Alternates.csv", allAlternates.ToArray());
+
+            //File.WriteAllLines("CleanedAddresses.csv", cleanedAddresses.Select(a => (a.StreetNumber != "" ? a.StreetNumber + " " + a.FullStreetName : a.FullStreetName)));
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine($"Level 1 Match: {level1Match.Count}");
+            Console.WriteLine($"Level 2 Match: {level2Match.Count}");
+            Console.WriteLine($"Level 3 Match: {level3Match.Count}");
+            Console.WriteLine($"Level 4 Match: {level4Match.Count}");
+            Console.WriteLine($"Level 5 Match: {level5Match.Count}");
+            Console.WriteLine($"Level 6 Match: {level6Match.Count}");
+            Console.WriteLine($"Level 7 Match: {level7Match.Count}");
+            Console.WriteLine($"Level 8 Match: {level8Match.Count}");
+            Console.WriteLine($"Level 9 Match: {level9Match.Count}");
+            Console.WriteLine($"Homeless or Unknown: {homeless.Count + unknown.Count}");
+            Console.WriteLine($"Finished. {iterations}/{data.FinalDataSet.Length}.");
+
+            Console.ReadLine();
+
+            return null;
         }
 
         static List<string> GetCleanedNYStreetList2()
@@ -395,7 +519,10 @@ namespace UndressAddress
             //// read from all the necessary files
             //Data data = DataLoader.LoadData(regenerateBKTree: true);
             Data data = DataLoader.LoadDataBen(regenerateBKTree: true);
-            //data.FinalDataSet = data.FinalDataSet.Where(n => n.Contains("14976052")).Take(1).ToArray();
+
+            //KeyValuePair<StreetNameAndCity, List<int>>[] rest = data.StreetNameCity2Zips.Where(n => n.Key.FullStreetName == "73 ST").ToArray();
+
+            //data.FinalDataSet = data.FinalDataSet.Where(n => n.Contains("14423865")).Take(1).ToArray();
 
             //StreetName[] all = data.StreetData.Where(n => n.FullStreetName.Contains("56")).ToArray(); 
 
@@ -439,7 +566,7 @@ namespace UndressAddress
                         level3Match.Count + level4Match.Count +
                         level5Match.Count + level6Match.Count +
                         level7Match.Count + level8Match.Count +
-                        level9Match.Count + level10Match.Count + 
+                        level9Match.Count + level10Match.Count +
                         homeless.Count + unknown.Count);
 
                     double percentage = (sum / ((iterations * 1.0))) * 100;
@@ -467,8 +594,8 @@ namespace UndressAddress
                 }
                 #endregion
 
-                //Address address = LucasAddressMatch(data.FinalDataSet[c], data);
-                Address address = BenAddressMatch(data.FinalDataSet[c], data);
+                Address address = LucasAddressMatch(data.FinalDataSet[c], data);
+                //Address address = BenAddressMatch(data.FinalDataSet[c], data);
 
                 cleanedAddresses[c] = address;
             });
@@ -686,10 +813,12 @@ namespace UndressAddress
 
         static void Main(string[] args)
         {
+
             //bool contains = StringUtility.Contains("MORRIS AVE", "BVE"); 
 
             //DataSetParsers.DatFileGenerator.Generate("D:/StreetSegment.csv");
-            GetCleanedNYStreetList2();
+            //GetCleanedNYStreetList2();
+            GetCleanedNYStreetListBen();
             return;
         }
     }

@@ -255,6 +255,308 @@ namespace UndressAddress
             return inputAddress1;
         }
 
+        public static Address InitializeAddressBen(string input, Data data)
+        {
+            bool print = false;
+
+            Address ret = new Address();
+
+            ret.MatchQuality = MatchQuality.MatchNotYetDetermined;
+
+            const int Address1Column = 8;
+            const int Address2Column = 9;
+            const int ZipColumn = 10;
+            const int CityColumn = 13;
+
+            ret.OriginalLine = input;
+            string[] bits = DecisionTreeLearner.Data.DataLoader.SmartSplit(input);
+            ret.OriginalLineBits = bits;
+            ret.EnterpriseId = 0;
+
+            int enterpriseId = 0;
+            if (int.TryParse(bits[0], out enterpriseId))
+            {
+                ret.EnterpriseId = enterpriseId;
+            }
+
+            // RawAddress1
+            string inputAddress1 = bits[Address1Column];
+            ret.RawAddress1 = inputAddress1;
+            string inputAddress2 = bits[Address2Column];
+            ret.RawAddress2 = inputAddress2;
+
+            // Zip/City
+            int possibleZip = 0;
+            if (int.TryParse(bits[ZipColumn], out possibleZip))
+            {
+                ret.Zip = possibleZip;
+            }
+            ret.City = bits[CityColumn];
+
+
+            inputAddress1 = CleanSpacesAndPunctuation(inputAddress1);
+
+            if (inputAddress1 == "")
+            {
+                ret.MatchQuality = MatchQuality.Unknown;
+                ret.FullStreetName = "";
+            }
+            else
+            {
+                CheckForBuildingsAndCenters(ref ret, data);
+
+                if (ret.MatchQuality != MatchQuality.LeaveAlone)
+                {
+                    ret.MatchQuality = IsHomelessOrUnknown(inputAddress1, data);
+                    if (ret.MatchQuality == MatchQuality.Homeless)
+                    {
+                        ret.FullStreetName = "HOMELESS";
+                    }
+                    else if (ret.MatchQuality == MatchQuality.Unknown)
+                    {
+                        ret.FullStreetName = "UNKNOWN";
+                    }
+
+                }
+
+                if (ret.MatchQuality == MatchQuality.MatchNotYetDetermined)
+                {
+                    inputAddress1 = CleanAddressFormat(inputAddress1, data.Abbreviations);
+
+
+                    #region ApartmentNumber
+                    int startIndex = -1, length = -1;
+
+                    Match apartmentNumberMatch = Regex.Match(inputAddress1, @" (UNIT|STE|SUITE|APT|APARTMENT) ([0-9]+ ?[A-Z]*|[A-Z]+ ?[0-9]*)");
+
+                    if (apartmentNumberMatch.Success)
+                    {
+                        startIndex = apartmentNumberMatch.Index;
+                        length = apartmentNumberMatch.Length;
+
+                        ret.ApartmentNumber = apartmentNumberMatch.Groups[2].Value;  // this is odd, always +1 the Number of matches. Groups[0] is the original string.
+                        ret.ApartmentNumber = Regex.Replace(ret.ApartmentNumber, " ", "");
+                        startIndex = apartmentNumberMatch.Groups[1].Index;
+                        length = apartmentNumberMatch.Groups[1].Length + 1 + apartmentNumberMatch.Groups[2].Length;
+                    }
+                    else
+                    {
+                        // motivation: 202 E91ST ST B16
+                        apartmentNumberMatch = Regex.Match(inputAddress1, @"^(\d+) ([A-Z0-9]+) ([A-Z 0-9]+) ([0-9]+|[A-Z] [0-9]{1,2}|[0-9]{1,2} [A-Z])$");
+                        if (apartmentNumberMatch.Success)
+                        {
+                            Group matchedGroup = apartmentNumberMatch.Groups[apartmentNumberMatch.Groups.Count - 1];
+                            startIndex = matchedGroup.Index;
+                            length = matchedGroup.Length;
+
+                            ret.ApartmentNumber = Regex.Replace(matchedGroup.Value, " ", "");
+                        }
+                        else
+                        {
+                            apartmentNumberMatch = Regex.Match(inputAddress1, "BSMT|BASEMENT");
+                            if (apartmentNumberMatch.Success)
+                            {
+                                Group matchedGroup = apartmentNumberMatch.Groups[0];
+                                startIndex = matchedGroup.Index;
+                                length = matchedGroup.Length;
+
+                                ret.ApartmentNumber = "BASEMENT";
+                            }
+                            else
+                            {
+                                apartmentNumberMatch = Regex.Match(inputAddress1, @" (ST)(\d{1,2}[A-Z]{1,2}|\d{1,2})$");
+                                if (apartmentNumberMatch.Success)
+                                {
+                                    Group matchedGroup = apartmentNumberMatch.Groups[2];
+                                    startIndex = matchedGroup.Index;
+                                    length = matchedGroup.Length;
+
+                                    ret.ApartmentNumber = matchedGroup.Value;
+                                }
+                                else
+                                {
+                                    apartmentNumberMatch = Regex.Match(inputAddress1, @" (\d+) ?FL?$");
+                                    if (apartmentNumberMatch.Success)
+                                    {
+                                        startIndex = apartmentNumberMatch.Index;
+                                        length = apartmentNumberMatch.Length;
+                                        ret.ApartmentNumber = apartmentNumberMatch.Groups[1].Value + " FLOOR";
+                                    }
+                                    else
+                                    {
+                                        apartmentNumberMatch = Regex.Match(inputAddress1, @" (\d+)LV?L?$");
+                                        if (apartmentNumberMatch.Success)
+                                        {
+                                            startIndex = apartmentNumberMatch.Index;
+                                            length = apartmentNumberMatch.Length;
+                                            ret.ApartmentNumber = apartmentNumberMatch.Groups[1].Value + " LEVEL";
+                                        }
+                                        else
+                                        {
+                                            apartmentNumberMatch = Regex.Match(inputAddress1, @"^(\d+) (\d+) (\d+) ([A-Z]+)$");
+                                            if (apartmentNumberMatch.Success)
+                                            {
+                                                string wordPart = apartmentNumberMatch.Groups[4].Value;
+
+                                                if (data.Suffixes.IndexOf(wordPart) != -1)
+                                                {
+                                                    ret.ApartmentNumber = apartmentNumberMatch.Groups[1].Value + "-" +
+                                                        apartmentNumberMatch.Groups[2].Value;
+
+                                                    startIndex = 0;
+                                                    length = ret.ApartmentNumber.Length;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                apartmentNumberMatch = Regex.Match(inputAddress1, @"(\d+)-(\d+|[A-Z]+)");
+                                                if (apartmentNumberMatch.Success)
+                                                {
+                                                    ret.ApartmentNumber = apartmentNumberMatch.Value;
+                                                    startIndex = apartmentNumberMatch.Index;
+                                                    length = apartmentNumberMatch.Length;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                    if (startIndex != -1)
+                    {
+                        inputAddress1 = inputAddress1.Remove(startIndex, length);
+                        inputAddress1 = inputAddress1.Trim();
+                    }
+
+
+                    if (ret.ApartmentNumber == default(string) && inputAddress2.Length <= 5)
+                    {
+                        // Call these apartment numbers 
+                        ret.ApartmentNumber = inputAddress2;
+                        ret.ApartmentNumberFromAddress2Field = true;
+                    }
+
+                    #endregion
+
+                    #region SuffixNormalization
+                    Address suffixNormalized = NormalizeSuffix(inputAddress1, data);
+                    ret.StreetName = suffixNormalized.StreetName;
+                    ret.Suffix = suffixNormalized.Suffix;
+                    inputAddress1 = ret.StreetName;
+                    #endregion
+
+                    #region StreetNumber
+                    // is there a street number? 
+                    Match match = Regex.Match(inputAddress1, @"^(\d+ ?[A-Z]?) .+");
+                    if (match.Success)
+                    {
+                        ret.StreetNumber = match.Groups[1].Value;
+                        inputAddress1 = inputAddress1.Remove(0, ret.StreetNumber.Length + 1);
+                    }
+                    #endregion
+
+                    #region StreetName
+                    ret.StreetName = inputAddress1;
+
+                    // Problematic addresses
+                    ret = HandleParticularlyProblematicStreets(ret);
+
+                    // PO BOXes
+                    match = Regex.Match(inputAddress1, @"(P ?O ?BOX|P ?O ?B?) ?(\d+)");
+                    if (match.Success)
+                    {
+                        ret.POBoxNumber = int.Parse(match.Groups[2].Value);
+                        ret.StreetName = "PO BOX " + match.Groups[2].Value;
+                    }
+                    else
+                    {
+                        match = Regex.Match(inputAddress1, @"BOX (\d+)$");
+                        if (match.Success)
+                        {
+                            ret.POBoxNumber = int.Parse(match.Groups[1].Value);
+                            ret.StreetName = "PO BOX " + match.Groups[1].Value;
+                        }
+                    }
+
+                    if (ret.StreetName != null)
+                    {
+                        Match streetNameIsNumberMatch = Regex.Match(ret.StreetName, @"[A-Z]* ?(\d+)$");
+                        if (streetNameIsNumberMatch.Success)
+                        {
+                            ret.StreetNameIsNumber = true;
+                            ret.StreetNameNumber = int.Parse(streetNameIsNumberMatch.Groups[1].Value);
+                        }
+
+                        Match eastMatch = Regex.Match(ret.StreetName, "(^EAST | EAST$| EAST )");
+                        if (eastMatch.Success)
+                        {
+                            ret.StreetName = ret.StreetName.Remove(eastMatch.Index, eastMatch.Length);
+                            ret.CardinalDirection = "EAST";
+                        }
+
+                        Match westMatch = Regex.Match(ret.StreetName, "(^WEST | WEST$| WEST )");
+                        if (westMatch.Success)
+                        {
+                            ret.StreetName = ret.StreetName.Remove(westMatch.Index, westMatch.Length);
+                            ret.CardinalDirection = "WEST";
+                        }
+
+                        Match northMatch = Regex.Match(ret.StreetName, "(^NORTH | NORTH$| NORTH )");
+                        if (northMatch.Success)
+                        {
+                            ret.StreetName = ret.StreetName.Remove(northMatch.Index, northMatch.Length);
+                            ret.CardinalDirection = "NORTH";
+                        }
+
+                        Match southMatch = Regex.Match(ret.StreetName, "(^SOUTH | SOUTH$| SOUTH )");
+                        if (southMatch.Success)
+                        {
+                            ret.StreetName = ret.StreetName.Remove(southMatch.Index, southMatch.Length);
+                            ret.CardinalDirection = "SOUTH";
+                        }
+                    }
+
+                    #endregion
+
+                    ret.FullStreetName = ret.StreetName;
+                    if (!string.IsNullOrEmpty(ret.Suffix))
+                    {
+                        ret.FullStreetName += " " + ret.Suffix;
+                    }
+
+                    //if (ret.MatchQuality == MatchQuality.MatchNotYetDetermined && string.IsNullOrEmpty(ret.StreetName))
+                    //{
+                    //    ret.MatchQuality = MatchQuality.CouldNotParseFormat;
+                    //}
+                }
+                if (print)
+                {
+                    string addressRaw = $"{ret.RawAddress1}";
+                    if (bits[Address2Column].Length <= 5)
+                    {
+                        addressRaw += $" / {bits[Address2Column]}";
+                    }
+                    string addressCleaned = $"{ ret.StreetNumber } / { ret.StreetName} / { ret.Suffix}";
+                    if (!string.IsNullOrEmpty(ret.ApartmentNumber))
+                    {
+                        addressCleaned += $" / {ret.ApartmentNumber}";
+                    }
+                    Console.WriteLine($"{addressRaw} => {addressCleaned}");
+                }
+            }
+            return ret;
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(input);
+            //    Console.WriteLine();
+            //    throw ex;
+            //}
+        }
+
 
         public static Address InitializeAddress(string input, Data data)
         {
@@ -484,7 +786,12 @@ namespace UndressAddress
 
                     if (ret.StreetName != null)
                     {
-                        ret.StreetNameIsNumber = Regex.IsMatch(ret.StreetName, @"[A-Z]* ?(\d+)$");
+                        Match streetNameIsNumberMatch = Regex.Match(ret.StreetName, @"[A-Z]* ?(\d+)$");
+                        if (streetNameIsNumberMatch.Success)
+                        {
+                            ret.StreetNameIsNumber = true;
+                            ret.StreetNameNumber = int.Parse(streetNameIsNumberMatch.Groups[1].Value);
+                        }
                     }
 
                     #endregion
@@ -569,14 +876,40 @@ namespace UndressAddress
             return theSame;
         }
 
-        public static string CreateLineFromAddress(Address address, string alternateStreetName = null)
+        public static string CreateLineFromAddress(Address address, string alternateStreet)
+        {
+            return CreateLineFromAddress(address, alternateStreet, null, null);
+        }
+
+        public static string CreateLineFromAddress(Address address, string alternateStreetName, int? alternateZip, string alternateCity)
         {
             string[] copiedParts = new string[address.OriginalLineBits.Length];
             Array.Copy(address.OriginalLineBits, copiedParts, copiedParts.Length);
 
-            if (alternateStreetName != null)
+            const int Address1Column = 8;
+            const int ZipColumn = 10;
+            const int CityColumn = 13;
+
+            string modifiedAlternateStreetName = alternateStreetName;
+
+            if (!string.IsNullOrEmpty(address.StreetNumber))
             {
-                copiedParts[8] = alternateStreetName;
+                modifiedAlternateStreetName = address.StreetNumber + " " + modifiedAlternateStreetName;
+            }
+
+            if (!string.IsNullOrEmpty(address.ApartmentNumber) && !address.ApartmentNumberFromAddress2Field)
+            {
+                modifiedAlternateStreetName = modifiedAlternateStreetName + " APT " + address.ApartmentNumber;
+            }
+
+            copiedParts[Address1Column] = alternateStreetName;
+            if (alternateZip != null)
+            {
+                copiedParts[ZipColumn] = alternateZip.ToString();
+            }
+            if (alternateCity != null)
+            {
+                copiedParts[CityColumn] = alternateCity;
             }
 
             return string.Join(",", copiedParts);

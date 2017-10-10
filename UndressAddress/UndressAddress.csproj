@@ -71,6 +71,8 @@
     <Compile Include="DataTypes\MatchQuality.cs" />
     <Compile Include="DataTypes\StateOfNewYorkAddressRange.cs" />
     <Compile Include="DataTypes\StreetName.cs" />
+    <Compile Include="DataTypes\StreetNameAndCity.cs" />
+    <Compile Include="DataTypes\StreetNameAndZip.cs" />
     <Compile Include="DataTypes\StreetNumberRange.cs" />
     <Compile Include="MatchEngine.cs" />
     <Compile Include="Program.cs" />
@@ -101,7 +103,13 @@
     <None Include="state_of_new_york_revised.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="streetNameCity2Zips.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="streetNames.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="streetNameZip2Cities.dat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="StreetSuffixes.csv">

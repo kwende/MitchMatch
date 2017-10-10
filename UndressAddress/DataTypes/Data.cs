@@ -21,6 +21,8 @@ namespace UndressAddress.DataTypes
         public BKTree StreetNameBKTree { get; set; }
         public BKTree CityNameBKTree { get; set; }
         public Dictionary<string, List<string>> AlternateSuffixList { get; set; }
+        public Dictionary<StreetNameAndCity, List<int>> StreetNameCity2Zips { get; set; }
+        public Dictionary<StreetNameAndZip, List<string>> StreetNameZip2Cities { get; set; }
         public List<StreetName> StreetData = new List<StreetName>();
         public List<string> KnownCities = new List<string>();
         public List<StateOfNewYorkAddressRange> NYCityStreets { get; set; }
