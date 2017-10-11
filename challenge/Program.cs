@@ -1,4 +1,5 @@
-﻿using Common;
+﻿using challenge.Ben;
+using Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,11 +21,22 @@ namespace challenge
 
         static void Main(string[] args)
         {
+            //HailMary hailMary = new HailMary();
+            //List<string> alternates = hailMary.LoadFromAlternatesFile("D:/alternates.csv", 16028369);
+            //Row[] alternateAllData = alternates.Select(n => FileLibrary.ParseRow(n)).ToArray();
 
             // Load Data
             var lines = FileLibrary.GetLines();
+
             Row[] allData = lines.Skip(1).Where(l => l != ",,,,,,,,,,,,,,,,,,").Select(l => FileLibrary.ParseRow(l)).ToArray();
-            var realData = allData.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
+
+            List<Row> toProcess = new List<Row>();
+            toProcess.AddRange(allData);
+            //toProcess.AddRange(alternateAllData);
+
+            allData = toProcess.ToArray();
+
+            var realData = toProcess.Where(r => r.EnterpriseID >= 15374761).OrderBy(n => n.MRN).ToArray();
 
             // Clean Data
             Console.WriteLine("Cleaning Rows");
@@ -39,7 +51,8 @@ namespace challenge
             MatchingManager matchingManager = new MatchingManager(_printErrors, _printActuals, _printLargeGroupValues);
             matchingManager.FindAllMatches(allData, ref newMatches);
 
-            FileLibrary.SaveFinalSubmission(newMatches.ClosedRowSets(), @"submission.csv");
+            List<List<int>> finalSubmission = newMatches.ClosedRowSets();//hailMary.Collapse(newMatches.ClosedRowSets());
+            FileLibrary.SaveFinalSubmission(finalSubmission, @"submission.csv");
 
             Console.ReadLine();
         }

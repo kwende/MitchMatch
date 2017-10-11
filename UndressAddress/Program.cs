@@ -369,7 +369,7 @@ namespace UndressAddress
                 lock (alternateLines)
                 {
                     alternateLines.Add(AddressUtility.CreateLineFromAddress(address, "UNKNOWN"));
-                    unknown.Add(address.OriginalLine); 
+                    unknown.Add(address.OriginalLine);
                 }
             }
             else if (address.MatchQuality == MatchQuality.Homeless)
@@ -377,12 +377,14 @@ namespace UndressAddress
                 lock (alternateLines)
                 {
                     alternateLines.Add(AddressUtility.CreateLineFromAddress(address, "HOMELESS"));
-                    homeless.Add(address.OriginalLine); 
+                    homeless.Add(address.OriginalLine);
                 }
             }
 
             return alternateLines;
         }
+
+        static object _syncObject = new object();
 
         static List<string> GetCleanedNYStreetListBen()
         {
@@ -465,12 +467,22 @@ namespace UndressAddress
                 }
                 #endregion
 
-                //Address address = LucasAddressMatch(data.FinalDataSet[c], data);
-                List<string> alternates = BenAddressMatch(data.FinalDataSet[c], data);
-
-                lock (allAlternates)
+                try
                 {
-                    allAlternates.AddRange(alternates);
+                    //Address address = LucasAddressMatch(data.FinalDataSet[c], data);
+                    List<string> alternates = BenAddressMatch(data.FinalDataSet[c], data);
+
+                    lock (allAlternates)
+                    {
+                        allAlternates.AddRange(alternates);
+                    }
+                }
+                catch
+                {
+                    lock (_syncObject)
+                    {
+                        File.AppendAllText("c:/users/brush/desktop/errorLines.txt", data.FinalDataSet[c]);
+                    }
                 }
             });
 
