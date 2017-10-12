@@ -468,10 +468,10 @@ namespace UndressAddress
                 //Address address = LucasAddressMatch(data.FinalDataSet[c], data);
                 List<string> alternates = BenAddressMatch(data.FinalDataSet[c], data);
 
-                lock (allAlternates)
-                {
-                    allAlternates.AddRange(alternates);
-                }
+                //lock (allAlternates)
+                //{
+                //    allAlternates.AddRange(alternates);
+                //}
             });
 
 
@@ -519,8 +519,8 @@ namespace UndressAddress
         {
             Console.WriteLine("Loading data...");
             //// read from all the necessary files
-            //Data data = DataLoader.LoadData(regenerateBKTree: true);
-            Data data = DataLoader.LoadDataBen(regenerateBKTree: true);
+            Data data = DataLoader.LoadData(regenerateBKTree: true);
+            //Data data = DataLoader.LoadDataBen(regenerateBKTree: true);
 
             //KeyValuePair<StreetNameAndCity, List<int>>[] rest = data.StreetNameCity2Zips.Where(n => n.Key.FullStreetName == "73 ST").ToArray();
 
@@ -819,8 +819,8 @@ namespace UndressAddress
             //bool contains = StringUtility.Contains("MORRIS AVE", "BVE"); 
 
             //DataSetParsers.DatFileGenerator.Generate("D:/StreetSegment.csv");
-            //GetCleanedNYStreetList2();
-            GetCleanedNYStreetListBen();
+            GetCleanedNYStreetList2();
+            //GetCleanedNYStreetListBen();
             return;
         }
     }

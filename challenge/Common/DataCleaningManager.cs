@@ -243,10 +243,52 @@ namespace challenge
 
             ////////////// ADDRESS /////////////////////
 
+            string[] addressesToReset = new string[]
+            {
+                //"BELLEVUE HOSPITAL", // HOSPITAL
+                //"GOUVERNEUR HOSPITAL", // HOSPITAL
+            };
+            string[] addressesToIgnore = new string[]
+{
+                "UNKNOWN",
+                //"HOMELESS",
+                ////"BELLEVUE HOSPITAL", // HOSPITAL
+                ////"GOUVERNEUR HOSPITAL", // HOSPITAL
+                //"WARDS ISLAND", // SHELTER
+                //"1 MAIN ST", // SCHOOL
+                //"1414 HAZEN ST", // PRISON
+                //"1919 HAZEN ST", // PRISON
+                //"219 EAST 121 ST", // SHELTER
+                //"400 EAST 30 ST", // SHELTER
+                //"681 CLARKSON AVE",// SHELTER
+                //"89 PORTER AVE",// SHELTER
+                //"143 WEST 140 ST",
+                //"2660 8 AVE",
+                //"2940 OCEAN PKWY",
+                //"301 EAST 156 ST",
+                //"429 DUMONT AVE",
+                //"9 9 METROTECH CENTER",
+                //"11133 41 AVE",
+
+};
+
             string[] lines = File.ReadAllLines("CleanedAddresses.csv");
             for (int i = 0; i < data.Length; i++)
             {
-                data[i].ADDRESS1 = lines[i].Trim();
+                string possibleReplacement = lines[i].Trim();
+
+                if (addressesToReset.Contains(possibleReplacement))
+                {
+                    // Keep old address
+                }
+                else if (addressesToIgnore.Contains(possibleReplacement))
+                {
+                    data[i].ADDRESS1 = "";
+                }
+                else
+                {
+                    data[i].ADDRESS1 = possibleReplacement;
+                }
             }
 
             ///////////////////////////////////////////////

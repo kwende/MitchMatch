@@ -74,5 +74,11 @@
     <Compile Include="DataContracts\Row.cs" />
     <Compile Include="Serializer.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DecisionTreeLearner\DecisionTreeLearner.csproj">
+      <Project>{544315A6-DC64-4D04-992B-DF44FDDE97B9}</Project>
+      <Name>DecisionTreeLearner</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

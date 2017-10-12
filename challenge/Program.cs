@@ -35,6 +35,16 @@ namespace challenge
             ClosedSets originalMatches = FileLibrary.LoadOriginalMatches(allData);
             ClosedSets newMatches = FileLibrary.LoadOriginalMatches(allData); // create a copy to edit
 
+
+
+
+
+
+
+
+
+
+
             // Match Data
             MatchingManager matchingManager = new MatchingManager(_printErrors, _printActuals, _printLargeGroupValues);
             matchingManager.FindAllMatches(allData, ref newMatches);
