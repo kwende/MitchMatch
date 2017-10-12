@@ -251,7 +251,7 @@ namespace challenge
             string[] addressesToIgnore = new string[]
 {
                 "UNKNOWN",
-                //"HOMELESS",
+                "HOMELESS",
                 ////"BELLEVUE HOSPITAL", // HOSPITAL
                 ////"GOUVERNEUR HOSPITAL", // HOSPITAL
                 //"WARDS ISLAND", // SHELTER

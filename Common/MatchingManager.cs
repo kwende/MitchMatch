@@ -315,7 +315,7 @@ namespace Common
                 toReturn++;
             if (toInclude.AddressSoft && FuzzyAddressMatchNumber(a.ADDRESS1, b.ADDRESS1))
                 toReturn++;
-            if (toInclude.Alias && FuzzyStringMatch(a.ALIAS, b.FIRST + " " + b.LAST) || (b.MIDDLE != "" && FuzzyStringMatch(a.ALIAS, b.FIRST + " " + b.MIDDLE + " " + b.LAST)) || FuzzyStringMatch(b.ALIAS, a.FIRST + " " + a.LAST) || (a.MIDDLE != "" && FuzzyStringMatch(b.ALIAS, a.FIRST + " " + a.MIDDLE + " " + a.LAST)))
+            if (toInclude.Alias && (FuzzyStringMatch(a.ALIAS, b.FIRST + " " + b.LAST) || (b.MIDDLE != "" && FuzzyStringMatch(a.ALIAS, b.FIRST + " " + b.MIDDLE + " " + b.LAST)) || FuzzyStringMatch(b.ALIAS, a.FIRST + " " + a.LAST) || (a.MIDDLE != "" && FuzzyStringMatch(b.ALIAS, a.FIRST + " " + a.MIDDLE + " " + a.LAST))))
                 toReturn++;
             return toReturn;
         }
@@ -714,244 +714,10 @@ namespace Common
             return toReturn;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        private static long[] BadPhones =
-        {
-            -1,
-            0000000000,
-            1111111111,
-            2222222222,
-            3333333333,
-            4444444444,
-            5555555555,
-            6666666666,
-            7777777777,
-            8888888888,
-            9999999999,
-            1234567890,
-        };
-
-        static void Main2()
-        {
-            string[] allLines = File.ReadAllLines("c:/users/brush/desktop/FinalDataSet.csv").Skip(1).ToArray();
-
-            string[] submission01 = File.ReadAllLines("c:/users/brush/desktop/submission01.csv");
-
-            List<string> originalSubmissions = new List<string>();
-
-            foreach (string line in submission01)
-            {
-                string[] parts = line.Split(',');
-
-                int p1 = int.Parse(parts[0]);
-                int p2 = int.Parse(parts[1]);
-
-                if (p1 < p2)
-                {
-                    originalSubmissions.Add($"{p1},{p2}");
-                }
-                else
-                {
-                    originalSubmissions.Add($"{p2},{p1}");
-                }
-            }
-
-            const int Phone1Field = 15;
-            const int Phone2Field = 16;
-
-            Dictionary<string, List<int>> phone1Key = new Dictionary<string, List<int>>();
-            Dictionary<string, List<int>> phone2Key = new Dictionary<string, List<int>>();
-
-            int count = 0;
-            foreach (string line in allLines)
-            {
-                count++;
-
-                if (count % 10000 == 0)
-                {
-                    Console.WriteLine($"{count}/{allLines.Length}");
-                }
-
-                string[] parts = DecisionTreeLearner.Data.DataLoader.SmartSplit(line);
-
-                if (parts[0] != "")
-                {
-                    int eid = int.Parse(parts[0]);
-
-                    string phone1 = parts[Phone1Field].Replace("-", "");
-                    string phone2 = parts[Phone2Field].Replace("-", "");
-                    string phone3 = "";
-
-                    if (phone2.Contains("^^"))
-                    {
-                        string[] partsToPhone2 = phone2.Split(new string[] { "^^" }, StringSplitOptions.None);
-
-                        phone2 = partsToPhone2[0];
-                        phone3 = partsToPhone2[1];
-                    }
-
-                    if (!string.IsNullOrEmpty(phone1))
-                    {
-                        if (!phone1Key.ContainsKey(phone1))
-                        {
-                            phone1Key.Add(phone1, new List<int>());
-                        }
-
-                        phone1Key[phone1].Add(eid);
-                    }
-
-                    if (!string.IsNullOrEmpty(phone2))
-                    {
-                        if (!phone2Key.ContainsKey(phone2))
-                        {
-                            phone2Key.Add(phone2, new List<int>());
-                        }
-
-                        phone2Key[phone2].Add(eid);
-                    }
-
-                    if (!string.IsNullOrEmpty(phone3))
-                    {
-                        if (!phone2Key.ContainsKey(phone3))
-                        {
-                            phone2Key.Add(phone3, new List<int>());
-                        }
-
-                        phone2Key[phone3].Add(eid);
-                    }
-                }
-            }
-
-            Console.Write("A");
-
-            string[] key1 = phone1Key.Keys.ToArray();
-            foreach (string key in key1)
-            {
-                phone1Key[key] = phone1Key[key].Distinct().ToList();
-            }
-
-            string[] key2 = phone2Key.Keys.ToArray();
-            foreach (string key in key2)
-            {
-                phone2Key[key] = phone2Key[key].Distinct().ToList();
-            }
-
-            Console.Write("B");
-
-            List<int> eidsWithPhone1AlsoInPhone2 = new List<int>();
-
-            List<string> pairs = new List<string>();
-            List<string> pairs2 = new List<string>();
-
-            foreach (string key in phone1Key.Keys)
-            {
-                if (phone2Key.ContainsKey(key))
-                {
-                    int[] phone1Eids = phone1Key[key].ToArray();
-                    int[] phone2Eids = phone2Key[key].ToArray();
-
-                    foreach (int phone1Eid in phone1Eids)
-                    {
-                        foreach (int phone2Eid in phone2Eids)
-                        {
-                            if (phone1Eid != phone2Eid &&
-                                !phone1Eids.Contains(phone2Eid))
-                            {
-                                string toWrite = null;
-
-                                if (phone1Eid < phone2Eid)
-                                {
-                                    toWrite = $"{phone1Eid},{phone2Eid}";
-                                }
-                                else
-                                {
-                                    toWrite = $"{phone2Eid},{phone1Eid}";
-                                }
-
-                                if (!originalSubmissions.Contains(toWrite))
-                                {
-                                    pairs.Add(toWrite + ",1");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            Console.Write("C");
-
-            foreach (string key in phone2Key.Keys)
-            {
-                List<int> eids = phone2Key[key];
-                List<int> compareEids = new List<int>();
-
-                if (phone1Key.ContainsKey(key))
-                {
-                    compareEids = phone1Key[key];
-                }
-
-                foreach (int eid1 in eids)
-                {
-                    foreach (int eid2 in eids)
-                    {
-                        if (eid1 != eid2 && !compareEids.Contains(eid1) &&
-                            !compareEids.Contains(eid1))
-                        {
-                            string toWrite = null;
-
-                            if (eid1 < eid2)
-                            {
-                                toWrite = $"{eid1},{eid2}";
-                            }
-                            else
-                            {
-                                toWrite = $"{eid2},{eid1}";
-                            }
-
-                            if (!originalSubmissions.Contains(toWrite))
-                            {
-                                pairs2.Add(toWrite + ",1");
-                            }
-                        }
-                    }
-                }
-            }
-
-            Console.Write("D");
-
-            pairs = pairs.Distinct().ToList();
-            pairs2 = pairs2.Distinct().ToList();
-
-            File.WriteAllLines("C:/users/brush/desktop/phone1_phone2.txt",
-                    pairs.ToArray());
-            File.WriteAllLines("C:/users/brush/desktop/phone2.txt",
-                pairs2.ToArray());
-
-        }
-
+        
         static void AliasMatches(Row[] data, int softEqualsCount, Func<Row, Row, int> softEquals, ref ClosedSets matches, int originalNumberOfMatches)
         {
+            Console.WriteLine();
             Console.Write("ALIAS");
 
             Dictionary<string, List<int>> aliasEids = new Dictionary<string, List<int>>();
@@ -1081,6 +847,7 @@ namespace Common
 
         static void MaidenMatches(Row[] data, int softEqualsCount, Func<Row, Row, int> softEquals, ref ClosedSets matches, int originalNumberOfMatches)
         {
+            Console.WriteLine();
             Console.Write("MAIDEN");
 
             Dictionary<string, List<int>> maidenEids = new Dictionary<string, List<int>>();
@@ -1246,7 +1013,171 @@ namespace Common
             PrintingLibrary.PrintRemainingRowCount(data, matches);
         }
 
+        static void AddMatchesMiddle(Row[] data, int softEqualsCount, Func<Row, Row, int> softEquals, ref ClosedSets matches, int originalNumberOfMatches)
+        {
+            Console.WriteLine();
+            Console.WriteLine("47. MIDDLE");
 
+            Dictionary<string, List<Row>> firsts = new Dictionary<string, List<Row>>();
+            Dictionary<string, List<Row>> lasts = new Dictionary<string, List<Row>>();
+
+            for (int i = 1; i < data.Length; i++)
+            {
+                if (data[i].FIRST != "" && data[i].LAST != "")
+                {
+                    if (!firsts.ContainsKey(data[i].FIRST + " " + data[i].LAST))
+                    {
+                        firsts.Add(data[i].FIRST + " " + data[i].LAST, new List<Row>());
+                    }
+                    firsts[data[i].FIRST + " " + data[i].LAST].Add(data[i]);
+                    if (data[i].LAST != "")
+                    {
+                        if (!lasts.ContainsKey(data[i].LAST))
+                        {
+                            lasts.Add(data[i].LAST, new List<Row>());
+                        }
+                        lasts[data[i].LAST].Add(data[i]);
+                    }
+                }
+            }
+
+
+
+
+            var middleGroups = data.GroupBy(r => r.MIDDLE);
+            int thrownOutCounter = 0;
+            int addedCounter = 0;
+            int modifiedCounter = 0;
+            foreach (var middleGroup in middleGroups)
+            {
+                if (middleGroup.Key != "")
+                {
+                    // matching middles
+                    //foreach (Row row1 in middleGroup)
+                    //{
+                    //    foreach (Row row2 in middleGroup)
+                    //    {
+                    //        if (row2 != row1)
+                    //        {
+                    //            if (softEquals(row1, row2) >= softEqualsCount)
+                    //            {
+                    //                if (matches.AddMatch(row1, row2))
+                    //                {
+                    //                    addedCounter++;
+
+                    //                    if (_printActuals)
+                    //                    {
+                    //                        //PrintingLibrary.PrintPair(row1, row2);
+                    //                        _newMatchingRows.Add(row1.ToString());
+                    //                        _newMatchingRows.Add(row2.ToString());
+                    //                        _newMatchingRows.Add("");
+                    //                    }
+                    //                }
+                    //            }
+                    //        }
+                    //        else
+                    //        {
+                    //            thrownOutCounter++;
+
+                    //            if (_printErrors)
+                    //            {
+                    //                PrintingLibrary.PrintPair(row1, row2);
+                    //            }
+                    //        }
+
+                    //    }
+                    //}
+
+
+                    // matching names
+                    if (firsts.ContainsKey(middleGroup.Key))
+                    //if (FuzzyStringMatch(aliasGroup.Key, nameGroup.Key))
+                    {
+                        foreach (Row row1 in middleGroup)
+                        {
+                            foreach (Row row2 in firsts[middleGroup.Key])
+                            {
+                                if (row2 != row1)
+                                {
+                                    if (softEquals(row1, row2) >= softEqualsCount)
+                                    {
+                                        if (matches.AddMatch(row1, row2))
+                                        {
+                                            addedCounter++;
+
+                                            if (_printActuals)
+                                            {
+                                                //PrintingLibrary.PrintPair(row1, row2);
+                                                _newMatchingRows.Add(row1.ToString());
+                                                _newMatchingRows.Add(row2.ToString());
+                                                _newMatchingRows.Add("");
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    thrownOutCounter++;
+
+                                    if (_printErrors)
+                                    {
+                                        PrintingLibrary.PrintPair(row1, row2);
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    if (lasts.ContainsKey(middleGroup.Key))
+                    //if (FuzzyStringMatch(aliasGroup.Key, nameGroup.Key))
+                    {
+                        foreach (Row row1 in middleGroup)
+                        {
+                            foreach (Row row2 in lasts[middleGroup.Key])
+                            {
+                                if (row2 != row1)
+                                {
+                                    if (softEquals(row1, row2) >= softEqualsCount)
+                                    {
+                                        if (matches.AddMatch(row1, row2))
+                                        {
+                                            addedCounter++;
+
+                                            if (_printActuals)
+                                            {
+                                                //PrintingLibrary.PrintPair(row1, row2);
+                                                _newMatchingRows.Add(row1.ToString());
+                                                _newMatchingRows.Add(row2.ToString());
+                                                _newMatchingRows.Add("");
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    thrownOutCounter++;
+
+                                    if (_printErrors)
+                                    {
+                                        PrintingLibrary.PrintPair(row1, row2);
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
+            Console.WriteLine($"Groups thrown out: {thrownOutCounter}");
+            Console.WriteLine($"Match added: {addedCounter}");
+            Console.WriteLine($"Match modified: {modifiedCounter}");
+            Console.WriteLine($"Cumulative Matches Found: {matches.NumberOfMatches - originalNumberOfMatches}");
+
+            PrintingLibrary.PrintRemainingRowCount(data, matches);
+        }
 
 
 
@@ -1292,34 +1223,29 @@ namespace Common
         public void FindAllMatches(Row[] allData, ref ClosedSets newMatches)
         {
             _eidToRow = EIDToRow(allData);
-            //AddPhone2s(allData);
-            //AddAliases(allData);
+            AddPhone2s(allData);
+            AddAliases(allData);
 
             int originalNumberOfMatches = newMatches.NumberOfMatches;
 
+            //AddFuzzyMatches("ADDRESS1and2ofSSN-FIRST-DOB-PHONE.csv", allData, r => HardSelector(r, new FieldInclusions
+            //{
+            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            //{
+            //    SSN = true,
+            //    First = true,
+            //    Last = true,
+            //    DOB = true,
+            //    Phone = true,
+            //}), ref newMatches, originalNumberOfMatches);
 
-            MaidenMatches(allData, 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            {
-                First = true,
-                SSN = true,
-                DOB = true,
-                Phone = true,
-                Address = true,
-                Email = true,
-            }), ref newMatches, originalNumberOfMatches);
+            //Console.WriteLine("Done!");
+            //if (_printActuals)
+            //{
+            //    File.WriteAllLines("newMatches.csv", _newMatchingRows);
+            //}
 
-
-
-
-
-
-            Console.WriteLine("Done!");
-            if (_printActuals)
-            {
-                File.WriteAllLines("newMatches.csv", _newMatchingRows);
-            }
-
-            return;
+            //return;
 
 
 
@@ -1513,7 +1439,6 @@ namespace Common
                 First = true,
                 DOB = true,
                 Phone = true,
-                Alias = true,
             }), ref newMatches, originalNumberOfMatches);  //Josh code review : This could match on address, first name, and DOB.  Maybe it should go in the weaker matches category?
 
             //////////******************  WEAKER MATCHES   ******************//
@@ -1527,7 +1452,7 @@ namespace Common
             //{
             //    SSN = true,
             //}), ref newMatches, originalNumberOfMatches);
-            ////weakerMatchedIDs.AddRange(weak);
+            //weakerMatchedIDs.AddRange(weak);
 
             ////weak =
             //AddMatches("22. NAME + DOB weaker", allData, r => HardSelector(r, new FieldInclusions
@@ -1551,18 +1476,18 @@ namespace Common
             //}), ref newMatches, originalNumberOfMatches);
             ////weakerMatchedIDs.AddRange(weak);
 
-            //weak =
-            AddMatches("24. NAME + ADDRESS weaker", allData, r => HardSelector(r, new FieldInclusions
-            {
-                Name = true,
-                Address = true,
-            }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
-            {
-                SSNSoft = true,
-            }), ref newMatches, originalNumberOfMatches);
-            //weakerMatchedIDs.AddRange(weak);
-
             ////weak =
+            //AddMatches("24. NAME + ADDRESS weaker", allData, r => HardSelector(r, new FieldInclusions
+            //{
+            //    Name = true,
+            //    Address = true,
+            //}), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            //{
+            //    SSNSoft = true,
+            //}), ref newMatches, originalNumberOfMatches);
+            ////weakerMatchedIDs.AddRange(weak);
+
+            //weak =
             //AddMatches("25. PHONE + soft NAME", allData, r => HardSelector(r, new FieldInclusions
             //{
             //    Phone = true
@@ -1581,7 +1506,7 @@ namespace Common
             //    First = true,
             //    DOB = true,
             //}), ref newMatches, originalNumberOfMatches);
-            //weakerMatchedIDs.AddRange(weak);
+            ////weakerMatchedIDs.AddRange(weak);
 
             ////******************  NEW SUPER-WEAK MATCHES   ******************//
 
@@ -1596,6 +1521,7 @@ namespace Common
             //    Phone = true,
             //}), ref newMatches, originalNumberOfMatches);
 
+            //XXXXX 33/835
             //AddMatches("28. EMAIL + soft", allData, r => HardSelector(r, new FieldInclusions
             //{
             //    Email = true,
@@ -1708,6 +1634,7 @@ namespace Common
             //    Address = true,
             //}), 0, (r1, r2) =>
             //    1, ref newMatches, originalNumberOfMatches);
+
             AddMatchesPhone2("40. PHONE2 + 1 SOFT", r => HardSelector(r, new FieldInclusions
             { }), 1, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
             {
@@ -1716,7 +1643,6 @@ namespace Common
                 DOB = true,
                 Address = true,
                 Phone = true,
-                Alias = true,
             }), ref newMatches, originalNumberOfMatches);
 
             //AddMatches("41. SSN + 2 soft", allData, r => HardSelector(r, new FieldInclusions
@@ -1817,6 +1743,31 @@ namespace Common
             }), ref newMatches, originalNumberOfMatches);
 
 
+
+            ////XXXXX 0/79
+            //MaidenMatches(allData, 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            //{
+            //    First = true,
+            //    SSN = true,
+            //    DOB = true,
+            //    Phone = true,
+            //    Address = true,
+            //    Email = true,
+            //}), ref newMatches, originalNumberOfMatches);
+
+            //XXX 0/331
+            //AddMatchesMiddle(allData, 2, (r1, r2) => SoftMatchCount(r1, r2, new FieldInclusions
+            //{
+            //    SSN = true,
+            //    First = true,
+            //    DOB = true,
+            //    Phone = true,
+            //    Alias = true,
+            //}), ref newMatches, originalNumberOfMatches);
+
+
+
+
             newMatches.AddMatch(_eidToRow[14491313], _eidToRow[14491309]);
             newMatches.AddMatch(_eidToRow[14155709], _eidToRow[14155711]);
             newMatches.AddMatch(_eidToRow[14363987], _eidToRow[14363990]);
@@ -1825,6 +1776,7 @@ namespace Common
             newMatches.AddMatch(_eidToRow[13121604], _eidToRow[13121610]);
             newMatches.AddMatch(_eidToRow[14414547], _eidToRow[14414548]);
             newMatches.AddMatch(_eidToRow[14205227], _eidToRow[14205222]);
+            newMatches.AddMatch(_eidToRow[12183085], _eidToRow[12183083]);
 
             Console.WriteLine("Done!");
             if (_printActuals)
