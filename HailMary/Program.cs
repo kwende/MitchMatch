@@ -27,7 +27,7 @@ namespace HailMary
             1234567890,
         };
 
-        static void Main(string[] args)
+        static void Main2()
         {
             string[] allLines = File.ReadAllLines("c:/users/brush/desktop/FinalDataSet.csv").Skip(1).ToArray();
 
@@ -183,7 +183,7 @@ namespace HailMary
 
                 if (phone1Key.ContainsKey(key))
                 {
-                    compareEids = phone1Key[key]; 
+                    compareEids = phone1Key[key];
                 }
 
                 foreach (int eid1 in eids)
@@ -381,6 +381,104 @@ namespace HailMary
             //});
 
             //File.WriteAllLines("c:/user/brush/desktop/matches.txt", matches.Values.Distinct().ToArray());
+        }
+
+        static void Main(string[] args)
+        {
+            string[] allLines = File.ReadAllLines("c:/users/brush/desktop/FinalDataSet.csv").Skip(1).ToArray();
+
+            string[] submission01 = File.ReadAllLines("c:/users/brush/desktop/submission01.csv");
+
+            List<string> originalSubmissions = new List<string>();
+
+            foreach (string line in submission01)
+            {
+                string[] parts = line.Split(',');
+
+                int p1 = int.Parse(parts[0]);
+                int p2 = int.Parse(parts[1]);
+
+                if (p1 < p2)
+                {
+                    originalSubmissions.Add($"{p1},{p2}");
+                }
+                else
+                {
+                    originalSubmissions.Add($"{p2},{p1}");
+                }
+            }
+
+            Dictionary<string, List<int>> aliasEids = new Dictionary<string, List<int>>();
+
+            foreach (string line in allLines)
+            {
+                string[] parts = DecisionTreeLearner.Data.DataLoader.SmartSplit(line);
+
+                if (parts[0] != "")
+                {
+                    string alias = parts[18].Trim(); 
+                    if (!string.IsNullOrEmpty(alias) && alias != "JOHN DOE" && alias != "JANE DOE")
+                    {
+                        if (!aliasEids.ContainsKey(alias))
+                        {
+                            aliasEids.Add(alias, new List<int>());
+                        }
+
+                        aliasEids[alias].Add(int.Parse(parts[0]));
+                    }
+                }
+
+            }
+
+            string[] keys = aliasEids.Keys.ToArray();
+            foreach (string key in keys)
+            {
+                aliasEids[key] = aliasEids[key].Distinct().ToList();
+            }
+
+            Console.Write("B");
+
+            int counter = 0;
+            List<string> pairs = new List<string>();
+            foreach (KeyValuePair<string, List<int>> aliasWithEids in aliasEids)
+            {
+                counter++;
+
+                if (counter % 100 == 0)
+                {
+                    Console.WriteLine($"{counter}/{aliasEids.Count}");
+                }
+                List<int> eids = aliasWithEids.Value;
+
+                //Console.WriteLine("\t" + eids.Count + ": " + aliasWithEids.Key); 
+
+                foreach (int eid1 in eids)
+                {
+                    foreach (int eid2 in eids)
+                    {
+                        if (eid1 != eid2)
+                        {
+                            string toWrite = null;
+
+                            if (eid1 < eid2)
+                            {
+                                toWrite = $"{eid1},{eid2}";
+                            }
+                            else
+                            {
+                                toWrite = $"{eid2},{eid1}";
+                            }
+
+                            if (!originalSubmissions.Contains(toWrite))
+                            {
+                                pairs.Add(toWrite + ",1");
+                            }
+                        }
+                    }
+                }
+            }
+            File.WriteAllLines("c:/users/brush/desktop/alias.csv",
+                pairs.ToArray());
         }
     }
 }
