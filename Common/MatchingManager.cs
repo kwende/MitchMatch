@@ -1239,13 +1239,13 @@ namespace Common
             //    Phone = true,
             //}), ref newMatches, originalNumberOfMatches);
 
-            //Console.WriteLine("Done!");
-            //if (_printActuals)
-            //{
-            //    File.WriteAllLines("newMatches.csv", _newMatchingRows);
-            //}
+            Console.WriteLine("Done!");
+            if (_printActuals)
+            {
+                File.WriteAllLines("newMatches.csv", _newMatchingRows);
+            }
 
-            //return;
+            return;
 
 
 
